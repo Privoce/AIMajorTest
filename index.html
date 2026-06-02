@@ -196,6 +196,122 @@
       color: var(--muted);
       margin-top: 6px;
     }
+    .mbti-section { margin-top: 4px; }
+    .mbti-badge {
+      display: inline-block;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #6b4f9e;
+      background: linear-gradient(135deg, #f8f4fc 0%, #f0f4fa 100%);
+      padding: 8px 16px;
+      border-radius: 999px;
+      margin: 10px 0 12px;
+      border: 1px solid #ddd0ef;
+    }
+    .mbti-careers {
+      font-size: 0.92rem;
+      color: #5a6880;
+      margin-bottom: 10px;
+    }
+    .share-block-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #8b97ad;
+      margin: 14px 0 8px;
+    }
+    .mbti-share-card {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #e8dff5;
+      background: linear-gradient(135deg, #faf7fd 0%, #f5f8fc 100%);
+    }
+    .mbti-share-card .share-block-label {
+      margin: 0 0 10px;
+      color: #7a6b8f;
+    }
+    .mbti-share-card .mbti-badge {
+      margin: 0 0 8px;
+    }
+    .mbti-share-desc {
+      font-size: 0.85rem;
+      color: #6a6280;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .mbti-pills .major-pill {
+      background: #f0ebf8;
+      color: #5c4a72;
+      border: 1px solid #e0d4f0;
+    }
+    .major-pill-both {
+      background: linear-gradient(135deg, #eef5ff 0%, #f0ebf8 100%);
+      color: #3d5a8e;
+      border: 1px solid #9ec5f5;
+      font-weight: 700;
+    }
+    .major-pill-q16 {
+      box-shadow: 0 0 0 2px rgba(47, 143, 239, 0.2);
+    }
+    .combined-note {
+      font-size: 0.82rem;
+      color: #8b97ad;
+      margin: 8px 0 0;
+      line-height: 1.45;
+    }
+    .combined-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .combined-list li {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+    .combined-major-name {
+      font-weight: 600;
+      color: #4a5872;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .combined-tags {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .combined-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .combined-tag.profile { background: #eef2f8; color: #5a6880; }
+    .combined-tag.mbti { background: #f0ebf8; color: #6b4f9e; }
+    .combined-tag.explore { background: #f4f6f9; color: #8b97ad; }
+    .combined-tag.focus { background: #eef5ff; color: #2f8fef; }
+    .mbti-full-card {
+      margin: 18px 0;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #e8dff5;
+      background: linear-gradient(135deg, #faf7fd 0%, #f5f8fc 100%);
+    }
+    .mbti-full-card h3 {
+      font-size: 1rem;
+      color: #5c4a72;
+      margin-bottom: 10px;
+    }
     .share-banner {
       text-align: center;
       color: var(--muted);
@@ -392,6 +508,34 @@
       font-size: 0.9rem;
       margin-top: 4px;
     }
+    .section ul.combined-list {
+      margin-left: 0;
+    }
+    .section .combined-list li {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .section .combined-list li .combined-major-name {
+      display: inline;
+      margin-top: 0;
+      font-size: 0.92rem;
+      color: #4a5872;
+    }
+    .section .combined-list .combined-tags {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 4px;
+      margin-top: 0;
+    }
+    .section .combined-list .combined-tag {
+      display: inline-block;
+      margin-top: 0;
+    }
     .caution { color: #b45309; }
     .consultant-card {
       border: 1px solid var(--line);
@@ -550,7 +694,7 @@
         const p = resolveProfileId(slug);
         const sRaw = params.get("s") || "";
         const s = resolveProfileId(sRaw);
-        return { p, s, c: s ? "低" : "中" };
+        return { p, s, c: s ? "低" : "中", m: params.get("m") || "" };
       }
       const legacy = params.get("result");
       if (legacy) return fromBase64Url(legacy);
@@ -618,7 +762,7 @@
           dimensionKeys().forEach((dim) => {
             scores[dim] += bucket[dim] * factor;
           });
-        } else if ((q.type === "slider" || q.type === "scale_0_7") && q.score_formula) {
+        } else if ((q.type === "slider" || q.type === "scale_0_7") && q.score_formula && !q.mbti_axis) {
           const v = Number(ans);
           Object.entries(q.score_formula).forEach(([dim, formula]) => {
             const f = String(formula).replace(/value/g, String(v));
@@ -872,6 +1016,206 @@
       return renderChoiceSummaryItems(collectChoiceSummaryItems());
     }
 
+    function computeMbtiFromAnswers() {
+      const types = config.mbti_types || {};
+      const axisMap = { EI: "I", SN: "S", TF: "T", JP: "P" };
+      const highMap = { EI: "E", SN: "N", TF: "F", JP: "J" };
+      let code = "";
+      ["EI", "SN", "TF", "JP"].forEach((axis) => {
+        const q = (config.questions || []).find((x) => x.mbti_axis === axis);
+        if (!q || typeof answers[q.id] !== "number" || Number.isNaN(answers[q.id])) {
+          code += axisMap[axis];
+          return;
+        }
+        code += answers[q.id] > 3.5 ? highMap[axis] : axisMap[axis];
+      });
+      const info = types[code];
+      if (!info) return { code, name: code, description: "", career_directions: [], recommended_majors: [] };
+      return { code, name: info.name, description: info.description, career_directions: info.career_directions || [], recommended_majors: info.recommended_majors || [] };
+    }
+
+    function lookupMbti(code) {
+      if (!code) return null;
+      const info = (config.mbti_types || {})[code.toUpperCase()];
+      if (!info) return null;
+      return { code: code.toUpperCase(), name: info.name, description: info.description, career_directions: info.career_directions || [], recommended_majors: info.recommended_majors || [] };
+    }
+
+    const MAJOR_AREA_PATTERNS = {
+      computer_ai_software: ["计算机", "软件", "人工智能", "数据科学", "大数据", "网络工程", "信息安全"],
+      finance_business: ["金融", "经济", "工商", "会计", "审计", "财务", "税收", "财政", "保险", "投资", "贸易", "电子商务", "物流", "管理"],
+      medicine_pharmacy: ["医学", "药学", "护理", "口腔", "临床", "康复", "检验", "中医"],
+      law: ["法学"],
+      education: ["教育", "师范"],
+      ee_automation: ["电子", "通信", "自动化", "电气", "机器人", "智能制造", "集成电路"],
+      bio_chem_material_env: ["生物", "化学", "材料", "环境", "食品", "生态"],
+      architecture_civil: ["建筑", "土木", "城乡规划", "工程管理"],
+      design_media: ["设计", "传媒", "视觉", "媒体", "动画", "美术", "广播电视", "播音", "广告", "新闻", "传播", "产品", "工业", "数字媒体", "戏剧", "编导", "主持", "音乐", "表演", "汉语言"]
+    };
+
+    function normalizeMajorName(name) {
+      return String(name || "").trim();
+    }
+
+    function majorMatchesArea(major, areaId) {
+      const patterns = MAJOR_AREA_PATTERNS[areaId] || [];
+      return patterns.some((p) => major.includes(p));
+    }
+
+    function getQ16SelectedAreas() {
+      const q = (config.questions || []).find((x) => x.id === "q16_target_major_area");
+      if (!q) return [];
+      return getSelectedOptions(q).map((o) => o.major_area).filter(Boolean);
+    }
+
+    function buildCombinedMajors(payload) {
+      const rule = payload.rule;
+      const secondary = payload.secondary;
+      const mbti = payload.mbti;
+      const q16Areas = payload.q16Areas || getQ16SelectedAreas();
+      const cautionSet = new Set((rule.caution_majors || []).map(normalizeMajorName));
+      const map = {};
+
+      function ensure(name) {
+        const key = normalizeMajorName(name);
+        if (!key) return null;
+        if (!map[key]) {
+          map[key] = {
+            name: key,
+            score: 0,
+            inProfileRec: false,
+            inProfileExp: false,
+            inMbti: false,
+            inSecondaryRec: false,
+            q16Match: false
+          };
+        }
+        return map[key];
+      }
+
+      function add(name, points, mark) {
+        const item = ensure(name);
+        if (!item) return;
+        item.score += points;
+        if (mark) item[mark] = true;
+      }
+
+      (rule.recommended_majors || []).forEach((m, i) => add(m, 100 - i * 3, "inProfileRec"));
+      (rule.explore_majors || []).forEach((m, i) => add(m, 52 - i * 2, "inProfileExp"));
+
+      if (payload.conf === "低" && secondary && secondary.rule) {
+        (secondary.rule.recommended_majors || []).forEach((m, i) => add(m, 58 - i * 2, "inSecondaryRec"));
+        (secondary.rule.explore_majors || []).forEach((m, i) => add(m, 34 - i * 2, null));
+      }
+
+      if (mbti && mbti.recommended_majors) {
+        mbti.recommended_majors.forEach((m, i) => add(m, 72 - i * 3, "inMbti"));
+      }
+
+      Object.values(map).forEach((item) => {
+        if (item.inProfileRec && item.inMbti) item.score += 48;
+        else if ((item.inProfileRec || item.inProfileExp || item.inSecondaryRec) && item.inMbti) item.score += 22;
+        if (q16Areas.some((area) => majorMatchesArea(item.name, area))) {
+          item.score += 28;
+          item.q16Match = true;
+        }
+        if (cautionSet.has(item.name)) item.score -= 90;
+      });
+
+      return Object.values(map)
+        .filter((x) => x.score > 0)
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          const rank = (x) => (x.inProfileRec && x.inMbti ? 3 : x.inProfileRec ? 2 : x.inMbti ? 1 : 0);
+          return rank(b) - rank(a);
+        })
+        .map((x) => ({
+          name: x.name,
+          score: Math.round(x.score),
+          tier: x.inProfileRec && x.inMbti ? "both" : x.inProfileRec ? "profile" : x.inMbti ? "mbti" : "explore",
+          q16Match: x.q16Match
+        }));
+    }
+
+    function enrichPayload(payload) {
+      payload.combinedMajors = buildCombinedMajors(payload);
+      return payload;
+    }
+
+    function renderCombinedTags(item) {
+      let html = "<span class=\"combined-tags\">";
+      if (item.tier === "both") {
+        html += "<span class=\"combined-tag profile\">职业</span>";
+        html += "<span class=\"combined-tag mbti\">兴趣</span>";
+      } else if (item.tier === "profile") {
+        html += "<span class=\"combined-tag profile\">职业</span>";
+      } else if (item.tier === "mbti") {
+        html += "<span class=\"combined-tag mbti\">兴趣</span>";
+      } else {
+        html += "<span class=\"combined-tag explore\">延伸</span>";
+      }
+      if (item.q16Match) html += "<span class=\"combined-tag focus\">偏好</span>";
+      html += "</span>";
+      return html;
+    }
+
+    function renderCombinedMajorsSection(combined, compact) {
+      const list = combined || [];
+      if (!list.length) return "";
+      const top = compact ? list.slice(0, 10) : list.slice(0, 14);
+      let html = "";
+      if (compact) {
+        html += "<p class=\"share-block-label\">综合推荐专业</p>";
+        html += "<div class=\"major-pills\">";
+        top.forEach((item) => {
+          let cls = "major-pill";
+          if (item.tier === "both") cls += " major-pill-both";
+          if (item.q16Match) cls += " major-pill-q16";
+          html += "<span class=\"" + cls + "\">" + item.name + "</span>";
+        });
+        html += "</div>";
+        html += "<p class=\"combined-note\">按职业倾向、兴趣匹配与你勾选的偏好综合排序；高亮项表示多维度一致。</p>";
+        return html;
+      }
+      html += "<div class=\"section\"><h3>综合推荐专业</h3>";
+      html += "<p style=\"font-size:0.88rem;color:#7d8aa4;margin-bottom:10px;\">综合职业倾向、兴趣匹配";
+      if (list.some((x) => x.q16Match)) html += "与你的偏好方向";
+      html += "排序，优先展示多维度一致的方向。</p><ul class=\"combined-list\">";
+      top.forEach((item) => {
+        html += "<li><span class=\"combined-major-name\">" + item.name + "</span>";
+        html += renderCombinedTags(item);
+        html += "</li>";
+      });
+      html += "</ul></div>";
+      return html;
+    }
+
+    function renderMbtiSection(mbti, compact) {
+      if (!mbti || !mbti.code) return "";
+      let html = "";
+      if (compact) {
+        html += "<div class=\"mbti-share-card\">";
+        html += "<p class=\"share-block-label\">性格参考 · MBTI</p>";
+        html += "<div class=\"mbti-badge\">" + mbti.code + " · " + mbti.name + "</div>";
+        if (mbti.career_directions && mbti.career_directions.length) {
+          html += "<p class=\"mbti-share-desc\">适合方向：" + mbti.career_directions.slice(0, 4).join("、") + "</p>";
+        } else if (mbti.description) {
+          html += "<p class=\"mbti-share-desc\">" + mbti.description + "</p>";
+        }
+        html += "</div>";
+        return html;
+      }
+      html += "<div class=\"mbti-full-card\">";
+      html += "<h3>性格参考 · MBTI</h3>";
+      html += "<div class=\"mbti-badge\">" + mbti.code + " · " + mbti.name + "</div>";
+      html += "<p>" + mbti.description + "</p>";
+      if (mbti.career_directions && mbti.career_directions.length) {
+        html += "<p class=\"mbti-careers\"><strong>适合的职业方向：</strong>" + mbti.career_directions.join("、") + "</p>";
+      }
+      html += "</div>";
+      return html;
+    }
+
     function buildResultPayload() {
       const scores = accumulateScores();
       const ranked = rankProfiles(scores);
@@ -884,7 +1228,7 @@
         .map((k) => ({ k, v: scores[k] }))
         .sort((a, b) => b.v - a.v)
         .slice(0, 5);
-      return {
+      return enrichPayload({
         scores,
         ranked,
         primary,
@@ -893,8 +1237,9 @@
         conf,
         consultants,
         topDims,
-        choices: collectChoiceSummaryItems()
-      };
+        choices: collectChoiceSummaryItems(),
+        mbti: computeMbtiFromAnswers()
+      });
     }
 
     function fromBase64Url(str) {
@@ -908,6 +1253,9 @@
       if (payload.conf === "低" && payload.secondary) {
         url += "&s=" + encodeURIComponent(profileSlug(payload.secondary.rule.id));
       }
+      if (payload.mbti && payload.mbti.code) {
+        url += "&m=" + encodeURIComponent(payload.mbti.code);
+      }
       return location.origin + url;
     }
 
@@ -917,7 +1265,8 @@
         s: payload.conf === "低" && payload.secondary ? payload.secondary.rule.id : "",
         c: payload.conf,
         d: payload.topDims.map((x) => [x.k, Math.round(x.v * 10) / 10]),
-        ch: payload.choices
+        ch: payload.choices,
+        m: payload.mbti ? payload.mbti.code : ""
       };
     }
 
@@ -927,15 +1276,17 @@
       const secondaryRule = data.s
         ? (config.profile_rules || []).find((r) => r.id === data.s)
         : null;
-      return {
+      const payload = {
         rule,
         conf: data.c || "中",
         secondary: secondaryRule ? { rule: secondaryRule } : null,
         consultants: matchConsultants(rule.id),
         topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
         choices: data.ch || [],
-        primary: { rule }
+        primary: { rule },
+        mbti: lookupMbti(data.m)
       };
+      return enrichPayload(payload);
     }
 
     function saveFullResultSession(payload) {
@@ -1000,7 +1351,7 @@
       const rule = payload.rule;
       const conf = payload.conf;
       const secondary = payload.secondary;
-      const majors = (rule.recommended_majors || []).slice(0, 8);
+      const combined = payload.combinedMajors || [];
 
       let html = "<div class=\"card result\">";
       html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
@@ -1010,11 +1361,8 @@
       html += "<div class=\"keywords\">";
       (rule.keywords || []).slice(0, 4).forEach((kw) => { html += "<span class=\"kw\">" + kw + "</span>"; });
       html += "</div>";
-      if (majors.length) {
-        html += "<div class=\"major-pills\">";
-        majors.forEach((m) => { html += "<span class=\"major-pill\">" + m + "</span>"; });
-        html += "</div>";
-      }
+      html += renderCombinedMajorsSection(combined, true);
+      html += renderMbtiSection(payload.mbti, true);
       html += "<div class=\"result-actions result-actions-share\">";
       html += "<div class=\"result-actions-row\">";
       html += "<a class=\"btn btn-primary\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI 匹配学长学姐</a>";
@@ -1047,15 +1395,15 @@
       (rule.keywords || []).forEach((kw) => { html += "<span class=\"kw\">" + kw + "</span>"; });
       html += "</div>";
       html += "<p>" + rule.description + "</p>";
+      html += renderMbtiSection(payload.mbti, false);
+      html += renderCombinedMajorsSection(payload.combinedMajors, false);
       html += renderChoiceSummaryItems(choices);
 
-      html += "<div class=\"section\"><h3>适合优先了解的专业方向</h3><ul>";
-      (rule.recommended_majors || []).forEach((m) => { html += "<li>" + m + "</li>"; });
-      html += "</ul></div>";
-
-      if (rule.explore_majors && rule.explore_majors.length) {
+      const combinedNames = new Set((payload.combinedMajors || []).slice(0, 14).map((x) => x.name));
+      const moreExplore = (rule.explore_majors || []).filter((m) => !combinedNames.has(m));
+      if (moreExplore.length) {
         html += "<div class=\"section\"><h3>可进一步了解</h3><ul>";
-        rule.explore_majors.forEach((m) => { html += "<li>" + m + "</li>"; });
+        moreExplore.forEach((m) => { html += "<li>" + m + "</li>"; });
         html += "</ul></div>";
       }
 
@@ -1080,7 +1428,7 @@
       html += "<h4>下一步怎么做？</h4>";
       html += "<p>根据你的画像结果，我们的 AI 会自动帮你联系学长学姐进行一对一匹配，";
       html += "聊清楚该专业的课程、就业去向与是否适合你，先咨询后付费。</p>";
-      html += "<p class=\"cta-price\">过去 <s>199元</s>，现在 30 分钟咨询仅需 <strong>99元</strong></p>";
+      html += "<p class=\"cta-price\">价格 <s>199元</s>，现在 30 分钟咨询仅需 <strong>99元</strong></p>";
       html += "<a class=\"btn-cta\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI联系学长学姐进行一对一匹配</a>";
       html += "</div>";
       if (consultants.length) {
@@ -1174,10 +1522,11 @@
         secondary: secondaryRule ? { rule: secondaryRule } : null,
         consultants: matchConsultants(rule.id),
         topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
-        choices: data.ch || []
+        choices: data.ch || [],
+        mbti: lookupMbti(data.m)
       };
       document.title = rule.display_name + " · 分享结果";
-      resultSection.innerHTML = renderResultSections(payload, { shareView: true });
+      resultSection.innerHTML = renderResultSections(enrichPayload(payload), { shareView: true });
       bindSharePageActions();
     }
 
