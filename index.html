@@ -3,652 +3,979 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Personality Test Clone Demo</title>
+  <title>AI专业测试 · 专业选择画像测试</title>
   <style>
     :root {
       --bg: #f5f7fb;
-      --surface: #ffffff;
+      --surface: #fff;
       --ink: #2f3a52;
       --muted: #72809a;
       --line: #e3e9f3;
-      --agree: #2ea67d;
-      --disagree: #8f5daf;
-      --neutral: #9ea4b1;
-      --panel: #ffffff;
-      --panel-soft: #f8fafe;
-      --panel-line: #e2e8f3;
+      --primary: #2f8fef;
+      --primary-soft: #eef5ff;
       --shadow: 0 8px 24px rgba(32, 46, 79, 0.08);
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "PingFang SC", sans-serif;
       background: var(--bg);
       color: var(--ink);
+      line-height: 1.5;
     }
-    .shell {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .hero {
+    .shell { max-width: 720px; margin: 0 auto; padding: 0 16px 40px; }
+
+    .site-header {
       background: var(--surface);
       border-bottom: 1px solid var(--line);
-      padding: 28px 16px 24px;
-      text-align: center;
+      box-shadow: 0 2px 12px rgba(32, 46, 79, 0.04);
+      padding: 14px 16px;
+      margin: 0 -16px 0;
     }
-    .hero h1 {
-      font-size: clamp(1.8rem, 4vw, 3.1rem);
-      color: #384058;
-      line-height: 1.15;
-      margin-bottom: 10px;
-    }
-    .hero p {
-      color: var(--muted);
-      max-width: 760px;
-      margin: 0 auto 16px;
-    }
-    .hero .start {
-      border: 0;
-      border-radius: 999px;
-      background: #2f8fef;
-      color: #fff;
-      padding: 10px 20px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .test-wrap {
-      background: var(--bg);
-      color: var(--ink);
-      min-height: 72vh;
-      padding: 24px 14px 42px;
-    }
-    .top-meta {
-      max-width: 920px;
-      margin: 0 auto 18px;
-      display: grid;
-      gap: 10px;
-    }
-    .progress-meta {
+    .brand-lockup {
+      max-width: 720px;
+      margin: 0 auto;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      color: #7b879d;
-      font-size: 0.85rem;
+      justify-content: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 14px rgba(47, 143, 239, 0.25);
+      flex-shrink: 0;
+      display: block;
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      text-align: left;
+      line-height: 1.2;
+      min-height: 52px;
+    }
+    .brand-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      background: linear-gradient(120deg, #2f8fef 0%, #1ab8c4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .brand-powered {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: #8b97ad;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    .brand-powered a {
+      color: #5a7ab5;
+      text-decoration: none;
       font-weight: 600;
     }
-    .progress-track{
-      height: 8px;
-      background: #e7edf7;
-      border-radius: 999px;
-      overflow: hidden;
+    .brand-powered a:hover { color: var(--primary); text-decoration: underline; }
+
+    .hero {
+      background: linear-gradient(180deg, #fff 0%, #f8fafe 100%);
+      border-bottom: 1px solid var(--line);
+      padding: 28px 16px 28px;
+      text-align: center;
+      margin: 0 -16px 24px;
     }
-    .progress-track span{
-      display: block;
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, #2ea67d, #34b08c);
+    .hero h1 { font-size: clamp(1.35rem, 3.5vw, 1.75rem); margin-bottom: 8px; color: #384058; font-weight: 700; }
+    .hero .subtitle { color: var(--muted); max-width: 560px; margin: 0 auto 12px; font-size: 0.95rem; }
+    .hero .meta { color: #9aa6bc; font-size: 0.85rem; margin-bottom: 16px; }
+    .btn {
+      border: 0; border-radius: 999px; padding: 11px 20px;
+      font-weight: 700; font-size: 0.95rem; cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: #e8edf7; color: #4f5f7b; }
+    .btn-share {
+      background: linear-gradient(120deg, #e8f4ff 0%, #e6faf5 100%);
+      color: #1d6fd8;
+      border: 2px solid #6eb5ff;
+      box-shadow: 0 2px 8px rgba(47, 143, 239, 0.15);
+    }
+    .btn-share:hover { filter: brightness(0.98); }
+    .share-copied-tip {
+      flex-basis: 100%;
+      text-align: center;
+      font-size: 0.88rem;
+      color: #2ea67d;
+      font-weight: 700;
+      min-height: 1.2em;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .share-copied-tip.show { opacity: 1; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .result-actions .btn { flex: 1; min-width: 148px; }
+    .share-banner {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 8px 0 16px;
+    }
+    body.share-view .hero,
+    body.share-view #quizSection { display: none !important; }
+    .hidden { display: none !important; }
+
+    .progress-wrap { margin-bottom: 16px; }
+    .progress-meta {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 8px;
+    }
+    .progress-track {
+      height: 8px; background: #e7edf7; border-radius: 999px; overflow: hidden;
+    }
+    .progress-track span {
+      display: block; height: 100%; width: 0;
+      background: linear-gradient(90deg, #5eb0ff, var(--primary));
       transition: width 0.25s ease;
     }
 
-    .question-list {
-      max-width: 920px;
-      margin: 0 auto;
-      border: 1px solid var(--panel-line);
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: 14px;
-      background: var(--panel);
+      padding: 22px 18px;
       box-shadow: var(--shadow);
-      overflow: hidden;
+      margin-bottom: 16px;
     }
-    .q-row {
-      padding: 26px 0;
-      border-bottom: 1px solid var(--panel-line);
-      margin: 0 18px;
+    .module-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
     }
-    .q-row:last-child { border-bottom: 0; }
-    .q-title {
-      font-size: clamp(1.1rem, 2vw, 1.35rem);
+    .q-text {
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
       font-weight: 700;
       color: #36435f;
-      margin-bottom: 14px;
-      text-align: center;
-      line-height: 1.35;
+      margin-bottom: 16px;
+      line-height: 1.4;
     }
+    .q-hint { font-size: 0.88rem; color: var(--muted); margin-bottom: 12px; }
 
-    .answer-line {
-      display: grid;
-      grid-template-columns: 74px 1fr 84px;
-      gap: 10px;
-      align-items: center;
-    }
-    .answer-label {
+    .options { display: grid; gap: 10px; }
+    .opt {
+      width: 100%;
+      text-align: left;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px 14px;
       font-size: 0.95rem;
-      font-weight: 700;
-    }
-    .answer-label.left { color: var(--agree); }
-    .answer-label.right { color: var(--disagree); text-align: right; }
-
-    .scale {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(24px, auto));
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .dot {
-      --size: 28px;
-      width: var(--size);
-      height: var(--size);
-      border-radius: 50%;
-      border: 3px solid var(--neutral);
-      background: transparent;
+      color: var(--ink);
       cursor: pointer;
-      position: relative;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .opt:hover { border-color: #b8c9e8; background: #f8fbff; }
+    .opt.selected {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      font-weight: 600;
+    }
+    .opt.multi.selected::after { content: " ✓"; color: var(--primary); }
+
+    .slider-wrap { padding: 8px 4px; }
+    .slider-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; color: var(--muted); margin-bottom: 8px;
+    }
+    .slider-value {
+      text-align: center; font-size: 1.5rem; font-weight: 800;
+      color: var(--primary); margin-bottom: 10px;
+    }
+    input[type="range"] {
+      width: 100%; accent-color: var(--primary);
     }
 
-    .dot[data-value="-3"], .dot[data-value="3"] { --size: 54px; }
-    .dot[data-value="-2"], .dot[data-value="2"] { --size: 46px; }
-    .dot[data-value="-1"], .dot[data-value="1"] { --size: 38px; }
-    .dot[data-value="-3"], .dot[data-value="-2"], .dot[data-value="-1"] { border-color: var(--agree); }
-    .dot[data-value="1"], .dot[data-value="2"], .dot[data-value="3"] { border-color: var(--disagree); }
-    .dot[data-value="0"] { border-color: #a4abb7; --size: 30px; }
-    .dot:hover { transform: scale(1.04); }
-
-    .dot.selected {
+    .scale07-wrap { margin-top: 8px; }
+    .scale07-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.88rem; font-weight: 700; margin-bottom: 12px;
+    }
+    .scale07-labels .low { color: #8f5daf; }
+    .scale07-labels .high { color: #2ea67d; }
+    .scale07-btns {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 6px; flex-wrap: nowrap;
+    }
+    .scale07-btn {
+      --sz: 32px;
+      width: var(--sz); height: var(--sz);
+      border-radius: 50%;
+      border: 2px solid #c5cfe0;
+      background: #fff;
+      font-size: 0.82rem; font-weight: 700;
+      color: #5a6880;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    .scale07-btn[data-v="0"], .scale07-btn[data-v="7"] { --sz: 42px; }
+    .scale07-btn[data-v="1"], .scale07-btn[data-v="6"] { --sz: 38px; }
+    .scale07-btn[data-v="2"], .scale07-btn[data-v="5"] { --sz: 34px; }
+    .scale07-btn[data-v="0"], .scale07-btn[data-v="1"], .scale07-btn[data-v="2"] { border-color: #c9a8d8; color: #7a4f92; }
+    .scale07-btn[data-v="5"], .scale07-btn[data-v="6"], .scale07-btn[data-v="7"] { border-color: #7ec9b0; color: #2d8a66; }
+    .scale07-btn.selected {
       background: currentColor;
       border-color: currentColor;
-      box-shadow: none;
-    }
-    .dot.selected::after {
-      content: "✓";
       color: #fff;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -56%);
-      font-size: calc(var(--size) * 0.38);
-      line-height: 1;
-      font-weight: 600;
-      opacity: 0.95;
     }
-    .dot.selected.pos { color: #8f5daf; }
-    .dot.selected.neg { color: #33a67f; }
-    .dot.selected.neu { color: #9aa1ae; }
+    .scale07-btn.selected.low-side { color: #8f5daf; }
+    .scale07-btn.selected.high-side { color: #2ea67d; }
+    .scale07-btn.selected.mid-side { color: #9aa1ae; }
 
-    .pager {
-      max-width: 920px;
-      margin: 20px auto 0;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .btn {
-      border: 0;
-      border-radius: 999px;
-      padding: 11px 18px;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 0.92rem;
-    }
-    .btn.secondary { background: #e8edf7; color: #4f5f7b; }
-    .btn.primary { background: #2f8fef; color: #fff; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pager { display: flex; justify-content: space-between; gap: 12px; }
+    .pager .btn { flex: 1; max-width: 200px; }
 
-    .result {
-      background: var(--panel);
-      border: 1px solid var(--panel-line);
-      border-radius: 14px;
-      max-width: 920px;
-      margin: 22px auto 0;
-      padding: 20px;
-      color: var(--ink);
-      box-shadow: var(--shadow);
-    }
-    .result h2 { font-size: 1.5rem; margin-bottom: 10px; }
-    .result p { color: #7a869c; margin-bottom: 10px; }
-    .result-subtitle {
-      color: #7d8aa4;
-      font-size: 0.92rem;
-      margin-bottom: 12px;
-    }
-    .result-code {
-      font-size: clamp(2rem, 6vw, 2.8rem);
-      margin: 2px 0 12px;
+    .result { margin-top: 8px; }
+    .result h2 { font-size: 1.4rem; margin-bottom: 8px; }
+    .result .profile-name {
+      font-size: clamp(1.5rem, 4vw, 2rem);
       font-weight: 800;
-      letter-spacing: 2px;
-      color: #7ec1ff;
+      color: var(--primary);
+      margin: 8px 0 12px;
     }
-    .result-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
+    .keywords { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .kw {
+      font-size: 0.82rem; padding: 5px 10px;
+      border-radius: 999px; background: var(--primary-soft);
+      color: #3d6a9e; font-weight: 600;
     }
-    .axis {
-      list-style: none;
-      margin: 0 0 14px;
-      padding: 0;
-      display: grid;
-      gap: 8px;
-    }
-    .axis li {
-      border: 1px solid var(--panel-line);
-      border-radius: 10px;
-      background: var(--panel-soft);
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: 0.95rem;
-    }
-    .major-list {
-      list-style: decimal;
-      margin: 0 0 14px 20px;
-      color: #36435f;
-      display: grid;
-      gap: 8px;
-    }
-    .major-list li span {
-      color: #7d8aa4;
+    .section { margin: 18px 0; }
+    .section h3 { font-size: 1rem; margin-bottom: 8px; color: #4a5872; }
+    .section p, .section li { color: #5a6880; font-size: 0.92rem; }
+    .section ul { margin-left: 18px; display: grid; gap: 6px; }
+    .section li span {
       display: block;
+      color: #7d8aa4;
       font-size: 0.9rem;
-      margin-top: 2px;
+      margin-top: 4px;
     }
-    .meta-note {
-      border: 1px solid var(--panel-line);
-      background: var(--panel-soft);
-      border-radius: 10px;
-      padding: 10px;
-      color: #6f7c97;
+    .caution { color: #b45309; }
+    .consultant-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8fafe;
+      margin-bottom: 10px;
+    }
+    .consultant-card strong { display: block; margin-bottom: 4px; }
+    .consultant-card span { font-size: 0.88rem; color: var(--muted); }
+    .cta-guide {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #cfe0f8;
+      background: linear-gradient(135deg, #f0f7ff 0%, #eefaf8 100%);
+    }
+    .cta-guide h4 {
+      font-size: 0.95rem;
+      color: #36435f;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .cta-guide p {
       font-size: 0.9rem;
+      color: #5a6880;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .cta-guide .btn-cta {
+      display: inline-block;
+      text-decoration: none;
+      background: linear-gradient(120deg, #2f8fef 0%, #1ab8c4 100%);
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      box-shadow: 0 4px 14px rgba(47, 143, 239, 0.28);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cta-guide .btn-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(47, 143, 239, 0.35);
+    }
+    .cta-price {
+      font-size: 0.88rem;
+      color: #5a6880;
       margin-bottom: 12px;
     }
-    .hidden { display: none; }
-
-    @media (min-width: 768px) {
-      .hero { padding: 58px 22px 40px; }
-      .test-wrap { padding: 32px 22px 56px; }
-      .answer-line { grid-template-columns: 84px 1fr 92px; gap: 16px; }
-      .scale { gap: 16px; }
+    .cta-price s { color: #9aa6bc; margin-right: 6px; }
+    .cta-price strong { color: #e85d4c; font-size: 1rem; }
+    .disclaimer {
+      font-size: 0.82rem; color: #8b97ad;
+      border-top: 1px solid var(--line);
+      padding-top: 14px; margin-top: 16px;
     }
-    @media (max-width: 680px) {
-      .q-row { padding: 22px 0; }
-      .q-title { text-align: left; }
-      .answer-line {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-      .answer-label.left, .answer-label.right { text-align: left; }
+    @media (max-width: 520px) {
+      .brand-lockup { gap: 11px; }
+      .brand-logo { width: 44px; height: 44px; }
+      .brand-title { font-size: 1.05rem; }
       .pager { flex-direction: column; }
-      .pager .btn { width: 100%; }
+      .pager .btn { max-width: none; width: 100%; }
     }
   </style>
 </head>
 <body>
+  <header class="site-header">
+    <div class="brand-lockup">
+      <img src="./assets/logo.png" alt="AI专业测试" class="brand-logo" width="52" height="52">
+      <div class="brand-text">
+        <div class="brand-title">AI专业测试</div>
+        <div class="brand-powered">powered by <a href="https://privoce.com" target="_blank" rel="noopener noreferrer">Privoce.com</a></div>
+      </div>
+    </div>
+  </header>
+
   <section class="hero">
     <div class="shell">
-      <h1>Free Personality Test</h1>
-      <p>参考 16Personalities 的交互风格制作。你可以直接完成完整问卷并查看人格类型与专业推荐结果。</p>
-      <button id="startBtn" class="start">Start the Test</button>
+      <h1 id="heroTitle">专业选择画像测试</h1>
+      <p class="subtitle" id="heroSubtitle">加载中…</p>
+      <p class="meta" id="heroMeta"></p>
+      <button id="startBtn" class="btn btn-primary" disabled>加载题库…</button>
     </div>
   </section>
 
-  <section id="testWrap" class="test-wrap hidden">
-    <div class="top-meta">
-      <div class="progress-meta">
-        <span id="progressText">题库加载后开始测试</span>
-        <span id="progressPct">31%</span>
-      </div>
-      <div class="progress-track"><span id="progressBar"></span></div>
-    </div>
-
-    <div id="questionList" class="question-list"></div>
-
-    <div class="pager">
-      <button id="prevSetBtn" class="btn secondary">Previous Set</button>
-      <button id="nextSetBtn" class="btn primary">Next Set of Questions</button>
-    </div>
-
-    <section id="result" class="result hidden">
-      <h2>你的类型结果</h2>
-      <p>以下结果为示例算法输出，用于演示 UI 和流程。</p>
-      <div id="resultCode" class="result-code">INTJ</div>
-      <div id="resultSubtitle" class="result-subtitle"></div>
-      <div class="result-grid">
-        <div>
-          <h3>四维偏好</h3>
-          <ul id="axisList" class="axis"></ul>
+  <div class="shell">
+    <p id="shareBanner" class="share-banner hidden">好友分享的专业选择画像结果</p>
+    <section id="quizSection" class="hidden">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="progressText">第 1 题</span>
+          <span id="progressPct">0%</span>
         </div>
-        <div>
-          <h3>推荐专业 Top 5</h3>
-          <ol id="majorList" class="major-list"></ol>
-        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
       </div>
-      <div id="metaNote" class="meta-note"></div>
-      <button id="restartBtn" class="btn primary">重新开始</button>
+      <div id="questionCard" class="card"></div>
+      <div class="pager">
+        <button id="prevBtn" class="btn btn-secondary">上一题</button>
+        <button id="nextBtn" class="btn btn-primary">下一题</button>
+      </div>
     </section>
-  </section>
+
+    <section id="resultSection" class="result hidden"></section>
+  </div>
 
   <script>
-    const dimensionOrder = ["EI", "SN", "TF", "JP"];
-    const majorProfiles = [
-      { id: "CS", name: "计算机科学", vector: { E: 0.2, I: 0.8, S: 0.5, N: 0.5, T: 0.9, F: 0.1, J: 0.7, P: 0.3 }, reason: "强调逻辑分析、系统思维与持续迭代能力。" },
-      { id: "PSY", name: "心理学", vector: { E: 0.5, I: 0.5, S: 0.4, N: 0.6, T: 0.2, F: 0.8, J: 0.4, P: 0.6 }, reason: "重视对人类行为与情绪模式的理解。" },
-      { id: "ME", name: "机械工程", vector: { E: 0.3, I: 0.7, S: 0.9, N: 0.1, T: 0.8, F: 0.2, J: 0.8, P: 0.2 }, reason: "注重实操、结构化分析与工程落地。" },
-      { id: "MEDIA", name: "传媒学", vector: { E: 0.7, I: 0.3, S: 0.5, N: 0.5, T: 0.3, F: 0.7, J: 0.3, P: 0.7 }, reason: "适合表达、内容创意和传播协作。" },
-      { id: "BIZ", name: "工商管理", vector: { E: 0.7, I: 0.3, S: 0.4, N: 0.6, T: 0.6, F: 0.4, J: 0.7, P: 0.3 }, reason: "兼顾沟通协调、决策与组织管理。" },
-      { id: "ARCH", name: "建筑学", vector: { E: 0.4, I: 0.6, S: 0.5, N: 0.5, T: 0.6, F: 0.4, J: 0.6, P: 0.4 }, reason: "融合审美表达、空间逻辑与项目推进。" },
-      { id: "LAW", name: "法学", vector: { E: 0.5, I: 0.5, S: 0.7, N: 0.3, T: 0.7, F: 0.3, J: 0.8, P: 0.2 }, reason: "强调规则、论证与严谨推理能力。" },
-      { id: "EDU", name: "教育学", vector: { E: 0.6, I: 0.4, S: 0.5, N: 0.5, T: 0.3, F: 0.7, J: 0.7, P: 0.3 }, reason: "重视同理沟通、引导与持续反馈。" },
-      { id: "BIO", name: "生物科学", vector: { E: 0.4, I: 0.6, S: 0.7, N: 0.3, T: 0.7, F: 0.3, J: 0.6, P: 0.4 }, reason: "需要实验耐心、观察力和归纳能力。" },
-      { id: "DESIGN", name: "设计学", vector: { E: 0.5, I: 0.5, S: 0.4, N: 0.6, T: 0.4, F: 0.6, J: 0.3, P: 0.7 }, reason: "适合创意探索、用户洞察与表达。" }
-    ];
-    let questions = [];
-    let answers = [];
-    const values = [-3, -2, -1, 0, 1, 2, 3]; // 左侧同意，右侧不同意
-    const labels = { EI: ["E", "I"], SN: ["S", "N"], TF: ["T", "F"], JP: ["J", "P"] };
-    const PAGE_SIZE = 5;
-    let page = 0;
+    let config = null;
+    let currentIndex = 0;
+    const answers = {};
 
-    const testWrapEl = document.getElementById("testWrap");
-    const progressTextEl = document.getElementById("progressText");
-    const progressPctEl = document.getElementById("progressPct");
-    const progressBarEl = document.getElementById("progressBar");
-    const questionListEl = document.getElementById("questionList");
-    const prevSetBtn = document.getElementById("prevSetBtn");
-    const nextSetBtn = document.getElementById("nextSetBtn");
-    const resultCodeEl = document.getElementById("resultCode");
-    const resultSubtitleEl = document.getElementById("resultSubtitle");
-    const axisListEl = document.getElementById("axisList");
-    const majorListEl = document.getElementById("majorList");
-    const metaNoteEl = document.getElementById("metaNote");
-    const resultEl = document.getElementById("result");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroSubtitle = document.getElementById("heroSubtitle");
+    const heroMeta = document.getElementById("heroMeta");
     const startBtn = document.getElementById("startBtn");
+    const quizSection = document.getElementById("quizSection");
+    const questionCard = document.getElementById("questionCard");
+    const progressText = document.getElementById("progressText");
+    const progressPct = document.getElementById("progressPct");
+    const progressBar = document.getElementById("progressBar");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resultSection = document.getElementById("resultSection");
 
-    function buildFallbackQuestions() {
-      const dims = ["EI", "SN", "TF", "JP"];
-      const polarityCycle = {
-        EI: ["E", "I"],
-        SN: ["S", "N"],
-        TF: ["T", "F"],
-        JP: ["J", "P"]
-      };
-      const fallback = [];
-      const weights = [0.8, 1.0, 1.3, 1.5];
-      let idx = 1;
-      dims.forEach((dim) => {
-        for (let i = 0; i < 12; i += 1) {
-          fallback.push({
-            id: dim + "_" + String(idx).padStart(2, "0"),
-            text: "题目 " + idx,
-            dimension: dim,
-            facet: "fallback",
-            polarity: polarityCycle[dim][i % 2],
-            weight: weights[idx % weights.length]
+    function dimensionKeys() {
+      return Object.keys(config.score_dimensions || {});
+    }
+
+    function emptyScores() {
+      const s = {};
+      dimensionKeys().forEach((k) => { s[k] = 0; });
+      return s;
+    }
+
+    function evalFormula(formula, scores) {
+      let expr = formula;
+      dimensionKeys().forEach((k) => {
+        expr = expr.replace(new RegExp("\\b" + k + "\\b", "g"), String(scores[k] ?? 0));
+      });
+      try {
+        return Function('"use strict"; return (' + expr + ")")();
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function applyOptionScores(target, optionScores, multiplier) {
+      if (!optionScores) return;
+      const m = multiplier == null ? 1 : multiplier;
+      Object.entries(optionScores).forEach(([dim, val]) => {
+        if (target[dim] !== undefined) target[dim] += (Number(val) || 0) * m;
+      });
+    }
+
+    function getSelectedOptions(q) {
+      const ans = answers[q.id];
+      if (!q.options) return [];
+      if (q.type === "multi_choice") {
+        return (ans || []).map((oid) => q.options.find((o) => o.id === oid)).filter(Boolean);
+      }
+      if (q.type === "single_choice" && ans) {
+        const opt = q.options.find((o) => o.id === ans);
+        return opt ? [opt] : [];
+      }
+      return [];
+    }
+
+    function accumulateScores() {
+      const scores = emptyScores();
+      config.questions.forEach((q) => {
+        const ans = answers[q.id];
+        if (ans === undefined || ans === null) return;
+
+        if (q.type === "single_choice") {
+          const opt = q.options.find((o) => o.id === ans);
+          if (opt) applyOptionScores(scores, opt.scores);
+        } else if (q.type === "multi_choice") {
+          const selected = getSelectedOptions(q);
+          if (!selected.length) return;
+          const bucket = emptyScores();
+          selected.forEach((opt) => applyOptionScores(bucket, opt.scores));
+          const factor = 1 / selected.length;
+          dimensionKeys().forEach((dim) => {
+            scores[dim] += bucket[dim] * factor;
           });
-          idx += 1;
+        } else if ((q.type === "slider" || q.type === "scale_0_7") && q.score_formula) {
+          const v = Number(ans);
+          Object.entries(q.score_formula).forEach(([dim, formula]) => {
+            const f = String(formula).replace(/value/g, String(v));
+            if (scores[dim] !== undefined) scores[dim] += evalFormula(f, scores);
+          });
         }
       });
-      return fallback;
+      return scores;
     }
 
-    async function loadQuestions() {
-      if (questions.length > 0) return true;
-      try {
-        const res = await fetch("./questions.json");
-        if (!res.ok) throw new Error("status " + res.status);
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) throw new Error("empty");
-        questions = data;
-        answers = Array(questions.length).fill(null);
-        return true;
-      } catch (err) {
-        questions = buildFallbackQuestions();
-        answers = Array(questions.length).fill(null);
-        progressTextEl.textContent = "已启用内置题库（questions.json 未加载）";
-        return true;
-      }
+    function rankProfiles(scores) {
+      return (config.profile_rules || [])
+        .map((rule) => ({
+          rule,
+          score: evalFormula(rule.match_formula, scores)
+        }))
+        .sort((a, b) => b.score - a.score);
     }
 
-    function createDot(questionIndex, v) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "dot";
-      btn.dataset.value = String(v);
-      btn.setAttribute("aria-label", "为第 " + (questionIndex + 1) + " 题选择 " + v);
-      if (answers[questionIndex] === v) {
-        btn.classList.add("selected");
-        if (v < 0) btn.classList.add("neg");
-        else if (v > 0) btn.classList.add("pos");
-        else btn.classList.add("neu");
-      }
-      btn.addEventListener("click", () => {
-        answers[questionIndex] = v;
-        renderPage();
-      });
-      return btn;
-    }
-
-    function renderPage() {
-      const start = page * PAGE_SIZE;
-      const end = Math.min(start + PAGE_SIZE, questions.length);
-      const totalPages = Math.ceil(questions.length / PAGE_SIZE);
-      const percent = Math.round((end / questions.length) * 100);
-
-      progressTextEl.textContent = "第 " + (start + 1) + " - " + end + " 题 / 共 " + questions.length + " 题";
-      progressPctEl.textContent = percent + "%";
-      progressBarEl.style.width = percent + "%";
-
-      questionListEl.innerHTML = "";
-      for (let i = start; i < end; i += 1) {
-        const row = document.createElement("div");
-        row.className = "q-row";
-
-        const title = document.createElement("div");
-        title.className = "q-title";
-        title.textContent = questions[i].text;
-
-        const answerLine = document.createElement("div");
-        answerLine.className = "answer-line";
-
-        const left = document.createElement("div");
-        left.className = "answer-label left";
-        left.textContent = "Agree";
-
-        const scale = document.createElement("div");
-        scale.className = "scale";
-        values.forEach((v) => {
-          scale.appendChild(createDot(i, v));
-        });
-
-        const right = document.createElement("div");
-        right.className = "answer-label right";
-        right.textContent = "Disagree";
-
-        answerLine.appendChild(left);
-        answerLine.appendChild(scale);
-        answerLine.appendChild(right);
-        row.appendChild(title);
-        row.appendChild(answerLine);
-        questionListEl.appendChild(row);
-      }
-
-      prevSetBtn.disabled = page === 0;
-      const isLast = page === totalPages - 1;
-      nextSetBtn.textContent = isLast ? "See Results" : "Next Set of Questions";
-
-      const currentAnswered = answers.slice(start, end).every((v) => v !== null);
-      nextSetBtn.disabled = !currentAnswered;
-    }
-
-    function confidenceLevel(strength) {
-      if (strength >= 0.75) return "高";
-      if (strength >= 0.4) return "中";
+    function confidenceLabel(top, second) {
+      if (!second || second.score <= 0) return "高";
+      const gap = (top.score - second.score) / Math.max(top.score, 0.01);
+      if (gap >= 0.2) return "高";
+      if (gap >= 0.1) return "中";
       return "低";
     }
 
-    function calculateTypeAndScores() {
-      const score = { EI: 0, SN: 0, TF: 0, JP: 0 };
-      const max = { EI: 0, SN: 0, TF: 0, JP: 0 };
-      questions.forEach((q, i) => {
-        const converted = answers[i];
-        const sign = q.polarity === labels[q.dimension][0] ? 1 : -1;
-        score[q.dimension] += converted * q.weight * sign;
-        max[q.dimension] += 3 * q.weight;
-      });
-
-      const strengths = {};
-      const confidence = {};
-      let type = "";
-      dimensionOrder.forEach((dimension) => {
-        const [left, right] = labels[dimension];
-        const isLeft = score[dimension] >= 0;
-        type += isLeft ? left : right;
-        strengths[dimension] = max[dimension] > 0 ? Math.abs(score[dimension]) / max[dimension] : 0;
-        confidence[dimension] = confidenceLevel(strengths[dimension]);
-      });
-
-      return { score, max, strengths, confidence, type };
+    function isAnswered(q) {
+      const ans = answers[q.id];
+      if (q.type === "multi_choice") return Array.isArray(ans) && ans.length > 0;
+      if (q.type === "slider" || q.type === "scale_0_7") {
+        return typeof ans === "number" && !Number.isNaN(ans);
+      }
+      return ans !== undefined && ans !== null && ans !== "";
     }
 
-    function buildPersonalityVector(score, max) {
-      const normalized = {};
-      normalized.E = (1 + score.EI / max.EI) / 2;
-      normalized.I = 1 - normalized.E;
-      normalized.N = (1 + score.SN / max.SN) / 2;
-      normalized.S = 1 - normalized.N;
-      normalized.T = (1 + score.TF / max.TF) / 2;
-      normalized.F = 1 - normalized.T;
-      normalized.J = (1 + score.JP / max.JP) / 2;
-      normalized.P = 1 - normalized.J;
-      return normalized;
+    function defaultSliderValue(q) {
+      return Math.round((q.min + q.max) / 2);
     }
 
-    function majorMatch(personalityVector, majorVector) {
-      const keys = ["E", "I", "S", "N", "T", "F", "J", "P"];
-      let dot = 0;
-      let normA = 0;
-      let normB = 0;
-      keys.forEach((k) => {
-        dot += personalityVector[k] * majorVector[k];
-        normA += personalityVector[k] ** 2;
-        normB += majorVector[k] ** 2;
+    function initAnswerForQuestion(q) {
+      if (q.type === "multi_choice") answers[q.id] = [];
+      else if (q.type === "slider") answers[q.id] = defaultSliderValue(q);
+      else answers[q.id] = null;
+    }
+
+    function updateNextButtonState() {
+      const q = config.questions[currentIndex];
+      nextBtn.disabled = !!(q.required && !isAnswered(q));
+    }
+
+    function renderHero() {
+      const meta = config.test_meta;
+      document.title = meta.title || document.title;
+      heroTitle.textContent = meta.title || "专业选择画像测试";
+      heroSubtitle.textContent = meta.subtitle || "";
+      heroMeta.textContent = "约 " + (meta.estimated_time_minutes || 3) + " 分钟 · " + config.questions.length + " 题";
+    }
+
+    function renderQuestion() {
+      const q = config.questions[currentIndex];
+      const total = config.questions.length;
+      const pct = Math.round(((currentIndex + 1) / total) * 100);
+      progressText.textContent = "第 " + (currentIndex + 1) + " / " + total + " 题";
+      progressPct.textContent = pct + "%";
+      progressBar.style.width = pct + "%";
+
+      questionCard.innerHTML = "";
+      if (q.module) {
+        const tag = document.createElement("div");
+        tag.className = "module-tag";
+        tag.textContent = q.module;
+        questionCard.appendChild(tag);
+      }
+      const title = document.createElement("div");
+      title.className = "q-text";
+      title.textContent = q.question;
+      questionCard.appendChild(title);
+
+      if (q.type === "multi_choice") {
+        const hint = document.createElement("div");
+        hint.className = "q-hint";
+        const max = q.max_select || 99;
+        hint.textContent = max < 99 ? "可多选，最多选择 " + max + " 项" : "可多选";
+        questionCard.appendChild(hint);
+      }
+
+      const optionsWrap = document.createElement("div");
+      optionsWrap.className = "options";
+
+      if (q.type === "scale_0_7") {
+        const wrap = document.createElement("div");
+        wrap.className = "scale07-wrap";
+        const labels = document.createElement("div");
+        labels.className = "scale07-labels";
+        labels.innerHTML = "<span class=\"low\">" + (q.min_label || "0") + "</span><span class=\"high\">" + (q.max_label || "7") + "</span>";
+        const btns = document.createElement("div");
+        btns.className = "scale07-btns";
+        const selected = answers[q.id];
+        for (let v = 0; v <= 7; v += 1) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "scale07-btn";
+          btn.dataset.v = String(v);
+          btn.textContent = String(v);
+          if (selected === v) {
+            btn.classList.add("selected");
+            if (v <= 2) btn.classList.add("low-side");
+            else if (v >= 5) btn.classList.add("high-side");
+            else btn.classList.add("mid-side");
+          }
+          btn.addEventListener("click", () => {
+            answers[q.id] = v;
+            renderQuestion();
+          });
+          btns.appendChild(btn);
+        }
+        wrap.appendChild(labels);
+        wrap.appendChild(btns);
+        questionCard.appendChild(wrap);
+      } else if (q.type === "slider") {
+        const wrap = document.createElement("div");
+        wrap.className = "slider-wrap";
+        if (answers[q.id] == null || Number.isNaN(answers[q.id])) {
+          answers[q.id] = defaultSliderValue(q);
+        }
+        const val = answers[q.id];
+
+        const valEl = document.createElement("div");
+        valEl.className = "slider-value";
+        valEl.textContent = val;
+
+        const labels = document.createElement("div");
+        labels.className = "slider-labels";
+        labels.innerHTML = "<span>" + (q.min_label || q.min) + "</span><span>" + (q.max_label || q.max) + "</span>";
+
+        const input = document.createElement("input");
+        input.type = "range";
+        input.min = q.min;
+        input.max = q.max;
+        input.step = 1;
+        input.value = val;
+        input.addEventListener("input", () => {
+          answers[q.id] = Number(input.value);
+          valEl.textContent = input.value;
+          updateNextButtonState();
+        });
+
+        wrap.appendChild(valEl);
+        wrap.appendChild(labels);
+        wrap.appendChild(input);
+        questionCard.appendChild(wrap);
+      } else {
+        const isMulti = q.type === "multi_choice";
+        if (!isMulti && answers[q.id] === undefined) answers[q.id] = null;
+        if (isMulti && !Array.isArray(answers[q.id])) answers[q.id] = [];
+
+        q.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "opt" + (isMulti ? " multi" : "");
+          btn.textContent = opt.text;
+          const selected = isMulti
+            ? answers[q.id].includes(opt.id)
+            : answers[q.id] === opt.id;
+          if (selected) btn.classList.add("selected");
+
+          btn.addEventListener("click", () => {
+            if (isMulti) {
+              const list = answers[q.id];
+              const idx = list.indexOf(opt.id);
+              if (idx >= 0) list.splice(idx, 1);
+              else {
+                if (list.length >= (q.max_select || 99)) return;
+                list.push(opt.id);
+              }
+              renderQuestion();
+            } else {
+              answers[q.id] = opt.id;
+              renderQuestion();
+            }
+          });
+          optionsWrap.appendChild(btn);
+        });
+        questionCard.appendChild(optionsWrap);
+      }
+
+      prevBtn.disabled = currentIndex === 0;
+      const last = currentIndex === total - 1;
+      nextBtn.textContent = last ? "查看结果" : "下一题";
+      updateNextButtonState();
+    }
+
+    function matchConsultants(profileId) {
+      const base = (config.sample_consultants || []).filter((c) =>
+        (c.match_profiles || []).includes(profileId)
+      );
+      const q17 = config.questions.find((x) => x.id === "q17_preferred_consultant");
+      const picked = q17 ? getSelectedOptions(q17) : [];
+      const areas = new Set();
+      const q16 = config.questions.find((x) => x.id === "q16_target_major_area");
+      getSelectedOptions(q16).forEach((o) => {
+        if (o.major_area) areas.add(o.major_area);
       });
-      if (!normA || !normB) return 0;
-      return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-    }
+      if (!areas.size && !picked.length) return base;
 
-    function detectLowQuality() {
-      const sameAnswer = answers.every((v) => v === answers[0]);
-      const allExtreme = answers.every((v) => Math.abs(v) === 3);
-      return sameAnswer || allExtreme;
-    }
-
-    function adjacentType(baseType, strengths) {
-      let minDim = "EI";
-      dimensionOrder.forEach((dimension) => {
-        if (strengths[dimension] < strengths[minDim]) minDim = dimension;
+      const scored = base.map((c) => {
+        let bonus = 0;
+        (c.match_major_areas || []).forEach((a) => {
+          if (areas.has(a)) bonus += 2;
+        });
+        if (picked.some((o) => o.consultant_type === "multi_perspective")) bonus += 1;
+        return { c, bonus };
       });
-      const pos = dimensionOrder.indexOf(minDim);
-      const letters = baseType.split("");
-      letters[pos] = letters[pos] === labels[minDim][0] ? labels[minDim][1] : labels[minDim][0];
-      return letters.join("");
+      scored.sort((a, b) => b.bonus - a.bonus);
+      return scored.map((s) => s.c);
+    }
+
+    function renderChoiceSummaryItems(items) {
+      if (!items || !items.length) return "";
+      let html = "<div class=\"section\"><h3>关键选择（可多选）</h3><ul>";
+      items.forEach((item) => {
+        html += "<li><strong>" + item.q + "</strong><span>" + item.a.join("；") + "</span></li>";
+      });
+      html += "</ul></div>";
+      return html;
+    }
+
+    function collectChoiceSummaryItems() {
+      const ids = [
+        "q04_interest_scene",
+        "q05_least_acceptable_content",
+        "q09_learning_style",
+        "q13_family_preference",
+        "q14_current_anxiety",
+        "q16_target_major_area",
+        "q17_preferred_consultant"
+      ];
+      const items = [];
+      ids.forEach((qid) => {
+        const q = config.questions.find((x) => x.id === qid);
+        if (!q) return;
+        const texts = getSelectedOptions(q).map((o) => o.text);
+        if (!texts.length) return;
+        items.push({ q: q.question, a: texts });
+      });
+      return items;
+    }
+
+    function renderChoiceSummary() {
+      return renderChoiceSummaryItems(collectChoiceSummaryItems());
+    }
+
+    function buildResultPayload() {
+      const scores = accumulateScores();
+      const ranked = rankProfiles(scores);
+      const primary = ranked[0];
+      const secondary = ranked[1];
+      const rule = primary.rule;
+      const conf = confidenceLabel(primary, secondary);
+      const consultants = matchConsultants(rule.id);
+      const topDims = dimensionKeys()
+        .map((k) => ({ k, v: scores[k] }))
+        .sort((a, b) => b.v - a.v)
+        .slice(0, 5);
+      return {
+        scores,
+        ranked,
+        primary,
+        secondary,
+        rule,
+        conf,
+        consultants,
+        topDims,
+        choices: collectChoiceSummaryItems()
+      };
+    }
+
+    function toBase64Url(obj) {
+      return btoa(encodeURIComponent(JSON.stringify(obj)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    }
+
+    function fromBase64Url(str) {
+      let base = str.replace(/-/g, "+").replace(/_/g, "/");
+      while (base.length % 4) base += "=";
+      return JSON.parse(decodeURIComponent(atob(base)));
+    }
+
+    function buildShareUrl(payload) {
+      const token = toBase64Url({
+        p: payload.primary.rule.id,
+        s: payload.conf === "低" && payload.secondary ? payload.secondary.rule.id : "",
+        c: payload.conf,
+        d: payload.topDims.map((x) => [x.k, Math.round(x.v * 10) / 10]),
+        ch: payload.choices
+      });
+      return location.origin + location.pathname + "?result=" + token;
+    }
+
+    function renderResultSections(payload, options) {
+      const opts = options || {};
+      const rule = payload.rule;
+      const conf = payload.conf;
+      const secondary = payload.secondary;
+      const consultants = payload.consultants || [];
+      const topDims = payload.topDims || [];
+      const choices = payload.choices || [];
+
+      let html = "<div class=\"card result\">";
+      html += "<h2>你的专业选择画像</h2>";
+      html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
+      if (conf === "低" && secondary) {
+        html += "<p>辅助画像：<strong>" + secondary.rule.display_name + "</strong>（双画像接近，建议两个方向都了解）</p>";
+      } else {
+        html += "<p>匹配置信度：<strong>" + conf + "</strong></p>";
+      }
+      html += "<div class=\"keywords\">";
+      (rule.keywords || []).forEach((kw) => { html += "<span class=\"kw\">" + kw + "</span>"; });
+      html += "</div>";
+      html += "<p>" + rule.description + "</p>";
+      html += renderChoiceSummaryItems(choices);
+
+      html += "<div class=\"section\"><h3>适合优先了解的专业方向</h3><ul>";
+      (rule.recommended_majors || []).forEach((m) => { html += "<li>" + m + "</li>"; });
+      html += "</ul></div>";
+
+      if (rule.explore_majors && rule.explore_majors.length) {
+        html += "<div class=\"section\"><h3>可进一步了解</h3><ul>";
+        rule.explore_majors.forEach((m) => { html += "<li>" + m + "</li>"; });
+        html += "</ul></div>";
+      }
+
+      if (rule.caution_majors && rule.caution_majors.length) {
+        html += "<div class=\"section\"><h3 class=\"caution\">需谨慎评估</h3><ul class=\"caution\">";
+        rule.caution_majors.forEach((m) => { html += "<li>" + m + "</li>"; });
+        html += "</ul></div>";
+      }
+
+      html += "<div class=\"section\"><h3>维度得分概览</h3><ul>";
+      topDims.forEach((d) => {
+        const label = config.score_dimensions[d.k]?.label || d.k;
+        html += "<li>" + label + "：" + Math.round(d.v * 10) / 10 + "</li>";
+      });
+      html += "</ul></div>";
+
+      html += "<div class=\"section\"><h3>真实风险提示</h3><p>" + (rule.risk_note || "") + "</p></div>";
+
+      html += "<div class=\"section\"><h3>建议和真正学过/做过的人聊一次</h3>";
+      html += "<p>测试只能帮你缩小方向，专业真实的学习压力、就业路径和适配人群，只有经历过的人最清楚。</p>";
+      html += "<div class=\"cta-guide\">";
+      html += "<h4>下一步怎么做？</h4>";
+      html += "<p>根据你的画像结果，我们的 AI 会自动帮你联系学长学姐进行一对一匹配，";
+      html += "聊清楚该专业的课程、就业去向与是否适合你，先咨询后付费。</p>";
+      html += "<p class=\"cta-price\">过去 <s>199元</s>，现在 30 分钟咨询仅需 <strong>99元</strong></p>";
+      html += "<a class=\"btn-cta\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI联系学长学姐进行一对一匹配</a>";
+      html += "</div>";
+      if (consultants.length) {
+        consultants.forEach((c) => {
+          html += "<div class=\"consultant-card\"><strong>" + c.name + " · " + c.school + " · " + c.major + "</strong>";
+          html += "<span>" + c.status + " · " + (c.tags || []).join(" / ") + "</span>";
+          html += "<span>可聊：" + (c.can_talk_about || []).join("、") + "</span></div>";
+        });
+      } else {
+        html += "<p>匹配到对应的学长学姐后，AI 会通过短信或者微信发介绍给你！</p>";
+      }
+      html += "</div>";
+
+      html += "<p class=\"disclaimer\">" + (config.test_meta.disclaimer || "") + "</p>";
+
+      if (opts.shareView) {
+        html += "<div class=\"result-actions\">";
+        html += "<a class=\"btn btn-primary\" href=\"" + location.pathname + "\">我也要测试</a>";
+        html += "</div>";
+      } else {
+        html += "<div class=\"result-actions\">";
+        html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享测试结果</button>";
+        html += "<button type=\"button\" class=\"btn btn-primary\" id=\"restartBtn\">重新测试</button>";
+        html += "<span id=\"shareCopiedTip\" class=\"share-copied-tip\"></span>";
+        html += "</div>";
+      }
+
+      html += "</div>";
+      return html;
+    }
+
+    function showShareCopiedTip() {
+      const tip = document.getElementById("shareCopiedTip");
+      if (!tip) return;
+      tip.textContent = "链接已复制";
+      tip.classList.add("show");
+      clearTimeout(showShareCopiedTip._timer);
+      showShareCopiedTip._timer = setTimeout(() => tip.classList.remove("show"), 2500);
+    }
+
+    function bindResultActions(payload) {
+      document.getElementById("restartBtn").addEventListener("click", restartTest);
+      document.getElementById("shareBtn").addEventListener("click", async () => {
+        const url = buildShareUrl(payload);
+        try {
+          await navigator.clipboard.writeText(url);
+        } catch (err) {
+          const input = document.createElement("textarea");
+          input.value = url;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand("copy");
+          document.body.removeChild(input);
+        }
+        showShareCopiedTip();
+      });
+    }
+
+    function renderShareResultPage(data) {
+      const rule = (config.profile_rules || []).find((r) => r.id === data.p);
+      if (!rule) {
+        resultSection.innerHTML = "<div class=\"card result\"><p>分享链接无效或已过期，请重新测试。</p></div>";
+        return;
+      }
+      const secondaryRule = data.s
+        ? (config.profile_rules || []).find((r) => r.id === data.s)
+        : null;
+      const payload = {
+        rule,
+        conf: data.c || "中",
+        secondary: secondaryRule ? { rule: secondaryRule } : null,
+        consultants: matchConsultants(rule.id),
+        topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
+        choices: data.ch || []
+      };
+      document.title = rule.display_name + " · 分享结果";
+      resultSection.innerHTML = renderResultSections(payload, { shareView: true });
     }
 
     function renderResult() {
-      const result = calculateTypeAndScores();
-      const vector = buildPersonalityVector(result.score, result.max);
-      const lowQuality = detectLowQuality();
-      const adjacent = adjacentType(result.type, result.strengths);
-      const majors = majorProfiles
-        .map((major) => ({
-          ...major,
-          score: majorMatch(vector, major.vector)
-        }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5);
-
-      resultCodeEl.textContent = result.type;
-      resultSubtitleEl.textContent = "邻近类型参考：" + adjacent + "（当边界维度波动时可能出现）";
-      axisListEl.innerHTML = "";
-      majorListEl.innerHTML = "";
-
-      dimensionOrder.forEach((axis) => {
-        const value = result.score[axis];
-        const [left, right] = labels[axis];
-        const leftPct = Math.round(((1 + (value / result.max[axis])) / 2) * 100);
-        const rightPct = 100 - leftPct;
-        const prefer = value >= 0 ? left : right;
-        const li = document.createElement("li");
-        li.innerHTML = "<strong>" + axis + "</strong><span>" +
-          left + ":" + leftPct + "% / " + right + ":" + rightPct +
-          "%，倾向 " + prefer + "，置信度 " + result.confidence[axis] + "</span>";
-        axisListEl.appendChild(li);
-      });
-
-      majors.forEach((major) => {
-        const li = document.createElement("li");
-        li.innerHTML = "<strong>" + major.name + "（匹配度 " + Math.round(major.score * 100) +
-          "%）</strong><span>" + major.reason + "</span>";
-        majorListEl.appendChild(li);
-      });
-
-      metaNoteEl.textContent = lowQuality
-        ? "答卷质量提醒：你的答案模式较为极端（例如全同分或全极端），结果稳定性可能偏低，建议稍后重测。"
-        : "结果说明：本测试用于自我认知与专业探索参考，不代表能力上限或唯一职业路径。";
+      const payload = buildResultPayload();
+      resultSection.innerHTML = renderResultSections(payload, { shareView: false });
+      resultSection.classList.remove("hidden");
+      bindResultActions(payload);
+      resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    document.getElementById("startBtn").addEventListener("click", () => {
-      if (questions.length === 0) {
-        return;
+    function restartTest() {
+      currentIndex = 0;
+      config.questions.forEach((q) => initAnswerForQuestion(q));
+      resultSection.classList.add("hidden");
+      resultSection.innerHTML = "";
+      quizSection.classList.remove("hidden");
+      renderQuestion();
+      quizSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("./test-config.json");
+        if (!res.ok) throw new Error("fetch failed");
+        config = await res.json();
+        if (!config.questions || !config.questions.length) throw new Error("empty");
+        return true;
+      } catch (e) {
+        console.error(e);
+        return false;
       }
-      testWrapEl.classList.remove("hidden");
-      page = 0;
-      for (let i = 0; i < answers.length; i += 1) answers[i] = null;
-      resultEl.classList.add("hidden");
-      renderPage();
-      testWrapEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    startBtn.addEventListener("click", () => {
+      if (!config) return;
+      currentIndex = 0;
+      config.questions.forEach((q) => initAnswerForQuestion(q));
+      resultSection.classList.add("hidden");
+      quizSection.classList.remove("hidden");
+      renderQuestion();
+      quizSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      const q = config.questions[currentIndex];
+      if (q.required && !isAnswered(q)) return;
+      if (currentIndex < config.questions.length - 1) {
+        currentIndex += 1;
+        renderQuestion();
+      } else {
+        quizSection.classList.add("hidden");
+        renderResult();
+      }
     });
 
     (async () => {
-      startBtn.disabled = true;
-      startBtn.textContent = "Loading Questions...";
-      const ok = await loadQuestions();
-      startBtn.disabled = !ok;
-      startBtn.textContent = ok ? "Start the Test" : "Questions Unavailable";
+      const ok = await loadConfig();
+      if (!ok) {
+        heroSubtitle.textContent = "题库加载失败，请通过本地服务器访问（如 GitHub Pages）并确认 test-config.json 存在。";
+        startBtn.textContent = "无法开始";
+        return;
+      }
+
+      const params = new URLSearchParams(location.search);
+      const resultToken = params.get("result");
+      if (resultToken) {
+        document.body.classList.add("share-view");
+        document.getElementById("shareBanner").classList.remove("hidden");
+        renderShareResultPage(fromBase64Url(resultToken));
+        resultSection.classList.remove("hidden");
+        return;
+      }
+
+      renderHero();
+      startBtn.disabled = false;
+      startBtn.textContent = "开始测试";
     })();
-
-    prevSetBtn.addEventListener("click", () => {
-      if (page > 0) {
-        page -= 1;
-        renderPage();
-      }
-    });
-
-    nextSetBtn.addEventListener("click", () => {
-      const totalPages = Math.ceil(questions.length / PAGE_SIZE);
-      if (page < totalPages - 1) {
-        page += 1;
-        renderPage();
-      } else {
-        renderResult();
-        resultEl.classList.remove("hidden");
-        resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    });
-
-    document.getElementById("restartBtn").addEventListener("click", () => {
-      page = 0;
-      for (let i = 0; i < answers.length; i += 1) answers[i] = null;
-      resultEl.classList.add("hidden");
-      renderPage();
-      testWrapEl.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   </script>
 </body>
 </html>

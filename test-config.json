@@ -1,0 +1,1441 @@
+{
+  "test_meta": {
+    "id": "major_choice_profile_test_v1",
+    "title": "3分钟生成你的专业选择画像",
+    "subtitle": "结合兴趣、学习方式、就业价值观和现实约束，生成你的专业方向建议，并匹配真实学长学姐/从业者。",
+    "version": "1.0.0",
+    "language": "zh-CN",
+    "estimated_time_minutes": 3,
+    "disclaimer": "本测试用于专业选择前的自我探索和方向筛选，不应作为最终志愿填报或录取决策依据。"
+  },
+  "score_dimensions": {
+    "stability": {
+      "label": "就业稳定",
+      "description": "重视稳定就业、确定性、家庭接受度、体制或长期安全感。"
+    },
+    "income": {
+      "label": "收入上限",
+      "description": "重视高收入、行业红利、竞争机会和长期收入成长空间。"
+    },
+    "technical": {
+      "label": "技术强度",
+      "description": "能接受数学、代码、工程、实验、算法或长期技能积累。"
+    },
+    "people": {
+      "label": "人际沟通",
+      "description": "擅长表达、组织、协调、说服、服务或影响他人。"
+    },
+    "creative": {
+      "label": "创造表达",
+      "description": "偏好设计、内容、传媒、产品、审美、表达和创意产出。"
+    },
+    "research": {
+      "label": "科研深造",
+      "description": "愿意长期钻研、读研读博、做实验、做研究或探索未知问题。"
+    },
+    "risk": {
+      "label": "风险承受",
+      "description": "能接受行业波动、路径不确定、竞争压力和试错成本。"
+    },
+    "city": {
+      "label": "城市依赖",
+      "description": "重视城市平台、实习机会、就业资源和行业聚集度。"
+    },
+    "public_sector": {
+      "label": "体制规划",
+      "description": "偏向考公、编制、事业单位、教师、法学、公共管理等稳定路径。"
+    },
+    "interdisciplinary": {
+      "label": "复合转型",
+      "description": "兴趣广、希望保留转向空间，适合交叉学科或复合型路径。"
+    }
+  },
+  "questions": [
+    {
+      "id": "q01_identity",
+      "module": "基础约束",
+      "type": "single_choice",
+      "question": "你目前的身份是？",
+      "required": true,
+      "options": [
+        {
+          "id": "student_g12",
+          "text": "高三学生",
+          "scores": {}
+        },
+        {
+          "id": "parent_g12",
+          "text": "高三家长",
+          "scores": {
+            "stability": 1
+          }
+        },
+        {
+          "id": "student_g10_g11",
+          "text": "高一/高二学生",
+          "scores": {
+            "interdisciplinary": 1
+          }
+        },
+        {
+          "id": "parent_g10_g11",
+          "text": "高一/高二家长",
+          "scores": {
+            "stability": 1
+          }
+        },
+        {
+          "id": "other",
+          "text": "其他",
+          "scores": {}
+        }
+      ]
+    },
+    {
+      "id": "q02_score_level",
+      "module": "基础约束",
+      "type": "single_choice",
+      "question": "你的预估分数或排名大概处于什么层级？",
+      "required": true,
+      "options": [
+        {
+          "id": "top_985",
+          "text": "超一本线很多，目标 985",
+          "scores": {
+            "research": 2,
+            "technical": 1,
+            "income": 1
+          }
+        },
+        {
+          "id": "strong_211",
+          "text": "一本线上方，目标 211 或双一流",
+          "scores": {
+            "technical": 1,
+            "stability": 1
+          }
+        },
+        {
+          "id": "near_first_tier",
+          "text": "一本线附近",
+          "scores": {
+            "stability": 2,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "near_undergrad_line",
+          "text": "本科线附近",
+          "scores": {
+            "stability": 2,
+            "people": 1
+          }
+        },
+        {
+          "id": "uncertain",
+          "text": "还不确定",
+          "scores": {
+            "interdisciplinary": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q03_city_preference",
+      "module": "基础约束",
+      "type": "single_choice",
+      "question": "你目前更倾向去哪类城市读大学？",
+      "required": true,
+      "options": [
+        {
+          "id": "tier1",
+          "text": "一线城市",
+          "scores": {
+            "city": 3,
+            "income": 1,
+            "risk": 1
+          }
+        },
+        {
+          "id": "new_tier1",
+          "text": "新一线或强省会",
+          "scores": {
+            "city": 2,
+            "stability": 1
+          }
+        },
+        {
+          "id": "near_home",
+          "text": "离家近优先",
+          "scores": {
+            "stability": 2,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "school_first",
+          "text": "学校好更重要，城市可以让步",
+          "scores": {
+            "research": 1,
+            "technical": 1,
+            "stability": 1
+          }
+        },
+        {
+          "id": "job_opportunity_first",
+          "text": "就业机会多更重要",
+          "scores": {
+            "city": 3,
+            "income": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "q04_interest_scene",
+      "module": "专业兴趣",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你更愿意把时间花在哪类事情上？",
+      "required": true,
+      "options": [
+        {
+          "id": "coding_systems",
+          "text": "写代码、做系统、解决技术问题",
+          "scores": {
+            "technical": 3,
+            "income": 1
+          }
+        },
+        {
+          "id": "communication_coordination",
+          "text": "和人沟通、做组织协调",
+          "scores": {
+            "people": 3,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "data_decision",
+          "text": "分析数据、做判断和决策",
+          "scores": {
+            "technical": 1,
+            "income": 2,
+            "interdisciplinary": 1
+          }
+        },
+        {
+          "id": "life_science_material",
+          "text": "研究生命、医学、化学、材料等问题",
+          "scores": {
+            "research": 3,
+            "stability": 1
+          }
+        },
+        {
+          "id": "design_content_expression",
+          "text": "做设计、内容、表达、创意类事情",
+          "scores": {
+            "creative": 3,
+            "people": 1
+          }
+        },
+        {
+          "id": "society_law_policy_business",
+          "text": "研究社会、人、法律、政策、商业",
+          "scores": {
+            "people": 1,
+            "public_sector": 2,
+            "interdisciplinary": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q05_least_acceptable_content",
+      "module": "专业兴趣",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你最不能接受哪种学习内容？",
+      "required": true,
+      "options": [
+        {
+          "id": "math_algorithm",
+          "text": "大量数学、算法、抽象推导",
+          "scores": {
+            "technical": -3,
+            "research": -1,
+            "people": 1,
+            "creative": 1
+          }
+        },
+        {
+          "id": "memorization",
+          "text": "大量背诵、记忆、概念条文",
+          "scores": {
+            "public_sector": -2,
+            "stability": -1,
+            "technical": 1
+          }
+        },
+        {
+          "id": "lab_bio_chem",
+          "text": "大量实验、化学、生物、材料课程",
+          "scores": {
+            "research": -3,
+            "technical": -1
+          }
+        },
+        {
+          "id": "drawing_portfolio",
+          "text": "大量画图、设计、作品集产出",
+          "scores": {
+            "creative": -3
+          }
+        },
+        {
+          "id": "communication_expression",
+          "text": "大量沟通、表达、展示和协作",
+          "scores": {
+            "people": -3,
+            "technical": 1,
+            "research": 1
+          }
+        },
+        {
+          "id": "uncertainty_self_exploration",
+          "text": "大量不确定性和自我探索",
+          "scores": {
+            "risk": -3,
+            "stability": 2,
+            "public_sector": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q06_major_priority",
+      "module": "就业价值观",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你选专业时最看重什么？最多选 2 个。",
+      "required": true,
+      "options": [
+        {
+          "id": "stable_employment",
+          "text": "稳定就业",
+          "scores": {
+            "stability": 3
+          }
+        },
+        {
+          "id": "high_income_ceiling",
+          "text": "高收入上限",
+          "scores": {
+            "income": 3,
+            "risk": 1
+          }
+        },
+        {
+          "id": "public_sector_friendly",
+          "text": "体制内、考公、编制友好",
+          "scores": {
+            "public_sector": 3,
+            "stability": 2
+          }
+        },
+        {
+          "id": "technical_barrier",
+          "text": "技术壁垒",
+          "scores": {
+            "technical": 3,
+            "income": 1
+          }
+        },
+        {
+          "id": "city_opportunity",
+          "text": "城市机会",
+          "scores": {
+            "city": 3,
+            "income": 1
+          }
+        },
+        {
+          "id": "personal_interest",
+          "text": "兴趣热爱",
+          "scores": {
+            "creative": 1,
+            "research": 1,
+            "risk": 1
+          }
+        },
+        {
+          "id": "future_transferability",
+          "text": "未来可转行",
+          "scores": {
+            "interdisciplinary": 3,
+            "risk": 1
+          }
+        },
+        {
+          "id": "family_resources",
+          "text": "家庭资源能帮上忙",
+          "scores": {
+            "stability": 2,
+            "people": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q07_career_path",
+      "module": "就业价值观",
+      "type": "single_choice",
+      "question": "你更能接受哪种职业路径？",
+      "required": true,
+      "options": [
+        {
+          "id": "stable_clear_path",
+          "text": "稳定、清晰、慢慢积累",
+          "scores": {
+            "stability": 3,
+            "risk": -1,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "hard_early_high_ceiling",
+          "text": "前期辛苦，但收入上限高",
+          "scores": {
+            "income": 3,
+            "risk": 2,
+            "technical": 1
+          }
+        },
+        {
+          "id": "fast_changing_opportunity",
+          "text": "有风险，但行业变化快、机会多",
+          "scores": {
+            "risk": 3,
+            "income": 2,
+            "city": 1
+          }
+        },
+        {
+          "id": "long_term_graduate_study",
+          "text": "需要长期读研或深造",
+          "scores": {
+            "research": 3,
+            "stability": 1
+          }
+        },
+        {
+          "id": "free_startup_transform",
+          "text": "更自由，未来可以创业或转型",
+          "scores": {
+            "risk": 3,
+            "creative": 1,
+            "interdisciplinary": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "q08_uncertainty_tolerance",
+      "module": "就业价值观",
+      "type": "scale_0_7",
+      "question": "你对“就业不确定性”的接受程度是多少？",
+      "required": true,
+      "min": 0,
+      "max": 7,
+      "min_label": "完全不能接受",
+      "max_label": "很能接受",
+      "score_formula": {
+        "risk": "(value - 3.5) * 1.03",
+        "stability": "(3.5 - value) * 0.64"
+      }
+    },
+    {
+      "id": "q09_learning_style",
+      "module": "学习方式适配",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你更擅长哪种学习？",
+      "required": true,
+      "options": [
+        {
+          "id": "exam_driven",
+          "text": "做题和考试",
+          "scores": {
+            "stability": 2,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "project_practice",
+          "text": "项目实践",
+          "scores": {
+            "technical": 2,
+            "interdisciplinary": 1,
+            "risk": 1
+          }
+        },
+        {
+          "id": "reading_writing",
+          "text": "阅读和写作",
+          "scores": {
+            "creative": 1,
+            "public_sector": 1,
+            "research": 1
+          }
+        },
+        {
+          "id": "lab_hands_on",
+          "text": "实验和动手",
+          "scores": {
+            "research": 2,
+            "technical": 1
+          }
+        },
+        {
+          "id": "communication_expression",
+          "text": "沟通表达",
+          "scores": {
+            "people": 3,
+            "creative": 1
+          }
+        },
+        {
+          "id": "deep_research",
+          "text": "长期钻研一个问题",
+          "scores": {
+            "research": 3,
+            "technical": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q10_self_learning",
+      "module": "学习方式适配",
+      "type": "single_choice",
+      "question": "你能接受大学期间高强度自学吗？",
+      "required": true,
+      "options": [
+        {
+          "id": "yes_active",
+          "text": "可以，我愿意主动学",
+          "scores": {
+            "technical": 2,
+            "risk": 2,
+            "interdisciplinary": 1
+          }
+        },
+        {
+          "id": "yes_with_guidance",
+          "text": "可以一点，但需要有人带",
+          "scores": {
+            "technical": 1,
+            "stability": 1
+          }
+        },
+        {
+          "id": "prefer_clear_system",
+          "text": "不太行，我更适合体系清楚的学习",
+          "scores": {
+            "stability": 2,
+            "risk": -2,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "not_sure",
+          "text": "不确定",
+          "scores": {
+            "interdisciplinary": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q11_extra_competition",
+      "module": "学习方式适配",
+      "type": "single_choice",
+      "question": "如果一个专业“课内不够，必须靠自学、实习、竞赛拉开差距”，你能接受吗？",
+      "required": true,
+      "options": [
+        {
+          "id": "accept",
+          "text": "可以接受",
+          "scores": {
+            "technical": 2,
+            "income": 2,
+            "risk": 2
+          }
+        },
+        {
+          "id": "worried",
+          "text": "有点担心",
+          "scores": {
+            "stability": 1,
+            "risk": -1
+          }
+        },
+        {
+          "id": "not_accept",
+          "text": "不太能接受",
+          "scores": {
+            "stability": 2,
+            "technical": -1,
+            "risk": -2
+          }
+        },
+        {
+          "id": "depends_on_return",
+          "text": "看专业回报",
+          "scores": {
+            "income": 2,
+            "risk": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q12_error_tolerance",
+      "module": "家庭和现实因素",
+      "type": "single_choice",
+      "question": "你对专业选择的容错率更接近哪一种？",
+      "required": true,
+      "options": [
+        {
+          "id": "avoid_wrong_path",
+          "text": "希望尽量不要走弯路，稳一点",
+          "scores": {
+            "stability": 3,
+            "risk": -2,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "try_with_backup",
+          "text": "可以试错，但最好有退路",
+          "scores": {
+            "interdisciplinary": 2,
+            "risk": 1,
+            "stability": 1
+          }
+        },
+        {
+          "id": "risk_for_interest",
+          "text": "愿意为了喜欢的方向承担风险",
+          "scores": {
+            "risk": 3,
+            "creative": 1,
+            "research": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q13_family_preference",
+      "module": "家庭和现实因素",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "家庭更倾向哪种方向？",
+      "required": true,
+      "options": [
+        {
+          "id": "stable_respectable",
+          "text": "稳定体面",
+          "scores": {
+            "stability": 3,
+            "public_sector": 1
+          }
+        },
+        {
+          "id": "high_income",
+          "text": "高收入",
+          "scores": {
+            "income": 3
+          }
+        },
+        {
+          "id": "prestige_first",
+          "text": "名校优先",
+          "scores": {
+            "research": 1,
+            "stability": 1
+          }
+        },
+        {
+          "id": "city_first",
+          "text": "城市优先",
+          "scores": {
+            "city": 3
+          }
+        },
+        {
+          "id": "child_interest_first",
+          "text": "孩子喜欢最重要",
+          "scores": {
+            "creative": 1,
+            "risk": 1,
+            "interdisciplinary": 1
+          }
+        },
+        {
+          "id": "disagreement",
+          "text": "目前意见不统一",
+          "scores": {
+            "stability": 1,
+            "interdisciplinary": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q14_current_anxiety",
+      "module": "家庭和现实因素",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你现在最焦虑的是什么？",
+      "required": true,
+      "options": [
+        {
+          "id": "dont_know_major_content",
+          "text": "不知道专业真实学什么",
+          "scores": {
+            "interdisciplinary": 1
+          },
+          "consulting_need": "major_reality"
+        },
+        {
+          "id": "dont_know_employment",
+          "text": "不知道未来就业怎么样",
+          "scores": {
+            "stability": 1,
+            "income": 1
+          },
+          "consulting_need": "employment_path"
+        },
+        {
+          "id": "dont_know_fit",
+          "text": "不知道自己或孩子适合什么",
+          "scores": {
+            "interdisciplinary": 2
+          },
+          "consulting_need": "fit_diagnosis"
+        },
+        {
+          "id": "school_vs_major",
+          "text": "不知道学校和专业怎么取舍",
+          "scores": {
+            "stability": 1,
+            "city": 1
+          },
+          "consulting_need": "school_major_tradeoff"
+        },
+        {
+          "id": "parent_child_conflict",
+          "text": "家长和孩子意见不一致",
+          "scores": {
+            "people": 1,
+            "stability": 1
+          },
+          "consulting_need": "family_alignment"
+        },
+        {
+          "id": "too_much_information",
+          "text": "信息太多，不知道信谁",
+          "scores": {
+            "stability": 1
+          },
+          "consulting_need": "information_filtering"
+        }
+      ]
+    },
+    {
+      "id": "q15_known_major_status",
+      "module": "专业认知盲区",
+      "type": "single_choice",
+      "question": "你现在已经有想了解的专业了吗？",
+      "required": true,
+      "options": [
+        {
+          "id": "one_major",
+          "text": "有，1 个",
+          "scores": {
+            "stability": 1
+          }
+        },
+        {
+          "id": "two_three_majors",
+          "text": "有，2–3 个",
+          "scores": {
+            "interdisciplinary": 1
+          }
+        },
+        {
+          "id": "many_unsorted",
+          "text": "有很多，还没筛出来",
+          "scores": {
+            "interdisciplinary": 2
+          }
+        },
+        {
+          "id": "no_direction",
+          "text": "完全没有方向",
+          "scores": {
+            "interdisciplinary": 2,
+            "stability": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "q16_target_major_area",
+      "module": "专业认知盲区",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你最想优先了解哪个专业方向？",
+      "required": true,
+      "options": [
+        {
+          "id": "cs_ai_software",
+          "text": "计算机 / AI / 软件",
+          "scores": {
+            "technical": 3,
+            "income": 2
+          },
+          "major_area": "computer_ai_software"
+        },
+        {
+          "id": "finance_economics_management",
+          "text": "金融 / 经济 / 管理",
+          "scores": {
+            "income": 2,
+            "people": 1,
+            "city": 1
+          },
+          "major_area": "finance_business"
+        },
+        {
+          "id": "medicine_pharmacy",
+          "text": "医学 / 药学",
+          "scores": {
+            "stability": 2,
+            "research": 2
+          },
+          "major_area": "medicine_pharmacy"
+        },
+        {
+          "id": "law",
+          "text": "法学",
+          "scores": {
+            "public_sector": 2,
+            "people": 1,
+            "stability": 1
+          },
+          "major_area": "law"
+        },
+        {
+          "id": "education",
+          "text": "师范 / 教育",
+          "scores": {
+            "stability": 3,
+            "people": 1,
+            "public_sector": 1
+          },
+          "major_area": "education"
+        },
+        {
+          "id": "ee_automation",
+          "text": "电子信息 / 自动化",
+          "scores": {
+            "technical": 3,
+            "income": 1
+          },
+          "major_area": "ee_automation"
+        },
+        {
+          "id": "bio_chem_material_env",
+          "text": "生化环材",
+          "scores": {
+            "research": 3,
+            "technical": 1
+          },
+          "major_area": "bio_chem_material_env"
+        },
+        {
+          "id": "architecture_civil",
+          "text": "建筑 / 土木",
+          "scores": {
+            "technical": 1,
+            "creative": 1,
+            "stability": 1
+          },
+          "major_area": "architecture_civil"
+        },
+        {
+          "id": "design_media",
+          "text": "设计 / 传媒",
+          "scores": {
+            "creative": 3,
+            "people": 1,
+            "risk": 1
+          },
+          "major_area": "design_media"
+        },
+        {
+          "id": "other",
+          "text": "其他",
+          "scores": {
+            "interdisciplinary": 1
+          },
+          "major_area": "other"
+        }
+      ]
+    },
+    {
+      "id": "q17_preferred_consultant",
+      "module": "专业认知盲区",
+      "type": "multi_choice",
+      "max_select": 2,
+      "question": "你最想听谁讲真实情况？",
+      "required": true,
+      "options": [
+        {
+          "id": "similar_score_student",
+          "text": "相似分数或相似学校层级的在读学长学姐",
+          "scores": {
+            "stability": 1
+          },
+          "consultant_type": "similar_background_student"
+        },
+        {
+          "id": "elite_student",
+          "text": "名校在读学生",
+          "scores": {
+            "research": 1
+          },
+          "consultant_type": "elite_student"
+        },
+        {
+          "id": "working_professional",
+          "text": "已经毕业工作的从业者",
+          "scores": {
+            "income": 1,
+            "stability": 1
+          },
+          "consultant_type": "working_professional"
+        },
+        {
+          "id": "graduate_phd",
+          "text": "研究生或博士",
+          "scores": {
+            "research": 2
+          },
+          "consultant_type": "graduate_or_phd"
+        },
+        {
+          "id": "senior_industry_person",
+          "text": "行业里比较资深的人",
+          "scores": {
+            "income": 1,
+            "people": 1
+          },
+          "consultant_type": "senior_industry_expert"
+        },
+        {
+          "id": "multiple_people",
+          "text": "我想多听几个人对比",
+          "scores": {
+            "interdisciplinary": 2
+          },
+          "consultant_type": "multi_perspective"
+        }
+      ]
+    }
+  ],
+  "profile_rules": [
+    {
+      "id": "stable_employment",
+      "name": "稳健就业型",
+      "display_name": "稳健就业型规划者",
+      "match_formula": "stability * 1.2 + public_sector * 0.7 - risk * 0.3",
+      "primary_conditions": {
+        "stability": "high",
+        "risk": "low_or_medium"
+      },
+      "description": "你比较看重就业确定性、家庭接受度和长期稳定发展。相比追逐风口，你更适合选择职业出口清晰、社会认可度较高、路径相对稳健的专业。",
+      "keywords": [
+        "稳定就业",
+        "确定性",
+        "家庭接受度",
+        "长期积累"
+      ],
+      "recommended_majors": [
+        "师范类",
+        "医学相关",
+        "计算机科学与技术",
+        "电子信息类",
+        "会计学",
+        "法学部分路径"
+      ],
+      "explore_majors": [
+        "软件工程",
+        "公共管理",
+        "财务管理",
+        "护理学",
+        "口腔医学"
+      ],
+      "caution_majors": [
+        "纯艺术类",
+        "高度依赖作品集的设计类",
+        "就业路径不清晰的冷门专业"
+      ],
+      "risk_note": "稳健不等于轻松。师范、医学、法学、计算机都存在竞争，只是竞争形式不同，需要提前了解真实课程压力和就业门槛。",
+      "consultant_match": [
+        "working_professional",
+        "similar_background_student"
+      ]
+    },
+    {
+      "id": "high_income_sprint",
+      "name": "高收入冲刺型",
+      "display_name": "高收入冲刺型竞争者",
+      "match_formula": "income * 1.3 + risk * 0.8 + city * 0.5 + technical * 0.4",
+      "primary_conditions": {
+        "income": "high",
+        "risk": "medium_or_high"
+      },
+      "description": "你更看重收入上限和行业机会，能够接受一定竞争和不确定性。你适合关注行业红利明显、城市机会集中、对能力成长要求较高的专业方向。",
+      "keywords": [
+        "收入上限",
+        "竞争",
+        "行业机会",
+        "城市平台"
+      ],
+      "recommended_majors": [
+        "计算机科学与技术",
+        "软件工程",
+        "人工智能",
+        "金融学",
+        "电子信息工程",
+        "数据科学与大数据技术"
+      ],
+      "explore_majors": [
+        "经济学",
+        "统计学",
+        "信息管理与信息系统",
+        "数字经济",
+        "自动化"
+      ],
+      "caution_majors": [
+        "低城市机会专业",
+        "收入上限不高但学习周期很长的专业"
+      ],
+      "risk_note": "高收入方向通常伴随高竞争、高自学强度和强城市依赖。选择前需要确认自己是否能接受持续刷项目、实习、竞赛和技能更新。",
+      "consultant_match": [
+        "working_professional",
+        "senior_industry_expert"
+      ]
+    },
+    {
+      "id": "public_sector_planner",
+      "name": "体制规划型",
+      "display_name": "体制规划型稳定派",
+      "match_formula": "public_sector * 1.4 + stability * 0.9 - risk * 0.4",
+      "primary_conditions": {
+        "public_sector": "high",
+        "stability": "medium_or_high"
+      },
+      "description": "你更偏好稳定、清晰、长期确定的职业路径，可能更看重考公、编制、事业单位、教师或公共部门相关机会。",
+      "keywords": [
+        "考公友好",
+        "编制",
+        "稳定路径",
+        "社会认可"
+      ],
+      "recommended_majors": [
+        "法学",
+        "外语",
+        "思想政治教育",
+        "公共管理",
+        "师范类",
+        "会计学"
+      ],
+      "explore_majors": [
+        "财政学",
+        "社会学",
+        "马克思主义理论",
+        "行政管理",
+        "新闻传播部分方向"
+      ],
+      "caution_majors": [
+        "强市场化但不稳定的专业",
+        "需要高度作品集或创业型路径的专业"
+      ],
+      "risk_note": "体制路径也有竞争，尤其是法学、汉语言、师范等方向，需要提前了解考公岗位限制、地区差异和学历要求。",
+      "consultant_match": [
+        "working_professional",
+        "similar_background_student"
+      ]
+    },
+    {
+      "id": "technical_deep_dive",
+      "name": "技术深耕型",
+      "display_name": "技术深耕型学习者",
+      "match_formula": "technical * 1.4 + research * 0.5 + income * 0.4",
+      "primary_conditions": {
+        "technical": "high"
+      },
+      "description": "你能接受数学、代码、工程、实验或长期技能积累，适合选择有技术壁垒、能力成长曲线明显的专业。",
+      "keywords": [
+        "技术壁垒",
+        "长期学习",
+        "数学代码",
+        "工程能力"
+      ],
+      "recommended_majors": [
+        "计算机科学与技术",
+        "电子信息工程",
+        "自动化",
+        "人工智能",
+        "数学与应用数学",
+        "物理学"
+      ],
+      "explore_majors": [
+        "软件工程",
+        "通信工程",
+        "机器人工程",
+        "数据科学与大数据技术",
+        "集成电路"
+      ],
+      "caution_majors": [
+        "强背诵弱技术的专业",
+        "沟通销售主导型专业"
+      ],
+      "risk_note": "技术类专业不是只靠上课就够，通常需要额外项目、竞赛、实习或科研。不同学校资源差异很大。",
+      "consultant_match": [
+        "elite_student",
+        "graduate_or_phd",
+        "working_professional"
+      ]
+    },
+    {
+      "id": "research_explorer",
+      "name": "研究探索型",
+      "display_name": "研究探索型深造者",
+      "match_formula": "research * 1.4 + technical * 0.4 + stability * 0.2",
+      "primary_conditions": {
+        "research": "high"
+      },
+      "description": "你比较适合长期钻研复杂问题，能够接受读研、实验、理论学习或较长培养周期。你适合关注科研、医学、基础学科或专业壁垒较强的方向。",
+      "keywords": [
+        "长期钻研",
+        "读研深造",
+        "科研",
+        "复杂问题"
+      ],
+      "recommended_majors": [
+        "基础医学",
+        "临床医学相关",
+        "生物科学",
+        "化学",
+        "物理学",
+        "心理学",
+        "基础学科"
+      ],
+      "explore_majors": [
+        "药学",
+        "材料科学与工程",
+        "环境科学",
+        "认知科学",
+        "生物医学工程"
+      ],
+      "caution_majors": [
+        "本科就业弱但自己不想深造的专业",
+        "需要长期实验但自己不喜欢实验的专业"
+      ],
+      "risk_note": "研究型方向往往需要更长周期，很多专业本科就业并不直接。选择前要确认是否愿意读研、做实验、写论文或接受慢回报。",
+      "consultant_match": [
+        "graduate_or_phd",
+        "elite_student"
+      ]
+    },
+    {
+      "id": "creative_expression",
+      "name": "创意表达型",
+      "display_name": "创意表达型实践者",
+      "match_formula": "creative * 1.4 + people * 0.5 + risk * 0.3",
+      "primary_conditions": {
+        "creative": "high"
+      },
+      "description": "你更适合内容、设计、传播、产品、交互和表达相关方向。你可能更在意作品、体验、审美、用户感受和创造性输出。",
+      "keywords": [
+        "设计",
+        "内容",
+        "表达",
+        "作品集",
+        "用户体验"
+      ],
+      "recommended_majors": [
+        "视觉传达设计",
+        "数字媒体艺术",
+        "新闻传播学",
+        "广告学",
+        "建筑学",
+        "产品设计"
+      ],
+      "explore_majors": [
+        "工业设计",
+        "网络与新媒体",
+        "广播电视编导",
+        "交互设计",
+        "HCI相关交叉方向"
+      ],
+      "caution_majors": [
+        "高度重复、低表达空间的专业",
+        "纯理论且作品产出少的专业"
+      ],
+      "risk_note": "创意类方向很看重作品、平台、城市和实习资源，不同学校差异明显。需要提前了解作品集、就业渠道和真实行业收入。",
+      "consultant_match": [
+        "working_professional",
+        "elite_student",
+        "multi_perspective"
+      ]
+    },
+    {
+      "id": "people_influence",
+      "name": "人际影响型",
+      "display_name": "人际影响型连接者",
+      "match_formula": "people * 1.4 + city * 0.4 + income * 0.3",
+      "primary_conditions": {
+        "people": "high"
+      },
+      "description": "你擅长沟通、组织、表达、服务或影响他人，适合选择人与组织相关、表达和协调能力重要的专业方向。",
+      "keywords": [
+        "沟通表达",
+        "组织协调",
+        "影响力",
+        "服务他人"
+      ],
+      "recommended_majors": [
+        "工商管理",
+        "市场营销",
+        "教育学",
+        "法学",
+        "心理学",
+        "公共关系"
+      ],
+      "explore_majors": [
+        "人力资源管理",
+        "国际经济与贸易",
+        "社会工作",
+        "新闻传播",
+        "公共管理"
+      ],
+      "caution_majors": [
+        "长期独立钻研、低互动专业",
+        "高度技术封闭型方向"
+      ],
+      "risk_note": "人际影响型方向需要真实平台和实践机会。只学理论不够，实习、表达训练、组织经验会显著影响就业质量。",
+      "consultant_match": [
+        "working_professional",
+        "senior_industry_expert"
+      ]
+    },
+    {
+      "id": "interdisciplinary_transformer",
+      "name": "复合转型型",
+      "display_name": "复合转型型探索者",
+      "match_formula": "interdisciplinary * 1.4 + risk * 0.5 + technical * 0.3 + creative * 0.3",
+      "primary_conditions": {
+        "interdisciplinary": "high"
+      },
+      "description": "你兴趣较广，不太想太早被单一专业锁死。你适合选择可迁移性强、交叉空间大、未来能结合技术、商业、设计或行业知识的方向。",
+      "keywords": [
+        "交叉学科",
+        "可转行",
+        "复合能力",
+        "探索空间"
+      ],
+      "recommended_majors": [
+        "信息管理与信息系统",
+        "数字经济",
+        "数据科学",
+        "工业工程",
+        "数字媒体技术",
+        "交叉学科"
+      ],
+      "explore_majors": [
+        "计算机+商科方向",
+        "HCI/交互方向",
+        "金融科技",
+        "智能制造",
+        "管理科学与工程"
+      ],
+      "caution_majors": [
+        "路径过窄的专业",
+        "转向空间小但自己还没想清楚的专业"
+      ],
+      "risk_note": "复合型专业的优势在于灵活，但也容易变得不够专。需要尽早确定一个主能力，比如代码、数据、设计、商业分析或行业知识。",
+      "consultant_match": [
+        "multi_perspective",
+        "working_professional"
+      ]
+    }
+  ],
+  "scoring_logic": {
+    "answer_scoring": "每个选项包含 scores 字段。multi_choice 题对所选选项按维度取平均分（避免选 2 项时权重翻倍），最多 2 项。scale_0_7 题使用 score_formula 计算。",
+    "normalization": "每个维度分数可做 min-max 或 z-score 标准化；MVP 可直接使用原始分排序。",
+    "profile_selection": "对每个 profile_rules 中的 match_formula 计算匹配分，最高分为主画像，第二高为辅助画像。",
+    "tie_breaking": [
+      "如果 stability 和 risk 同时高，优先选择“稳健就业型”或“复合转型型”，并在报告中提示用户既想稳定又想保留机会。",
+      "如果 technical 和 income 同时高，优先选择“技术深耕型”或“高收入冲刺型”。",
+      "如果 research 高且 self_learning 相关题偏高，优先选择“研究探索型”。",
+      "如果 creative 和 people 同时高，优先选择“创意表达型”或“人际影响型”。"
+    ],
+    "confidence": {
+      "high": "主画像分数比第二画像高 20% 以上",
+      "medium": "主画像分数比第二画像高 10%–20%",
+      "low": "主画像分数比第二画像高不到 10%，建议展示双画像"
+    }
+  },
+  "result_page_structure": {
+    "sections": [
+      {
+        "id": "profile_header",
+        "title": "你的专业选择画像",
+        "content_fields": [
+          "display_name",
+          "description",
+          "keywords"
+        ]
+      },
+      {
+        "id": "recommended_directions",
+        "title": "适合优先了解的专业方向",
+        "content_fields": [
+          "recommended_majors",
+          "explore_majors",
+          "caution_majors"
+        ]
+      },
+      {
+        "id": "city_school_suggestion",
+        "title": "学校与城市选择建议",
+        "template": "根据你的分数层级和城市偏好，你可以重点关注与该方向资源匹配的学校和城市层级。MVP 阶段不要做精确志愿填报，只做方向建议。"
+      },
+      {
+        "id": "risk_note",
+        "title": "真实风险提示",
+        "content_fields": [
+          "risk_note"
+        ]
+      },
+      {
+        "id": "consultant_cards",
+        "title": "建议和真正学过/做过的人聊一次",
+        "description": "测试只能帮你缩小方向，但专业真实的学习压力、就业路径和适配人群，只有真正经历过的人最清楚。",
+        "cta": "查看可咨询的学长学姐"
+      },
+      {
+        "id": "share_card",
+        "title": "生成分享卡",
+        "fields": [
+          "display_name",
+          "recommended_majors",
+          "keywords",
+          "one_sentence_summary"
+        ]
+      }
+    ]
+  },
+  "sample_consultants": [
+    {
+      "id": "consultant_cs_wuhan",
+      "name": "张同学",
+      "school": "武汉大学",
+      "major": "计算机科学与技术",
+      "status": "大三在读",
+      "tags": [
+        "AI",
+        "后端开发",
+        "保研准备"
+      ],
+      "can_talk_about": [
+        "课程难度",
+        "竞赛",
+        "实习",
+        "转专业",
+        "武大计算机真实体验"
+      ],
+      "match_major_areas": [
+        "computer_ai_software"
+      ],
+      "match_profiles": [
+        "technical_deep_dive",
+        "high_income_sprint",
+        "stable_employment"
+      ],
+      "cta": "预约咨询"
+    },
+    {
+      "id": "consultant_se_hust",
+      "name": "李同学",
+      "school": "华中科技大学",
+      "major": "软件工程",
+      "status": "已毕业，现就职互联网公司",
+      "tags": [
+        "校招",
+        "实习",
+        "互联网就业"
+      ],
+      "can_talk_about": [
+        "就业路径",
+        "实习准备",
+        "校招",
+        "AI 冲击",
+        "普通学生怎么规划"
+      ],
+      "match_major_areas": [
+        "computer_ai_software"
+      ],
+      "match_profiles": [
+        "high_income_sprint",
+        "technical_deep_dive"
+      ],
+      "cta": "预约咨询"
+    },
+    {
+      "id": "consultant_ai_uestc",
+      "name": "王学姐",
+      "school": "电子科技大学",
+      "major": "计算机硕士",
+      "status": "算法工程师",
+      "tags": [
+        "算法岗",
+        "读研",
+        "AI"
+      ],
+      "can_talk_about": [
+        "本科到研究生路径",
+        "算法岗",
+        "读研必要性",
+        "女生学计算机体验"
+      ],
+      "match_major_areas": [
+        "computer_ai_software",
+        "ee_automation"
+      ],
+      "match_profiles": [
+        "research_explorer",
+        "technical_deep_dive",
+        "high_income_sprint"
+      ],
+      "cta": "预约咨询"
+    }
+  ]
+}
