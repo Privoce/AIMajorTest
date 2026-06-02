@@ -160,9 +160,12 @@
       line-height: 1.25;
     }
     .result-actions-share {
-      flex-direction: row;
+      flex-direction: column;
+      gap: 10px;
     }
-    .result-actions-share .btn { flex: 1; }
+    .result-actions-share .result-actions-row { width: 100%; }
+    .result-actions-share .result-actions-row .btn { flex: 1; }
+    .result-actions-share .btn-share-copy { width: 100%; flex: none; }
     .result-actions-full {
       flex-direction: column;
       gap: 10px;
@@ -225,7 +228,9 @@
     }
     body.share-view .hero,
     body.share-view #quizSection { display: none !important; }
+    body.quiz-view .hero,
     body.result-view .hero { display: none !important; }
+    body.quiz-view #quizSection { padding-top: 24px; }
     .hidden { display: none !important; }
 
     .progress-wrap { margin-bottom: 16px; }
@@ -450,8 +455,8 @@
       .brand-title { font-size: 1.05rem; }
       .pager { flex-direction: column; }
       .pager .btn { max-width: none; width: 100%; }
-      .result-actions-share { flex-direction: row; }
-      .result-actions-share .btn { font-size: 0.82rem; padding: 12px 10px; }
+      .result-actions-share { flex-direction: column; }
+      .result-actions-share .result-actions-row .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
   </style>
 </head>
@@ -995,7 +1000,7 @@
       const rule = payload.rule;
       const conf = payload.conf;
       const secondary = payload.secondary;
-      const majors = (rule.recommended_majors || []).slice(0, 4);
+      const majors = (rule.recommended_majors || []).slice(0, 8);
 
       let html = "<div class=\"card result\">";
       html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
@@ -1011,8 +1016,12 @@
         html += "</div>";
       }
       html += "<div class=\"result-actions result-actions-share\">";
+      html += "<div class=\"result-actions-row\">";
       html += "<a class=\"btn btn-primary\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI 匹配学长学姐</a>";
       html += "<a class=\"btn btn-outline\" href=\"" + location.pathname + "\">我也要测试</a>";
+      html += "</div>";
+      html += "<button type=\"button\" class=\"btn btn-share btn-share-copy\" id=\"copyShareLinkBtn\">复制链接分享</button>";
+      html += "<span id=\"shareLinkCopiedTip\" class=\"share-copied-tip\"></span>";
       html += "</div>";
       html += "</div>";
       return html;
@@ -1104,6 +1113,44 @@
       return renderFullResultSections(payload);
     }
 
+    function getPublicShareUrl() {
+      const params = new URLSearchParams(location.search);
+      params.delete("ref");
+      const qs = params.toString();
+      return location.origin + location.pathname + (qs ? "?" + qs : "");
+    }
+
+    async function copyTextToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        const input = document.createElement("textarea");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      }
+    }
+
+    function showShareLinkCopiedTip() {
+      const tip = document.getElementById("shareLinkCopiedTip");
+      if (!tip) return;
+      tip.textContent = "链接已复制";
+      tip.classList.add("show");
+      clearTimeout(showShareLinkCopiedTip._timer);
+      showShareLinkCopiedTip._timer = setTimeout(() => tip.classList.remove("show"), 2500);
+    }
+
+    function bindSharePageActions() {
+      const btn = document.getElementById("copyShareLinkBtn");
+      if (!btn) return;
+      btn.addEventListener("click", async () => {
+        await copyTextToClipboard(getPublicShareUrl());
+        showShareLinkCopiedTip();
+      });
+    }
+
     function bindResultActions(payload) {
       document.getElementById("restartBtn").addEventListener("click", restartTest);
       document.getElementById("shareBtn").addEventListener("click", () => {
@@ -1131,10 +1178,12 @@
       };
       document.title = rule.display_name + " · 分享结果";
       resultSection.innerHTML = renderResultSections(payload, { shareView: true });
+      bindSharePageActions();
     }
 
     function renderResult() {
       const payload = buildResultPayload();
+      document.body.classList.remove("quiz-view");
       document.body.classList.add("result-view");
       document.body.classList.remove("share-view");
       resultSection.innerHTML = renderResultSections(payload, { shareView: false });
@@ -1147,6 +1196,7 @@
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
       document.body.classList.remove("result-view");
+      document.body.classList.add("quiz-view");
       try { sessionStorage.removeItem(FULL_RESULT_SESSION_KEY); } catch (e) { /* ignore */ }
       document.getElementById("shareBackBtn").classList.add("hidden");
       resultSection.classList.add("hidden");
@@ -1173,6 +1223,7 @@
       if (!config) return;
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
+      document.body.classList.add("quiz-view");
       resultSection.classList.add("hidden");
       quizSection.classList.remove("hidden");
       renderQuestion();
