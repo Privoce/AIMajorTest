@@ -199,6 +199,30 @@
       font-size: 0.9rem;
       margin: 8px 0 16px;
     }
+    .share-back-btn {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 200;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      color: #4a5872;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(32, 46, 79, 0.08);
+      transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .share-back-btn:hover {
+      background: #fff;
+      color: var(--primary);
+      border-color: #bcd4f5;
+    }
     body.share-view .hero,
     body.share-view #quizSection { display: none !important; }
     body.result-view .hero { display: none !important; }
@@ -442,6 +466,8 @@
     </div>
   </header>
 
+  <button type="button" id="shareBackBtn" class="share-back-btn hidden" aria-label="返回完整结果">← 返回</button>
+
   <section class="hero">
     <div class="shell">
       <h1 id="heroTitle">专业选择画像测试</h1>
@@ -502,6 +528,7 @@
     const SLUG_TO_PROFILE = Object.fromEntries(
       Object.entries(PROFILE_SLUGS).map(([id, slug]) => [slug, id])
     );
+    const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
 
     function resolveProfileId(value) {
       if (!value) return "";
@@ -879,6 +906,91 @@
       return location.origin + url;
     }
 
+    function serializeFullResultPayload(payload) {
+      return {
+        p: payload.primary.rule.id,
+        s: payload.conf === "低" && payload.secondary ? payload.secondary.rule.id : "",
+        c: payload.conf,
+        d: payload.topDims.map((x) => [x.k, Math.round(x.v * 10) / 10]),
+        ch: payload.choices
+      };
+    }
+
+    function restoreFullResultPayload(data) {
+      const rule = (config.profile_rules || []).find((r) => r.id === data.p);
+      if (!rule) return null;
+      const secondaryRule = data.s
+        ? (config.profile_rules || []).find((r) => r.id === data.s)
+        : null;
+      return {
+        rule,
+        conf: data.c || "中",
+        secondary: secondaryRule ? { rule: secondaryRule } : null,
+        consultants: matchConsultants(rule.id),
+        topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
+        choices: data.ch || [],
+        primary: { rule }
+      };
+    }
+
+    function saveFullResultSession(payload) {
+      try {
+        sessionStorage.setItem(FULL_RESULT_SESSION_KEY, JSON.stringify(serializeFullResultPayload(payload)));
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function restoreFullResultView() {
+      let raw;
+      try {
+        raw = sessionStorage.getItem(FULL_RESULT_SESSION_KEY);
+      } catch (e) {
+        return false;
+      }
+      if (!raw) return false;
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        return false;
+      }
+      const payload = restoreFullResultPayload(data);
+      if (!payload) return false;
+
+      document.body.classList.remove("share-view");
+      document.body.classList.add("result-view");
+      document.getElementById("shareBanner").classList.add("hidden");
+      document.getElementById("shareBackBtn").classList.add("hidden");
+      history.replaceState(null, "", location.pathname);
+      document.title = payload.rule.display_name + " · AI专业测试";
+      resultSection.innerHTML = renderResultSections(payload, { shareView: false });
+      resultSection.classList.remove("hidden");
+      bindResultActions(payload);
+      resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      return true;
+    }
+
+    function maybeShowShareBackButton(params) {
+      const btn = document.getElementById("shareBackBtn");
+      if (!btn) return;
+      if (params.get("ref") !== "self") {
+        btn.classList.add("hidden");
+        return;
+      }
+      try {
+        if (!sessionStorage.getItem(FULL_RESULT_SESSION_KEY)) {
+          btn.classList.add("hidden");
+          return;
+        }
+      } catch (e) {
+        btn.classList.add("hidden");
+        return;
+      }
+      btn.classList.remove("hidden");
+      btn.onclick = () => { restoreFullResultView(); };
+    }
+
     function renderShareResultSections(payload) {
       const rule = payload.rule;
       const conf = payload.conf;
@@ -995,7 +1107,8 @@
     function bindResultActions(payload) {
       document.getElementById("restartBtn").addEventListener("click", restartTest);
       document.getElementById("shareBtn").addEventListener("click", () => {
-        location.href = buildShareUrl(payload);
+        saveFullResultSession(payload);
+        location.href = buildShareUrl(payload) + "&ref=self";
       });
     }
 
@@ -1034,6 +1147,8 @@
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
       document.body.classList.remove("result-view");
+      try { sessionStorage.removeItem(FULL_RESULT_SESSION_KEY); } catch (e) { /* ignore */ }
+      document.getElementById("shareBackBtn").classList.add("hidden");
       resultSection.classList.add("hidden");
       resultSection.innerHTML = "";
       quizSection.classList.remove("hidden");
@@ -1097,6 +1212,7 @@
         document.body.classList.add("share-view");
         document.getElementById("shareBanner").classList.remove("hidden");
         renderShareResultPage(shareData);
+        maybeShowShareBackButton(params);
         resultSection.classList.remove("hidden");
         return;
       }

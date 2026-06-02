@@ -346,7 +346,7 @@
         },
         {
           "id": "technical_barrier",
-          "text": "技术壁垒",
+          "text": "硬技能强，越学越吃香",
           "scores": {
             "technical": 3,
             "income": 1
@@ -371,7 +371,7 @@
         },
         {
           "id": "future_transferability",
-          "text": "未来可转行",
+          "text": "基础学科，后续可换其他方向",
           "scores": {
             "interdisciplinary": 3,
             "risk": 1
