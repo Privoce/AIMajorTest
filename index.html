@@ -1,11 +1,654 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello World</title>
+  <title>Personality Test Clone Demo</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --ink: #2f3a52;
+      --muted: #72809a;
+      --line: #e3e9f3;
+      --agree: #2ea67d;
+      --disagree: #8f5daf;
+      --neutral: #9ea4b1;
+      --panel: #ffffff;
+      --panel-soft: #f8fafe;
+      --panel-line: #e2e8f3;
+      --shadow: 0 8px 24px rgba(32, 46, 79, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .hero {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 28px 16px 24px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 3.1rem);
+      color: #384058;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      color: var(--muted);
+      max-width: 760px;
+      margin: 0 auto 16px;
+    }
+    .hero .start {
+      border: 0;
+      border-radius: 999px;
+      background: #2f8fef;
+      color: #fff;
+      padding: 10px 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .test-wrap {
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 72vh;
+      padding: 24px 14px 42px;
+    }
+    .top-meta {
+      max-width: 920px;
+      margin: 0 auto 18px;
+      display: grid;
+      gap: 10px;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #7b879d;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .progress-track{
+      height: 8px;
+      background: #e7edf7;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-track span{
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #2ea67d, #34b08c);
+      transition: width 0.25s ease;
+    }
+
+    .question-list {
+      max-width: 920px;
+      margin: 0 auto;
+      border: 1px solid var(--panel-line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .q-row {
+      padding: 26px 0;
+      border-bottom: 1px solid var(--panel-line);
+      margin: 0 18px;
+    }
+    .q-row:last-child { border-bottom: 0; }
+    .q-title {
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 700;
+      color: #36435f;
+      margin-bottom: 14px;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .answer-line {
+      display: grid;
+      grid-template-columns: 74px 1fr 84px;
+      gap: 10px;
+      align-items: center;
+    }
+    .answer-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .answer-label.left { color: var(--agree); }
+    .answer-label.right { color: var(--disagree); text-align: right; }
+
+    .scale {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(24px, auto));
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .dot {
+      --size: 28px;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      border: 3px solid var(--neutral);
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .dot[data-value="-3"], .dot[data-value="3"] { --size: 54px; }
+    .dot[data-value="-2"], .dot[data-value="2"] { --size: 46px; }
+    .dot[data-value="-1"], .dot[data-value="1"] { --size: 38px; }
+    .dot[data-value="-3"], .dot[data-value="-2"], .dot[data-value="-1"] { border-color: var(--agree); }
+    .dot[data-value="1"], .dot[data-value="2"], .dot[data-value="3"] { border-color: var(--disagree); }
+    .dot[data-value="0"] { border-color: #a4abb7; --size: 30px; }
+    .dot:hover { transform: scale(1.04); }
+
+    .dot.selected {
+      background: currentColor;
+      border-color: currentColor;
+      box-shadow: none;
+    }
+    .dot.selected::after {
+      content: "✓";
+      color: #fff;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -56%);
+      font-size: calc(var(--size) * 0.38);
+      line-height: 1;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+    .dot.selected.pos { color: #8f5daf; }
+    .dot.selected.neg { color: #33a67f; }
+    .dot.selected.neu { color: #9aa1ae; }
+
+    .pager {
+      max-width: 920px;
+      margin: 20px auto 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+    .btn.secondary { background: #e8edf7; color: #4f5f7b; }
+    .btn.primary { background: #2f8fef; color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result {
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
+      border-radius: 14px;
+      max-width: 920px;
+      margin: 22px auto 0;
+      padding: 20px;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+    .result h2 { font-size: 1.5rem; margin-bottom: 10px; }
+    .result p { color: #7a869c; margin-bottom: 10px; }
+    .result-subtitle {
+      color: #7d8aa4;
+      font-size: 0.92rem;
+      margin-bottom: 12px;
+    }
+    .result-code {
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      margin: 2px 0 12px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #7ec1ff;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .axis {
+      list-style: none;
+      margin: 0 0 14px;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .axis li {
+      border: 1px solid var(--panel-line);
+      border-radius: 10px;
+      background: var(--panel-soft);
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.95rem;
+    }
+    .major-list {
+      list-style: decimal;
+      margin: 0 0 14px 20px;
+      color: #36435f;
+      display: grid;
+      gap: 8px;
+    }
+    .major-list li span {
+      color: #7d8aa4;
+      display: block;
+      font-size: 0.9rem;
+      margin-top: 2px;
+    }
+    .meta-note {
+      border: 1px solid var(--panel-line);
+      background: var(--panel-soft);
+      border-radius: 10px;
+      padding: 10px;
+      color: #6f7c97;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    .hidden { display: none; }
+
+    @media (min-width: 768px) {
+      .hero { padding: 58px 22px 40px; }
+      .test-wrap { padding: 32px 22px 56px; }
+      .answer-line { grid-template-columns: 84px 1fr 92px; gap: 16px; }
+      .scale { gap: 16px; }
+    }
+    @media (max-width: 680px) {
+      .q-row { padding: 22px 0; }
+      .q-title { text-align: left; }
+      .answer-line {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .answer-label.left, .answer-label.right { text-align: left; }
+      .pager { flex-direction: column; }
+      .pager .btn { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello World</h1>
+  <section class="hero">
+    <div class="shell">
+      <h1>Free Personality Test</h1>
+      <p>参考 16Personalities 的交互风格制作。你可以直接完成完整问卷并查看人格类型与专业推荐结果。</p>
+      <button id="startBtn" class="start">Start the Test</button>
+    </div>
+  </section>
+
+  <section id="testWrap" class="test-wrap hidden">
+    <div class="top-meta">
+      <div class="progress-meta">
+        <span id="progressText">题库加载后开始测试</span>
+        <span id="progressPct">31%</span>
+      </div>
+      <div class="progress-track"><span id="progressBar"></span></div>
+    </div>
+
+    <div id="questionList" class="question-list"></div>
+
+    <div class="pager">
+      <button id="prevSetBtn" class="btn secondary">Previous Set</button>
+      <button id="nextSetBtn" class="btn primary">Next Set of Questions</button>
+    </div>
+
+    <section id="result" class="result hidden">
+      <h2>你的类型结果</h2>
+      <p>以下结果为示例算法输出，用于演示 UI 和流程。</p>
+      <div id="resultCode" class="result-code">INTJ</div>
+      <div id="resultSubtitle" class="result-subtitle"></div>
+      <div class="result-grid">
+        <div>
+          <h3>四维偏好</h3>
+          <ul id="axisList" class="axis"></ul>
+        </div>
+        <div>
+          <h3>推荐专业 Top 5</h3>
+          <ol id="majorList" class="major-list"></ol>
+        </div>
+      </div>
+      <div id="metaNote" class="meta-note"></div>
+      <button id="restartBtn" class="btn primary">重新开始</button>
+    </section>
+  </section>
+
+  <script>
+    const dimensionOrder = ["EI", "SN", "TF", "JP"];
+    const majorProfiles = [
+      { id: "CS", name: "计算机科学", vector: { E: 0.2, I: 0.8, S: 0.5, N: 0.5, T: 0.9, F: 0.1, J: 0.7, P: 0.3 }, reason: "强调逻辑分析、系统思维与持续迭代能力。" },
+      { id: "PSY", name: "心理学", vector: { E: 0.5, I: 0.5, S: 0.4, N: 0.6, T: 0.2, F: 0.8, J: 0.4, P: 0.6 }, reason: "重视对人类行为与情绪模式的理解。" },
+      { id: "ME", name: "机械工程", vector: { E: 0.3, I: 0.7, S: 0.9, N: 0.1, T: 0.8, F: 0.2, J: 0.8, P: 0.2 }, reason: "注重实操、结构化分析与工程落地。" },
+      { id: "MEDIA", name: "传媒学", vector: { E: 0.7, I: 0.3, S: 0.5, N: 0.5, T: 0.3, F: 0.7, J: 0.3, P: 0.7 }, reason: "适合表达、内容创意和传播协作。" },
+      { id: "BIZ", name: "工商管理", vector: { E: 0.7, I: 0.3, S: 0.4, N: 0.6, T: 0.6, F: 0.4, J: 0.7, P: 0.3 }, reason: "兼顾沟通协调、决策与组织管理。" },
+      { id: "ARCH", name: "建筑学", vector: { E: 0.4, I: 0.6, S: 0.5, N: 0.5, T: 0.6, F: 0.4, J: 0.6, P: 0.4 }, reason: "融合审美表达、空间逻辑与项目推进。" },
+      { id: "LAW", name: "法学", vector: { E: 0.5, I: 0.5, S: 0.7, N: 0.3, T: 0.7, F: 0.3, J: 0.8, P: 0.2 }, reason: "强调规则、论证与严谨推理能力。" },
+      { id: "EDU", name: "教育学", vector: { E: 0.6, I: 0.4, S: 0.5, N: 0.5, T: 0.3, F: 0.7, J: 0.7, P: 0.3 }, reason: "重视同理沟通、引导与持续反馈。" },
+      { id: "BIO", name: "生物科学", vector: { E: 0.4, I: 0.6, S: 0.7, N: 0.3, T: 0.7, F: 0.3, J: 0.6, P: 0.4 }, reason: "需要实验耐心、观察力和归纳能力。" },
+      { id: "DESIGN", name: "设计学", vector: { E: 0.5, I: 0.5, S: 0.4, N: 0.6, T: 0.4, F: 0.6, J: 0.3, P: 0.7 }, reason: "适合创意探索、用户洞察与表达。" }
+    ];
+    let questions = [];
+    let answers = [];
+    const values = [-3, -2, -1, 0, 1, 2, 3]; // 左侧同意，右侧不同意
+    const labels = { EI: ["E", "I"], SN: ["S", "N"], TF: ["T", "F"], JP: ["J", "P"] };
+    const PAGE_SIZE = 5;
+    let page = 0;
+
+    const testWrapEl = document.getElementById("testWrap");
+    const progressTextEl = document.getElementById("progressText");
+    const progressPctEl = document.getElementById("progressPct");
+    const progressBarEl = document.getElementById("progressBar");
+    const questionListEl = document.getElementById("questionList");
+    const prevSetBtn = document.getElementById("prevSetBtn");
+    const nextSetBtn = document.getElementById("nextSetBtn");
+    const resultCodeEl = document.getElementById("resultCode");
+    const resultSubtitleEl = document.getElementById("resultSubtitle");
+    const axisListEl = document.getElementById("axisList");
+    const majorListEl = document.getElementById("majorList");
+    const metaNoteEl = document.getElementById("metaNote");
+    const resultEl = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+
+    function buildFallbackQuestions() {
+      const dims = ["EI", "SN", "TF", "JP"];
+      const polarityCycle = {
+        EI: ["E", "I"],
+        SN: ["S", "N"],
+        TF: ["T", "F"],
+        JP: ["J", "P"]
+      };
+      const fallback = [];
+      const weights = [0.8, 1.0, 1.3, 1.5];
+      let idx = 1;
+      dims.forEach((dim) => {
+        for (let i = 0; i < 12; i += 1) {
+          fallback.push({
+            id: dim + "_" + String(idx).padStart(2, "0"),
+            text: "题目 " + idx,
+            dimension: dim,
+            facet: "fallback",
+            polarity: polarityCycle[dim][i % 2],
+            weight: weights[idx % weights.length]
+          });
+          idx += 1;
+        }
+      });
+      return fallback;
+    }
+
+    async function loadQuestions() {
+      if (questions.length > 0) return true;
+      try {
+        const res = await fetch("./questions.json");
+        if (!res.ok) throw new Error("status " + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) throw new Error("empty");
+        questions = data;
+        answers = Array(questions.length).fill(null);
+        return true;
+      } catch (err) {
+        questions = buildFallbackQuestions();
+        answers = Array(questions.length).fill(null);
+        progressTextEl.textContent = "已启用内置题库（questions.json 未加载）";
+        return true;
+      }
+    }
+
+    function createDot(questionIndex, v) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "dot";
+      btn.dataset.value = String(v);
+      btn.setAttribute("aria-label", "为第 " + (questionIndex + 1) + " 题选择 " + v);
+      if (answers[questionIndex] === v) {
+        btn.classList.add("selected");
+        if (v < 0) btn.classList.add("neg");
+        else if (v > 0) btn.classList.add("pos");
+        else btn.classList.add("neu");
+      }
+      btn.addEventListener("click", () => {
+        answers[questionIndex] = v;
+        renderPage();
+      });
+      return btn;
+    }
+
+    function renderPage() {
+      const start = page * PAGE_SIZE;
+      const end = Math.min(start + PAGE_SIZE, questions.length);
+      const totalPages = Math.ceil(questions.length / PAGE_SIZE);
+      const percent = Math.round((end / questions.length) * 100);
+
+      progressTextEl.textContent = "第 " + (start + 1) + " - " + end + " 题 / 共 " + questions.length + " 题";
+      progressPctEl.textContent = percent + "%";
+      progressBarEl.style.width = percent + "%";
+
+      questionListEl.innerHTML = "";
+      for (let i = start; i < end; i += 1) {
+        const row = document.createElement("div");
+        row.className = "q-row";
+
+        const title = document.createElement("div");
+        title.className = "q-title";
+        title.textContent = questions[i].text;
+
+        const answerLine = document.createElement("div");
+        answerLine.className = "answer-line";
+
+        const left = document.createElement("div");
+        left.className = "answer-label left";
+        left.textContent = "Agree";
+
+        const scale = document.createElement("div");
+        scale.className = "scale";
+        values.forEach((v) => {
+          scale.appendChild(createDot(i, v));
+        });
+
+        const right = document.createElement("div");
+        right.className = "answer-label right";
+        right.textContent = "Disagree";
+
+        answerLine.appendChild(left);
+        answerLine.appendChild(scale);
+        answerLine.appendChild(right);
+        row.appendChild(title);
+        row.appendChild(answerLine);
+        questionListEl.appendChild(row);
+      }
+
+      prevSetBtn.disabled = page === 0;
+      const isLast = page === totalPages - 1;
+      nextSetBtn.textContent = isLast ? "See Results" : "Next Set of Questions";
+
+      const currentAnswered = answers.slice(start, end).every((v) => v !== null);
+      nextSetBtn.disabled = !currentAnswered;
+    }
+
+    function confidenceLevel(strength) {
+      if (strength >= 0.75) return "高";
+      if (strength >= 0.4) return "中";
+      return "低";
+    }
+
+    function calculateTypeAndScores() {
+      const score = { EI: 0, SN: 0, TF: 0, JP: 0 };
+      const max = { EI: 0, SN: 0, TF: 0, JP: 0 };
+      questions.forEach((q, i) => {
+        const converted = answers[i];
+        const sign = q.polarity === labels[q.dimension][0] ? 1 : -1;
+        score[q.dimension] += converted * q.weight * sign;
+        max[q.dimension] += 3 * q.weight;
+      });
+
+      const strengths = {};
+      const confidence = {};
+      let type = "";
+      dimensionOrder.forEach((dimension) => {
+        const [left, right] = labels[dimension];
+        const isLeft = score[dimension] >= 0;
+        type += isLeft ? left : right;
+        strengths[dimension] = max[dimension] > 0 ? Math.abs(score[dimension]) / max[dimension] : 0;
+        confidence[dimension] = confidenceLevel(strengths[dimension]);
+      });
+
+      return { score, max, strengths, confidence, type };
+    }
+
+    function buildPersonalityVector(score, max) {
+      const normalized = {};
+      normalized.E = (1 + score.EI / max.EI) / 2;
+      normalized.I = 1 - normalized.E;
+      normalized.N = (1 + score.SN / max.SN) / 2;
+      normalized.S = 1 - normalized.N;
+      normalized.T = (1 + score.TF / max.TF) / 2;
+      normalized.F = 1 - normalized.T;
+      normalized.J = (1 + score.JP / max.JP) / 2;
+      normalized.P = 1 - normalized.J;
+      return normalized;
+    }
+
+    function majorMatch(personalityVector, majorVector) {
+      const keys = ["E", "I", "S", "N", "T", "F", "J", "P"];
+      let dot = 0;
+      let normA = 0;
+      let normB = 0;
+      keys.forEach((k) => {
+        dot += personalityVector[k] * majorVector[k];
+        normA += personalityVector[k] ** 2;
+        normB += majorVector[k] ** 2;
+      });
+      if (!normA || !normB) return 0;
+      return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    function detectLowQuality() {
+      const sameAnswer = answers.every((v) => v === answers[0]);
+      const allExtreme = answers.every((v) => Math.abs(v) === 3);
+      return sameAnswer || allExtreme;
+    }
+
+    function adjacentType(baseType, strengths) {
+      let minDim = "EI";
+      dimensionOrder.forEach((dimension) => {
+        if (strengths[dimension] < strengths[minDim]) minDim = dimension;
+      });
+      const pos = dimensionOrder.indexOf(minDim);
+      const letters = baseType.split("");
+      letters[pos] = letters[pos] === labels[minDim][0] ? labels[minDim][1] : labels[minDim][0];
+      return letters.join("");
+    }
+
+    function renderResult() {
+      const result = calculateTypeAndScores();
+      const vector = buildPersonalityVector(result.score, result.max);
+      const lowQuality = detectLowQuality();
+      const adjacent = adjacentType(result.type, result.strengths);
+      const majors = majorProfiles
+        .map((major) => ({
+          ...major,
+          score: majorMatch(vector, major.vector)
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      resultCodeEl.textContent = result.type;
+      resultSubtitleEl.textContent = "邻近类型参考：" + adjacent + "（当边界维度波动时可能出现）";
+      axisListEl.innerHTML = "";
+      majorListEl.innerHTML = "";
+
+      dimensionOrder.forEach((axis) => {
+        const value = result.score[axis];
+        const [left, right] = labels[axis];
+        const leftPct = Math.round(((1 + (value / result.max[axis])) / 2) * 100);
+        const rightPct = 100 - leftPct;
+        const prefer = value >= 0 ? left : right;
+        const li = document.createElement("li");
+        li.innerHTML = "<strong>" + axis + "</strong><span>" +
+          left + ":" + leftPct + "% / " + right + ":" + rightPct +
+          "%，倾向 " + prefer + "，置信度 " + result.confidence[axis] + "</span>";
+        axisListEl.appendChild(li);
+      });
+
+      majors.forEach((major) => {
+        const li = document.createElement("li");
+        li.innerHTML = "<strong>" + major.name + "（匹配度 " + Math.round(major.score * 100) +
+          "%）</strong><span>" + major.reason + "</span>";
+        majorListEl.appendChild(li);
+      });
+
+      metaNoteEl.textContent = lowQuality
+        ? "答卷质量提醒：你的答案模式较为极端（例如全同分或全极端），结果稳定性可能偏低，建议稍后重测。"
+        : "结果说明：本测试用于自我认知与专业探索参考，不代表能力上限或唯一职业路径。";
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      if (questions.length === 0) {
+        return;
+      }
+      testWrapEl.classList.remove("hidden");
+      page = 0;
+      for (let i = 0; i < answers.length; i += 1) answers[i] = null;
+      resultEl.classList.add("hidden");
+      renderPage();
+      testWrapEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    (async () => {
+      startBtn.disabled = true;
+      startBtn.textContent = "Loading Questions...";
+      const ok = await loadQuestions();
+      startBtn.disabled = !ok;
+      startBtn.textContent = ok ? "Start the Test" : "Questions Unavailable";
+    })();
+
+    prevSetBtn.addEventListener("click", () => {
+      if (page > 0) {
+        page -= 1;
+        renderPage();
+      }
+    });
+
+    nextSetBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(questions.length / PAGE_SIZE);
+      if (page < totalPages - 1) {
+        page += 1;
+        renderPage();
+      } else {
+        renderResult();
+        resultEl.classList.remove("hidden");
+        resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      page = 0;
+      for (let i = 0; i < answers.length; i += 1) answers[i] = null;
+      resultEl.classList.add("hidden");
+      renderPage();
+      testWrapEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  </script>
 </body>
 </html>
