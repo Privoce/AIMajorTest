@@ -94,16 +94,47 @@
     .btn {
       border: 0; border-radius: 999px; padding: 11px 20px;
       font-weight: 700; font-size: 0.95rem; cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
     }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-secondary { background: #e8edf7; color: #4f5f7b; }
+    .btn-primary {
+      background: linear-gradient(120deg, #2f8fef 0%, #1ab8c4 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(47, 143, 239, 0.28);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(47, 143, 239, 0.35);
+    }
+    .btn-secondary {
+      background: #fff;
+      color: #5a6880;
+      border: 2px solid #d8e2f0;
+    }
+    .btn-secondary:hover { background: #f8fafd; }
+    .btn-outline {
+      background: #fff;
+      color: #1d6fd8;
+      border: 2px solid #6eb5ff;
+      box-shadow: 0 2px 8px rgba(47, 143, 239, 0.1);
+    }
+    .btn-outline:hover {
+      background: linear-gradient(120deg, #f0f7ff 0%, #eefaf8 100%);
+      transform: translateY(-1px);
+    }
     .btn-share {
       background: linear-gradient(120deg, #e8f4ff 0%, #e6faf5 100%);
       color: #1d6fd8;
       border: 2px solid #6eb5ff;
       box-shadow: 0 2px 8px rgba(47, 143, 239, 0.15);
     }
-    .btn-share:hover { filter: brightness(0.98); }
+    .btn-share:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(47, 143, 239, 0.2);
+    }
     .share-copied-tip {
       flex-basis: 100%;
       text-align: center;
@@ -118,11 +149,50 @@
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .result-actions {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
+      align-items: stretch;
+      gap: 12px;
+      margin-top: 24px;
     }
-    .result-actions .btn { flex: 1; min-width: 148px; }
+    .result-actions .btn {
+      min-width: 0;
+      padding: 13px 14px;
+      font-size: 0.88rem;
+      line-height: 1.25;
+    }
+    .result-actions-share {
+      flex-direction: row;
+    }
+    .result-actions-share .btn { flex: 1; }
+    .result-actions-full {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .result-actions-row {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      width: 100%;
+    }
+    .result-actions-row .btn { flex: 1; }
+    .major-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 4px;
+    }
+    .major-pill {
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #f0f4fa;
+      color: #4a5872;
+      font-weight: 600;
+    }
+    .result-subline {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
     .share-banner {
       text-align: center;
       color: var(--muted);
@@ -131,6 +201,7 @@
     }
     body.share-view .hero,
     body.share-view #quizSection { display: none !important; }
+    body.result-view .hero { display: none !important; }
     .hidden { display: none !important; }
 
     .progress-wrap { margin-bottom: 16px; }
@@ -235,15 +306,35 @@
     .scale07-btn[data-v="1"], .scale07-btn[data-v="6"] { --sz: 38px; }
     .scale07-btn[data-v="2"], .scale07-btn[data-v="5"] { --sz: 34px; }
     .scale07-btn[data-v="0"], .scale07-btn[data-v="1"], .scale07-btn[data-v="2"] { border-color: #c9a8d8; color: #7a4f92; }
+    .scale07-btn[data-v="3"], .scale07-btn[data-v="4"] { border-color: #c5cfe0; color: #5a6880; }
     .scale07-btn[data-v="5"], .scale07-btn[data-v="6"], .scale07-btn[data-v="7"] { border-color: #7ec9b0; color: #2d8a66; }
-    .scale07-btn.selected {
-      background: currentColor;
-      border-color: currentColor;
-      color: #fff;
+    .scale07-btn:hover:not(.selected) {
+      background: #f8fafd;
+      transform: scale(1.04);
     }
-    .scale07-btn.selected.low-side { color: #8f5daf; }
-    .scale07-btn.selected.high-side { color: #2ea67d; }
-    .scale07-btn.selected.mid-side { color: #9aa1ae; }
+    .scale07-btn.selected {
+      border-width: 3px;
+      font-weight: 800;
+      transform: scale(1.06);
+    }
+    .scale07-btn.selected.low-side {
+      background: #f7f0fa;
+      border-color: #8f5daf;
+      color: #7a4f92;
+      box-shadow: 0 0 0 3px rgba(143, 93, 175, 0.16);
+    }
+    .scale07-btn.selected.mid-side {
+      background: #f4f6f9;
+      border-color: #6b7a94;
+      color: #4a5872;
+      box-shadow: 0 0 0 3px rgba(107, 122, 148, 0.14);
+    }
+    .scale07-btn.selected.high-side {
+      background: #eef8f3;
+      border-color: #2ea67d;
+      color: #2d8a66;
+      box-shadow: 0 0 0 3px rgba(46, 166, 125, 0.16);
+    }
 
     .pager { display: flex; justify-content: space-between; gap: 12px; }
     .pager .btn { flex: 1; max-width: 200px; }
@@ -335,6 +426,8 @@
       .brand-title { font-size: 1.05rem; }
       .pager { flex-direction: column; }
       .pager .btn { max-width: none; width: 100%; }
+      .result-actions-share { flex-direction: row; }
+      .result-actions-share .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
   </style>
 </head>
@@ -344,7 +437,7 @@
       <img src="./assets/logo.png" alt="AI专业测试" class="brand-logo" width="52" height="52">
       <div class="brand-text">
         <div class="brand-title">AI专业测试</div>
-        <div class="brand-powered">powered by <a href="https://privoce.com" target="_blank" rel="noopener noreferrer">Privoce.com</a></div>
+        <div class="brand-powered">powered by <a href="https://ai.voce.chat" target="_blank" rel="noopener noreferrer">ai.voce.chat</a></div>
       </div>
     </div>
   </header>
@@ -760,8 +853,34 @@
       return location.origin + location.pathname + "?result=" + token;
     }
 
-    function renderResultSections(payload, options) {
-      const opts = options || {};
+    function renderShareResultSections(payload) {
+      const rule = payload.rule;
+      const conf = payload.conf;
+      const secondary = payload.secondary;
+      const majors = (rule.recommended_majors || []).slice(0, 4);
+
+      let html = "<div class=\"card result\">";
+      html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
+      if (conf === "低" && secondary) {
+        html += "<p class=\"result-subline\">辅助画像：" + secondary.rule.display_name + "</p>";
+      }
+      html += "<div class=\"keywords\">";
+      (rule.keywords || []).slice(0, 4).forEach((kw) => { html += "<span class=\"kw\">" + kw + "</span>"; });
+      html += "</div>";
+      if (majors.length) {
+        html += "<div class=\"major-pills\">";
+        majors.forEach((m) => { html += "<span class=\"major-pill\">" + m + "</span>"; });
+        html += "</div>";
+      }
+      html += "<div class=\"result-actions result-actions-share\">";
+      html += "<a class=\"btn btn-primary\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI 匹配学长学姐</a>";
+      html += "<a class=\"btn btn-outline\" href=\"" + location.pathname + "\">我也要测试</a>";
+      html += "</div>";
+      html += "</div>";
+      return html;
+    }
+
+    function renderFullResultSections(payload) {
       const rule = payload.rule;
       const conf = payload.conf;
       const secondary = payload.secondary;
@@ -830,20 +949,22 @@
 
       html += "<p class=\"disclaimer\">" + (config.test_meta.disclaimer || "") + "</p>";
 
-      if (opts.shareView) {
-        html += "<div class=\"result-actions\">";
-        html += "<a class=\"btn btn-primary\" href=\"" + location.pathname + "\">我也要测试</a>";
-        html += "</div>";
-      } else {
-        html += "<div class=\"result-actions\">";
-        html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享测试结果</button>";
-        html += "<button type=\"button\" class=\"btn btn-primary\" id=\"restartBtn\">重新测试</button>";
-        html += "<span id=\"shareCopiedTip\" class=\"share-copied-tip\"></span>";
-        html += "</div>";
-      }
+      html += "<div class=\"result-actions result-actions-full\">";
+      html += "<div class=\"result-actions-row\">";
+      html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享测试结果</button>";
+      html += "<button type=\"button\" class=\"btn btn-secondary\" id=\"restartBtn\">重新测试</button>";
+      html += "</div>";
+      html += "<span id=\"shareCopiedTip\" class=\"share-copied-tip\"></span>";
+      html += "</div>";
 
       html += "</div>";
       return html;
+    }
+
+    function renderResultSections(payload, options) {
+      const opts = options || {};
+      if (opts.shareView) return renderShareResultSections(payload);
+      return renderFullResultSections(payload);
     }
 
     function showShareCopiedTip() {
@@ -896,6 +1017,8 @@
 
     function renderResult() {
       const payload = buildResultPayload();
+      document.body.classList.add("result-view");
+      document.body.classList.remove("share-view");
       resultSection.innerHTML = renderResultSections(payload, { shareView: false });
       resultSection.classList.remove("hidden");
       bindResultActions(payload);
@@ -905,6 +1028,7 @@
     function restartTest() {
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
+      document.body.classList.remove("result-view");
       resultSection.classList.add("hidden");
       resultSection.innerHTML = "";
       quizSection.classList.remove("hidden");
