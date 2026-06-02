@@ -489,6 +489,42 @@
     const nextBtn = document.getElementById("nextBtn");
     const resultSection = document.getElementById("resultSection");
 
+    const PROFILE_SLUGS = {
+      stable_employment: "se",
+      high_income_sprint: "hi",
+      public_sector_planner: "ps",
+      technical_deep_dive: "td",
+      research_explorer: "re",
+      creative_expression: "ce",
+      people_influence: "pi",
+      interdisciplinary_transformer: "it"
+    };
+    const SLUG_TO_PROFILE = Object.fromEntries(
+      Object.entries(PROFILE_SLUGS).map(([id, slug]) => [slug, id])
+    );
+
+    function resolveProfileId(value) {
+      if (!value) return "";
+      return SLUG_TO_PROFILE[value] || value;
+    }
+
+    function profileSlug(id) {
+      return PROFILE_SLUGS[id] || id;
+    }
+
+    function parseShareData(params) {
+      const slug = params.get("r") || params.get("p");
+      if (slug) {
+        const p = resolveProfileId(slug);
+        const sRaw = params.get("s") || "";
+        const s = resolveProfileId(sRaw);
+        return { p, s, c: s ? "低" : "中" };
+      }
+      const legacy = params.get("result");
+      if (legacy) return fromBase64Url(legacy);
+      return null;
+    }
+
     function dimensionKeys() {
       return Object.keys(config.score_dimensions || {});
     }
@@ -829,13 +865,6 @@
       };
     }
 
-    function toBase64Url(obj) {
-      return btoa(encodeURIComponent(JSON.stringify(obj)))
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
-    }
-
     function fromBase64Url(str) {
       let base = str.replace(/-/g, "+").replace(/_/g, "/");
       while (base.length % 4) base += "=";
@@ -843,14 +872,11 @@
     }
 
     function buildShareUrl(payload) {
-      const token = toBase64Url({
-        p: payload.primary.rule.id,
-        s: payload.conf === "低" && payload.secondary ? payload.secondary.rule.id : "",
-        c: payload.conf,
-        d: payload.topDims.map((x) => [x.k, Math.round(x.v * 10) / 10]),
-        ch: payload.choices
-      });
-      return location.origin + location.pathname + "?result=" + token;
+      let url = location.pathname + "?r=" + encodeURIComponent(profileSlug(payload.primary.rule.id));
+      if (payload.conf === "低" && payload.secondary) {
+        url += "&s=" + encodeURIComponent(profileSlug(payload.secondary.rule.id));
+      }
+      return location.origin + url;
     }
 
     function renderShareResultSections(payload) {
@@ -954,7 +980,6 @@
       html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享测试结果</button>";
       html += "<button type=\"button\" class=\"btn btn-secondary\" id=\"restartBtn\">重新测试</button>";
       html += "</div>";
-      html += "<span id=\"shareCopiedTip\" class=\"share-copied-tip\"></span>";
       html += "</div>";
 
       html += "</div>";
@@ -967,30 +992,10 @@
       return renderFullResultSections(payload);
     }
 
-    function showShareCopiedTip() {
-      const tip = document.getElementById("shareCopiedTip");
-      if (!tip) return;
-      tip.textContent = "链接已复制";
-      tip.classList.add("show");
-      clearTimeout(showShareCopiedTip._timer);
-      showShareCopiedTip._timer = setTimeout(() => tip.classList.remove("show"), 2500);
-    }
-
     function bindResultActions(payload) {
       document.getElementById("restartBtn").addEventListener("click", restartTest);
-      document.getElementById("shareBtn").addEventListener("click", async () => {
-        const url = buildShareUrl(payload);
-        try {
-          await navigator.clipboard.writeText(url);
-        } catch (err) {
-          const input = document.createElement("textarea");
-          input.value = url;
-          document.body.appendChild(input);
-          input.select();
-          document.execCommand("copy");
-          document.body.removeChild(input);
-        }
-        showShareCopiedTip();
+      document.getElementById("shareBtn").addEventListener("click", () => {
+        location.href = buildShareUrl(payload);
       });
     }
 
@@ -1087,11 +1092,11 @@
       }
 
       const params = new URLSearchParams(location.search);
-      const resultToken = params.get("result");
-      if (resultToken) {
+      const shareData = parseShareData(params);
+      if (shareData) {
         document.body.classList.add("share-view");
         document.getElementById("shareBanner").classList.remove("hidden");
-        renderShareResultPage(fromBase64Url(resultToken));
+        renderShareResultPage(shareData);
         resultSection.classList.remove("hidden");
         return;
       }
