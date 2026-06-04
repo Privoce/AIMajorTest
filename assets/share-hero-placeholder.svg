@@ -5,5 +5,5 @@
   <path d="M72 168h56" stroke="#6d7f94" stroke-width="3" stroke-linecap="round"/>
   <rect x="58" y="118" width="84" height="50" rx="8" fill="#e2e8ef" stroke="#9babb8" stroke-width="2"/>
   <path d="M88 92h24v26H88z" fill="#c5d0e4"/>
-  <text x="100" y="188" text-anchor="middle" fill="#8f98a8" font-family="system-ui,sans-serif" font-size="11">画像插图占位</text>
+  <text x="100" y="188" text-anchor="middle" fill="#8f98a8" font-family="system-ui,-apple-system,sans-serif" font-size="11">画像插图占位</text>
 </svg>

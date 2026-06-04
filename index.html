@@ -17,7 +17,9 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "PingFang SC", sans-serif;
+      /* 仅系统字体栈：无 Web 字体文件，各平台默认可商用（UI 渲染用途） */
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background: var(--bg);
       color: var(--ink);
       line-height: 1.5;
@@ -321,17 +323,11 @@
       line-height: 1.3;
     }
     .combined-tag.profile { background: #eef2f8; color: #5a6880; }
-    .combined-tag.mbti { background: #edf2f8; color: #4a6280; border: 1px solid #dce4ef; }
+    .combined-tag.mbti { background: #f3eef9; color: #6b4f8f; border: 1px solid #ddd0ec; }
     .combined-tag.explore { background: #f4f6f9; color: #8b97ad; }
     .combined-tag.focus { background: #eef5ff; color: #2f8fef; }
     .mbti-full-card {
       margin: 18px 0;
-    }
-    .share-banner {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin: 8px 0 16px;
     }
     .share-back-btn {
       position: fixed;
@@ -369,12 +365,48 @@
       margin-top: 0;
     }
     body.share-view {
-      --share-blue: #3d6b9e;
-      --share-blue-dark: #2f5a85;
-      --share-blue-soft: #edf2f8;
-      --share-blue-bar: #e6edf6;
       --share-card-w: 343px;
       background: #eef1f4;
+    }
+    .share-report-card.share-theme-blue {
+      --share-accent: #3d6b9e;
+      --share-accent-dark: #2f5a85;
+      --share-accent-soft: #edf2f8;
+      --share-accent-bar: #e6edf6;
+      --share-accent-pill-border: #c5d0e4;
+      --share-accent-border: rgba(61, 107, 158, 0.42);
+      --share-accent-ink: #1a2d45;
+      --share-accent-shadow: rgba(30, 45, 65, 0.18);
+    }
+    .share-report-card.share-theme-green {
+      --share-accent: #4a7c59;
+      --share-accent-dark: #3d6b52;
+      --share-accent-soft: #edf5f0;
+      --share-accent-bar: #e8f2ec;
+      --share-accent-pill-border: #c5d9ce;
+      --share-accent-border: rgba(77, 160, 110, 0.42);
+      --share-accent-ink: #1a3d28;
+      --share-accent-shadow: rgba(30, 50, 40, 0.18);
+    }
+    .share-report-card.share-theme-yellow {
+      --share-accent: #8f7340;
+      --share-accent-dark: #73602f;
+      --share-accent-soft: #f8f4eb;
+      --share-accent-bar: #f0ead8;
+      --share-accent-pill-border: #ddd0b8;
+      --share-accent-border: rgba(143, 115, 64, 0.42);
+      --share-accent-ink: #3d3420;
+      --share-accent-shadow: rgba(55, 45, 28, 0.16);
+    }
+    .share-report-card.share-theme-red {
+      --share-accent: #9a5c5c;
+      --share-accent-dark: #7d4848;
+      --share-accent-soft: #f8efef;
+      --share-accent-bar: #f0e4e4;
+      --share-accent-pill-border: #dcc5c5;
+      --share-accent-border: rgba(154, 92, 92, 0.42);
+      --share-accent-ink: #3d2424;
+      --share-accent-shadow: rgba(55, 32, 32, 0.16);
     }
     body.share-view .shell {
       max-width: calc(var(--share-card-w) + 32px);
@@ -385,10 +417,6 @@
       max-width: 100%;
       margin: 0 auto;
       gap: 12px;
-    }
-    body.share-view .share-banner {
-      font-size: 13px;
-      margin-bottom: 10px;
     }
     .share-report-card {
       width: var(--share-card-w);
@@ -422,7 +450,7 @@
       font-size: 42px;
       line-height: 1.05;
       font-weight: 800;
-      color: var(--share-blue);
+      color: var(--share-accent);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -462,14 +490,14 @@
       font-size: 11px;
       line-height: 1.25;
       font-weight: 700;
-      color: #1a2d45;
+      color: var(--share-accent-ink);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.9);
-      border: 1px solid rgba(61, 107, 158, 0.42);
-      box-shadow: 0 2px 10px rgba(30, 45, 65, 0.18);
+      border: 1px solid var(--share-accent-border);
+      box-shadow: 0 2px 10px var(--share-accent-shadow);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
     }
@@ -479,7 +507,7 @@
       margin-right: 4px;
       font-size: 10px;
       font-weight: 800;
-      color: var(--share-blue);
+      color: var(--share-accent);
     }
     .share-danmaku-item:nth-child(1) {
       top: 14%;
@@ -512,8 +540,8 @@
       font-size: 12px;
       line-height: 16px;
       font-weight: 700;
-      color: var(--share-blue-dark);
-      background: var(--share-blue-bar);
+      color: var(--share-accent-dark);
+      background: var(--share-accent-bar);
       padding: 8px 10px;
       border-radius: 999px;
       margin-bottom: 8px;
@@ -526,7 +554,7 @@
       margin: 0 0 12px;
     }
     .share-report-match-secondary a {
-      color: var(--share-blue);
+      color: var(--share-accent);
       font-weight: 600;
       text-decoration: none;
     }
@@ -552,14 +580,22 @@
       width: 4px;
       height: 12px;
       border-radius: 2px;
-      background: var(--share-blue);
+      background: var(--share-accent);
       flex-shrink: 0;
     }
     .share-report-pills {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 6px;
+    }
+    .share-report-pills-row {
+      display: flex;
+      flex-wrap: nowrap;
       justify-content: center;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      overflow: hidden;
     }
     .share-report-pill {
       box-sizing: border-box;
@@ -581,9 +617,9 @@
       white-space: nowrap;
     }
     .share-report-pill.is-highlight {
-      color: var(--share-blue-dark);
-      background: var(--share-blue-soft);
-      border-color: #c5d0e4;
+      color: var(--share-accent-dark);
+      background: var(--share-accent-soft);
+      border-color: var(--share-accent-pill-border);
     }
     .share-report-footer {
       display: flex;
@@ -630,11 +666,19 @@
       text-align: right;
       align-self: flex-end;
     }
-    .share-report-footer-brand span {
+    .share-report-footer-brand span,
+    .share-report-footer-brand a {
       display: block;
       font-size: 11px;
       line-height: 15px;
       color: #a8b4c4;
+    }
+    .share-report-footer-brand a {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .share-report-footer-brand a:hover {
+      color: var(--share-accent);
     }
     body.share-view .share-actions-panel {
       width: var(--share-card-w);
@@ -784,8 +828,19 @@
       box-shadow: 0 0 0 3px rgba(46, 166, 125, 0.16);
     }
 
-    .pager { display: flex; justify-content: space-between; gap: 12px; }
-    .pager .btn { flex: 1; max-width: 200px; }
+    .pager {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .pager .btn {
+      flex: 1;
+      min-width: 0;
+      max-width: none;
+    }
 
     .result { margin-top: 8px; }
     .result h2 { font-size: 1.4rem; margin-bottom: 8px; }
@@ -1001,8 +1056,6 @@
       .brand-lockup { gap: 11px; }
       .brand-logo { width: 44px; height: 44px; }
       .brand-title { font-size: 1.05rem; }
-      .pager { flex-direction: column; }
-      .pager .btn { max-width: none; width: 100%; }
       .result-actions-share { flex-direction: column; }
       .result-actions-share .result-actions-row .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
@@ -1031,7 +1084,6 @@
   </section>
 
   <div class="shell">
-    <p id="shareBanner" class="share-banner hidden">好友分享的专业选择画像结果</p>
     <section id="quizSection" class="hidden">
       <div class="progress-wrap">
         <div class="progress-meta">
@@ -1081,13 +1133,37 @@
     const SLUG_TO_PROFILE = Object.fromEntries(
       Object.entries(PROFILE_SLUGS).map(([id, slug]) => [slug, id])
     );
+    /** 简版卡片主题色：绿/蓝/黄/红，同灰度高级感 */
+    const PROFILE_SHARE_THEME = {
+      stable_employment: "green",
+      research_explorer: "green",
+      public_sector_planner: "blue",
+      technical_deep_dive: "blue",
+      high_income_sprint: "yellow",
+      people_influence: "yellow",
+      creative_expression: "red",
+      interdisciplinary_transformer: "red"
+    };
+    const SHARE_THEME_QR_COLOR = {
+      blue: "3d6b9e",
+      green: "4a7c59",
+      yellow: "8f7340",
+      red: "9a5c5c"
+    };
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
 
-    function shareQrImageSrc() {
-      return "https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&color=3d6b9e&bgcolor=ffffff&data="
-        + encodeURIComponent(SHARE_SITE_URL);
+    function shareThemeForRule(rule) {
+      if (!rule || !rule.id) return "blue";
+      return PROFILE_SHARE_THEME[rule.id] || "blue";
+    }
+
+    function shareQrImageSrc(theme) {
+      const key = theme || "blue";
+      const color = SHARE_THEME_QR_COLOR[key] || SHARE_THEME_QR_COLOR.blue;
+      return "https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&color="
+        + color + "&bgcolor=ffffff&data=" + encodeURIComponent(SHARE_SITE_URL);
     }
 
     const AI_MATCH_URL = "https://ai.voce.chat";
@@ -1172,20 +1248,19 @@
       return 0;
     }
 
-    function renderShareReportFooter() {
-      const qrSrc = shareQrImageSrc();
+    function renderShareReportFooter(theme) {
+      const qrSrc = shareQrImageSrc(theme);
       return "<footer class=\"share-report-footer\">"
         + "<a class=\"share-report-footer-qr\" href=\"" + SHARE_SITE_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"扫码测一测\">"
         + "<img src=\"" + qrSrc + "\" width=\"60\" height=\"60\" alt=\"\" loading=\"lazy\" decoding=\"async\">"
         + "</a>"
         + "<div class=\"share-report-footer-copy\">"
         + "<strong>扫码测一测</strong>"
-        + "<p>解锁你的职业倾向报告</p>"
-        + "<p>更懂自己，更好选择未来</p>"
+        + "<p>属于你的职业倾向报告</p>"
         + "</div>"
         + "<div class=\"share-report-footer-brand\">"
         + "<span>Privoce, Inc</span>"
-        + "<span>major.voce.chat</span>"
+        + "<a href=\"" + SHARE_SITE_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\">major.voce.chat</a>"
         + "</div>"
         + "</footer>";
     }
@@ -1219,19 +1294,49 @@
     }
 
     const SHARE_MAJOR_LAYOUT = {
-      contentWidth: 311,
+      contentWidth: 295,
       gap: 6,
-      padX: 20,
-      charWidth: 11,
+      padX: 24,
+      charWidth: 13,
       maxRows: 2
     };
 
-    /** 简版：名称包含、同前缀或长公共前缀视为过近，只保留得分更高者 */
+    /** 简版聚类：同一大类只展示一个，提升推荐方差（IT/经管等不再堆满相近专业） */
+    const SHARE_MAJOR_CLUSTERS = [
+      { id: "medicine", patterns: ["医学", "药学", "护理", "口腔", "临床", "康复", "检验", "中医"] },
+      { id: "law", patterns: ["法学"] },
+      { id: "education", patterns: ["教育", "师范", "外语", "英语", "日语", "翻译"] },
+      { id: "design_media", patterns: ["设计", "传媒", "视觉", "媒体", "动画", "美术", "广告", "新闻", "传播", "播音", "编导", "主持", "音乐", "表演", "戏剧", "广播电视"] },
+      { id: "architecture", patterns: ["建筑", "土木", "城乡规划", "工程管理"] },
+      { id: "bio_chem", patterns: ["生物", "化学", "材料", "环境", "食品", "生态"] },
+      { id: "finance", patterns: ["金融", "经济", "工商", "会计", "审计", "财务", "税收", "财政", "保险", "投资", "贸易", "电子商务", "物流"] },
+      { id: "it_stem", patterns: [
+        "计算机", "软件", "人工智能", "数据科学", "大数据", "网络工程", "信息安全", "物联网",
+        "电子信息", "电子科学", "通信工程", "通信", "微电子", "集成电路", "光电信息",
+        "自动化", "电气工程", "电气", "机器人", "智能制造", "信息工程"
+      ] }
+    ];
+
+    function shareMajorClusterId(name) {
+      const n = normalizeMajorName(name);
+      if (!n) return "unknown";
+      for (let i = 0; i < SHARE_MAJOR_CLUSTERS.length; i += 1) {
+        const cluster = SHARE_MAJOR_CLUSTERS[i];
+        if (cluster.patterns.some((p) => n.includes(p))) return cluster.id;
+      }
+      return "other:" + n;
+    }
+
+    /** 简版：名称过近或同属一个简版聚类，只保留得分更高者 */
     function majorsTooSimilar(nameA, nameB) {
       const na = normalizeMajorName(nameA);
       const nb = normalizeMajorName(nameB);
       if (!na || !nb) return false;
       if (na === nb) return true;
+      if (shareMajorClusterId(na) === shareMajorClusterId(nb)
+        && !shareMajorClusterId(na).startsWith("other:")) {
+        return true;
+      }
       if (na.length >= 3 && nb.length >= 3 && (na.includes(nb) || nb.includes(na))) return true;
       const short = na.length <= nb.length ? na : nb;
       const long = na.length > nb.length ? na : nb;
@@ -1249,7 +1354,7 @@
       return L.padX + normalizeMajorName(name).length * L.charWidth;
     }
 
-    /** 简版推荐：按分数优先，去相近专业，并尽量填满两行宽度 */
+    /** 简版推荐：高分优先 + 跨学科聚类去重 + 最多两行排版 */
     function buildShareDisplayMajors(combined) {
       const L = SHARE_MAJOR_LAYOUT;
       const sorted = [...(combined || [])].sort((a, b) => {
@@ -1261,6 +1366,7 @@
       const rowWidths = Array(L.maxRows).fill(0);
       const rows = Array.from({ length: L.maxRows }, () => []);
       const picked = [];
+      const usedClusters = new Set();
 
       function tryPlace(item) {
         const w = estimateSharePillWidth(item.name);
@@ -1279,23 +1385,34 @@
 
       for (let i = 0; i < sorted.length; i += 1) {
         const item = sorted[i];
+        const clusterId = shareMajorClusterId(item.name);
+        if (!clusterId.startsWith("other:") && usedClusters.has(clusterId)) continue;
         if (picked.some((p) => majorsTooSimilar(p.name, item.name))) continue;
         if (!tryPlace(item)) break;
+        if (!clusterId.startsWith("other:")) usedClusters.add(clusterId);
         picked.push(item);
       }
-      return picked;
+      return rows;
+    }
+
+    function renderShareMajorPill(item) {
+      let cls = "share-report-pill";
+      if (item.q16Match || item.tier === "both") cls += " is-highlight";
+      return "<span class=\"" + cls + "\">" + item.name + "</span>";
     }
 
     function renderShareReportMajors(combined) {
-      const top = buildShareDisplayMajors(combined);
-      if (!top.length) return "";
+      const rows = buildShareDisplayMajors(combined);
+      const hasAny = rows.some((row) => row.length);
+      if (!hasAny) return "";
       let html = "<section class=\"share-report-section\">";
       html += "<h4 class=\"share-report-section-title\"><span class=\"share-report-section-mark\"></span>综合推荐专业</h4>";
       html += "<div class=\"share-report-pills\">";
-      top.forEach((item) => {
-        let cls = "share-report-pill";
-        if (item.q16Match || item.tier === "both") cls += " is-highlight";
-        html += "<span class=\"" + cls + "\">" + item.name + "</span>";
+      rows.forEach((row) => {
+        if (!row.length) return;
+        html += "<div class=\"share-report-pills-row\">";
+        row.forEach((item) => { html += renderShareMajorPill(item); });
+        html += "</div>";
       });
       html += "</div></section>";
       return html;
@@ -2151,7 +2268,6 @@
 
       document.body.classList.remove("share-view");
       document.body.classList.add("result-view");
-      document.getElementById("shareBanner").classList.add("hidden");
       document.getElementById("shareBackBtn").classList.add("hidden");
       const backUrl = data.v
         ? location.pathname + "?v=" + encodeURIComponent(data.v)
@@ -2196,8 +2312,9 @@
       const matchPct = resolveMatchPercent(payload, new URLSearchParams(location.search).get("mp"));
       const factorName = profileCodename(rule);
 
+      const shareTheme = shareThemeForRule(rule);
       let html = "<div class=\"share-page-stack\">";
-      html += "<div class=\"card result share-report-card\">";
+      html += "<div class=\"card result share-report-card share-theme-" + shareTheme + "\">";
 
       html += "<header class=\"share-report-header\">";
       html += "<p class=\"share-report-intro\">你的测试结果是</p>";
@@ -2231,7 +2348,7 @@
 
       html += "<hr class=\"share-report-divider\">";
       html += renderShareReportMajors(combined);
-      html += renderShareReportFooter();
+      html += renderShareReportFooter(shareTheme);
       html += "</div>";
 
       html += "<div class=\"share-actions-panel result-actions result-actions-share\">";
@@ -2462,7 +2579,6 @@
       const opts = options || {};
       document.body.classList.remove("quiz-view", "share-view");
       document.body.classList.add("result-view");
-      document.getElementById("shareBanner").classList.add("hidden");
       document.getElementById("shareBackBtn").classList.add("hidden");
       quizSection.classList.add("hidden");
 
@@ -2617,7 +2733,6 @@
       const shareData = parseShareData(params);
       if (shareData) {
         document.body.classList.add("share-view");
-        document.getElementById("shareBanner").classList.remove("hidden");
         renderShareResultPage(shareData, params);
         maybeShowShareBackButton(params);
         resultSection.classList.remove("hidden");
