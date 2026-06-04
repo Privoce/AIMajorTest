@@ -162,10 +162,13 @@
     .result-actions-share {
       flex-direction: column;
       gap: 10px;
+      margin-top: 0;
     }
-    .result-actions-share .result-actions-row { width: 100%; }
-    .result-actions-share .result-actions-row .btn { flex: 1; }
-    .result-actions-share .btn-share-copy { width: 100%; flex: none; }
+    .result-actions-share .btn,
+    .result-actions-share a.btn {
+      width: 100%;
+      flex: none;
+    }
     .result-actions-full {
       flex-direction: column;
       gap: 10px;
@@ -190,6 +193,7 @@
       background: #f0f4fa;
       color: #4a5872;
       font-weight: 600;
+      white-space: nowrap;
     }
     .result-subline {
       font-size: 0.9rem;
@@ -197,57 +201,77 @@
       margin-top: 6px;
     }
     .mbti-section { margin-top: 4px; }
-    .mbti-badge {
-      display: inline-block;
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: #6b4f9e;
-      background: linear-gradient(135deg, #f8f4fc 0%, #f0f4fa 100%);
-      padding: 8px 16px;
-      border-radius: 999px;
-      margin: 10px 0 12px;
-      border: 1px solid #ddd0ef;
-    }
-    .mbti-careers {
-      font-size: 0.92rem;
-      color: #5a6880;
-      margin-bottom: 10px;
-    }
     .share-block-label {
       font-size: 0.78rem;
       font-weight: 700;
       color: #8b97ad;
       margin: 14px 0 8px;
     }
-    .mbti-share-card {
-      margin-top: 18px;
-      padding: 14px;
+    .mbti-share-card,
+    .mbti-full-card {
+      margin-top: 16px;
+      padding: 14px 16px 16px;
       border-radius: 12px;
-      border: 1px solid #e8dff5;
-      background: linear-gradient(135deg, #faf7fd 0%, #f5f8fc 100%);
+      background: #f8fafc;
+      border: 1px solid var(--line);
     }
-    .mbti-share-card .share-block-label {
+    .mbti-section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #8b97ad;
       margin: 0 0 10px;
-      color: #7a6b8f;
+      letter-spacing: 0.02em;
     }
-    .mbti-share-card .mbti-badge {
-      margin: 0 0 8px;
-    }
-    .mbti-share-desc {
-      font-size: 0.85rem;
-      color: #6a6280;
-      line-height: 1.45;
+    .mbti-full-card h3.mbti-section-title {
+      font-size: 0.78rem;
+      color: #8b97ad;
       margin-bottom: 10px;
     }
+    .mbti-type-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-bottom: 8px;
+    }
+    .mbti-code {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+    }
+    .mbti-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a5872;
+    }
+    .mbti-share-desc,
+    .mbti-body {
+      font-size: 0.88rem;
+      color: #5a6880;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .mbti-careers {
+      font-size: 0.88rem;
+      color: #5a6880;
+      margin: 10px 0 0;
+      line-height: 1.5;
+    }
+    .mbti-careers strong {
+      color: #4a5872;
+      font-weight: 700;
+    }
     .mbti-pills .major-pill {
-      background: #f0ebf8;
-      color: #5c4a72;
-      border: 1px solid #e0d4f0;
+      background: #f0f4fa;
+      color: #4a5872;
+      border: 1px solid #e3e9f3;
     }
     .major-pill-both {
-      background: linear-gradient(135deg, #eef5ff 0%, #f0ebf8 100%);
-      color: #3d5a8e;
-      border: 1px solid #9ec5f5;
+      background: #eef5ff;
+      color: #2d5a8e;
+      border: 1px solid #b8d4f5;
       font-weight: 700;
     }
     .major-pill-q16 {
@@ -297,20 +321,11 @@
       line-height: 1.3;
     }
     .combined-tag.profile { background: #eef2f8; color: #5a6880; }
-    .combined-tag.mbti { background: #f0ebf8; color: #6b4f9e; }
+    .combined-tag.mbti { background: #edf2f8; color: #4a6280; border: 1px solid #dce4ef; }
     .combined-tag.explore { background: #f4f6f9; color: #8b97ad; }
     .combined-tag.focus { background: #eef5ff; color: #2f8fef; }
     .mbti-full-card {
       margin: 18px 0;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid #e8dff5;
-      background: linear-gradient(135deg, #faf7fd 0%, #f5f8fc 100%);
-    }
-    .mbti-full-card h3 {
-      font-size: 1rem;
-      color: #5c4a72;
-      margin-bottom: 10px;
     }
     .share-banner {
       text-align: center;
@@ -341,6 +356,294 @@
       background: #fff;
       color: var(--primary);
       border-color: #bcd4f5;
+    }
+    .share-page-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .share-page-stack > .card {
+      margin-bottom: 0;
+    }
+    .share-actions-panel {
+      margin-top: 0;
+    }
+    body.share-view {
+      --share-blue: #3d6b9e;
+      --share-blue-dark: #2f5a85;
+      --share-blue-soft: #edf2f8;
+      --share-blue-bar: #e6edf6;
+      --share-card-w: 343px;
+      background: #eef1f4;
+    }
+    body.share-view .shell {
+      max-width: calc(var(--share-card-w) + 32px);
+      padding: 10px 16px 20px;
+    }
+    body.share-view .share-page-stack {
+      width: var(--share-card-w);
+      max-width: 100%;
+      margin: 0 auto;
+      gap: 12px;
+    }
+    body.share-view .share-banner {
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .share-report-card {
+      width: var(--share-card-w);
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 16px 16px 14px;
+      border-radius: 16px;
+      border-color: #e8eaec;
+      box-shadow: 0 6px 20px rgba(45, 55, 70, 0.07);
+      box-sizing: border-box;
+    }
+    .share-report-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .share-report-intro {
+      font-size: 13px;
+      line-height: 18px;
+      color: #8b97ad;
+      margin: 0 0 6px;
+    }
+    .share-report-title {
+      font-size: 34px;
+      line-height: 40px;
+      font-weight: 800;
+      color: #3d4a5c;
+      margin: 0;
+    }
+    .share-report-code {
+      margin: 6px 0 0;
+      font-size: 42px;
+      line-height: 1.05;
+      font-weight: 800;
+      color: var(--share-blue);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .share-report-hero {
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: center;
+    }
+    .share-report-hero-media {
+      position: relative;
+      width: 200px;
+      max-width: 72%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f2f4f7;
+      box-shadow: 0 4px 14px rgba(45, 55, 70, 0.1);
+    }
+    .share-report-illust {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .share-report-danmaku {
+      position: absolute;
+      inset: 0;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      pointer-events: none;
+    }
+    .share-danmaku-item {
+      position: absolute;
+      max-width: 78%;
+      padding: 5px 11px;
+      font-size: 11px;
+      line-height: 1.25;
+      font-weight: 700;
+      color: #1a2d45;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(61, 107, 158, 0.42);
+      box-shadow: 0 2px 10px rgba(30, 45, 65, 0.18);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .share-danmaku-item::before {
+      content: "✓";
+      display: inline-block;
+      margin-right: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--share-blue);
+    }
+    .share-danmaku-item:nth-child(1) {
+      top: 14%;
+      left: 4%;
+      transform: rotate(-4deg);
+    }
+    .share-danmaku-item:nth-child(2) {
+      top: 6%;
+      right: 4%;
+      left: auto;
+      transform: rotate(3deg);
+    }
+    .share-danmaku-item:nth-child(3) {
+      bottom: 6%;
+      right: 4%;
+      left: auto;
+      top: auto;
+      transform: rotate(-2deg);
+    }
+    .share-report-tagline {
+      text-align: center;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 600;
+      color: #5a6880;
+      margin: 0 0 10px;
+    }
+    .share-report-match-bar {
+      text-align: center;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 700;
+      color: var(--share-blue-dark);
+      background: var(--share-blue-bar);
+      padding: 8px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .share-report-match-secondary {
+      text-align: center;
+      font-size: 12px;
+      line-height: 17px;
+      color: #7d8aa4;
+      margin: 0 0 12px;
+    }
+    .share-report-match-secondary a {
+      color: var(--share-blue);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .share-report-divider {
+      border: none;
+      border-top: 1px solid #eceff3;
+      margin: 0 0 12px;
+    }
+    .share-report-section {
+      margin-bottom: 12px;
+    }
+    .share-report-section-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      line-height: 18px;
+      font-weight: 700;
+      color: #4a5872;
+      margin: 0 0 8px;
+    }
+    .share-report-section-mark {
+      width: 4px;
+      height: 12px;
+      border-radius: 2px;
+      background: var(--share-blue);
+      flex-shrink: 0;
+    }
+    .share-report-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+    .share-report-pill {
+      box-sizing: border-box;
+      flex: 0 0 auto;
+      max-width: 100%;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      text-align: center;
+      font-size: 11px;
+      line-height: 14px;
+      font-weight: 600;
+      color: #4a5872;
+      background: #f2f4f7;
+      border: 1px solid #e8ecf1;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .share-report-pill.is-highlight {
+      color: var(--share-blue-dark);
+      background: var(--share-blue-soft);
+      border-color: #c5d0e4;
+    }
+    .share-report-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 8px 10px;
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px solid #eceff3;
+    }
+    .share-report-footer-qr {
+      flex-shrink: 0;
+      text-decoration: none;
+      line-height: 0;
+    }
+    .share-report-footer-qr img {
+      display: block;
+      width: 60px;
+      height: 60px;
+      border-radius: 4px;
+      border: 1px solid #e8ecf1;
+      background: #fff;
+    }
+    .share-report-footer-copy {
+      flex: 1;
+      min-width: 0;
+    }
+    .share-report-footer-copy strong {
+      display: block;
+      font-size: 13px;
+      line-height: 18px;
+      color: #3d4a5c;
+      margin-bottom: 2px;
+    }
+    .share-report-footer-copy p {
+      font-size: 11px;
+      line-height: 15px;
+      color: #8b97ad;
+      margin: 0;
+    }
+    .share-report-footer-brand {
+      flex-shrink: 0;
+      margin-left: auto;
+      text-align: right;
+      align-self: flex-end;
+    }
+    .share-report-footer-brand span {
+      display: block;
+      font-size: 11px;
+      line-height: 15px;
+      color: #a8b4c4;
+    }
+    body.share-view .share-actions-panel {
+      width: var(--share-card-w);
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    body.share-view .share-actions-panel .btn {
+      font-size: 13px;
+      padding: 12px 10px;
     }
     body.share-view .hero,
     body.share-view #quizSection { display: none !important; }
@@ -486,12 +789,113 @@
 
     .result { margin-top: 8px; }
     .result h2 { font-size: 1.4rem; margin-bottom: 8px; }
+    .profile-header { margin: 10px 0 14px; }
+    .profile-hero { margin-bottom: 4px; }
+    .profile-result-line {
+      font-size: 0.92rem;
+      color: #6a7f9a;
+      margin: 0 0 10px;
+      line-height: 1.5;
+    }
+    .profile-result-prefix {
+      font-weight: 400;
+    }
+    .profile-result-name {
+      font-weight: 700;
+      color: #4a5872;
+    }
     .result .profile-name {
       font-size: clamp(1.5rem, 4vw, 2rem);
       font-weight: 800;
       color: var(--primary);
       margin: 8px 0 12px;
+      line-height: 1.2;
     }
+    .profile-codename-wrap {
+      margin: 0;
+    }
+    .profile-codename {
+      font-size: clamp(2.5rem, 11vw, 3.75rem);
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0;
+      line-height: 1.05;
+      letter-spacing: 0.03em;
+    }
+    .profile-codename-en {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #8b97ad;
+      letter-spacing: 0.14em;
+    }
+    .profile-subtitle-pill {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .profile-signature {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border-left: 3px solid #d4e6fa;
+      background: #f8fafc;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+      font-style: italic;
+      color: #5a6880;
+      line-height: 1.5;
+    }
+    .profile-story {
+      font-size: 0.92rem;
+      color: #5a6880;
+      line-height: 1.65;
+      margin: 0 0 12px;
+    }
+    .profile-career-fit {
+      font-size: 0.9rem;
+      color: #5a6880;
+      line-height: 1.6;
+      margin: 0 0 12px;
+    }
+    .profile-punchlines {
+      margin: 12px 0 4px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f6f8fb;
+      border: 1px solid var(--line);
+    }
+    .profile-roast,
+    .profile-comfort {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin: 0;
+      color: #5a6880;
+    }
+    .profile-roast { margin-bottom: 8px; }
+    .profile-roast strong,
+    .profile-comfort strong {
+      color: #4a5872;
+      font-weight: 700;
+    }
+    .profile-comfort strong { color: var(--primary); }
+    .profile-alt-link {
+      margin: 12px 0 0;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      color: #6a7f9a;
+    }
+    .profile-alt-link a {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .profile-alt-link a:hover { text-decoration: underline; }
     .keywords { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
     .kw {
       font-size: 0.82rem; padding: 5px 10px;
@@ -678,6 +1082,224 @@
       Object.entries(PROFILE_SLUGS).map(([id, slug]) => [slug, id])
     );
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
+    const ANSWER_CODEC_VERSION = "1";
+    const SHARE_SITE_URL = "https://major.voce.chat";
+
+    function shareQrImageSrc() {
+      return "https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&color=3d6b9e&bgcolor=ffffff&data="
+        + encodeURIComponent(SHARE_SITE_URL);
+    }
+
+    const AI_MATCH_URL = "https://ai.voce.chat";
+    let html2canvasLoadPromise = null;
+
+    function loadHtml2Canvas() {
+      if (window.html2canvas) return Promise.resolve(window.html2canvas);
+      if (!html2canvasLoadPromise) {
+        html2canvasLoadPromise = new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+          script.async = true;
+          script.onload = () => resolve(window.html2canvas);
+          script.onerror = () => reject(new Error("html2canvas load failed"));
+          document.head.appendChild(script);
+        });
+      }
+      return html2canvasLoadPromise;
+    }
+
+    function waitForImages(root) {
+      const imgs = root ? root.querySelectorAll("img") : [];
+      return Promise.all(Array.from(imgs).map((img) => {
+        if (img.complete && img.naturalWidth) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.addEventListener("load", resolve, { once: true });
+          img.addEventListener("error", resolve, { once: true });
+        });
+      }));
+    }
+
+    /**
+     * 主画像匹配度：8 个画像公式得分做 softmax，将第一名占比映射到 58–100%。
+     * 与 confidenceLabel 同源（top/second 分差），双画像接近时匹配度会明显降低。
+     */
+    function computeMatchPercent(primary, secondary, ranked) {
+      const list = ranked && ranked.length
+        ? ranked
+        : [primary, secondary].filter(Boolean);
+      if (!list.length || !primary) return 0;
+
+      if (list.length === 1) {
+        return 94;
+      }
+
+      const raw = list.map((x) => Number(x.score) || 0);
+      const maxS = Math.max(...raw);
+      const exp = raw.map((s) => Math.exp(s - maxS));
+      const sum = exp.reduce((a, b) => a + b, 0);
+      const share = sum > 0 ? exp[0] / sum : 1 / list.length;
+      const n = list.length;
+      const uniform = 1 / n;
+      if (share <= uniform) return 58;
+      const t = (share - uniform) / (1 - uniform);
+      return Math.round(58 + t * 42);
+    }
+
+    function matchPercentFromConfOnly(conf, hasSecondary) {
+      const gap = hasSecondary
+        ? (conf === "高" ? 0.22 : conf === "中" ? 0.14 : 0.05)
+        : 0.22;
+      return computeMatchPercent(
+        { score: 1 },
+        hasSecondary ? { score: Math.max(0.01, 1 - gap) } : null,
+        [{ score: 1 }, hasSecondary ? { score: 1 - gap } : null].filter(Boolean)
+      );
+    }
+
+    function resolveMatchPercent(payload, mpFromUrl) {
+      if (mpFromUrl != null && mpFromUrl !== "" && !Number.isNaN(Number(mpFromUrl))) {
+        return Math.min(100, Math.max(0, Math.round(Number(mpFromUrl))));
+      }
+      if (payload.matchPercent != null && payload.matchPercent !== "") {
+        return Math.round(Number(payload.matchPercent));
+      }
+      if (payload.ranked && payload.primary) {
+        return computeMatchPercent(payload.primary, payload.secondary, payload.ranked);
+      }
+      if (payload.primary) {
+        return matchPercentFromConfOnly(payload.conf, !!(payload.secondary && payload.secondary.rule));
+      }
+      return 0;
+    }
+
+    function renderShareReportFooter() {
+      const qrSrc = shareQrImageSrc();
+      return "<footer class=\"share-report-footer\">"
+        + "<a class=\"share-report-footer-qr\" href=\"" + SHARE_SITE_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"扫码测一测\">"
+        + "<img src=\"" + qrSrc + "\" width=\"60\" height=\"60\" alt=\"\" loading=\"lazy\" decoding=\"async\">"
+        + "</a>"
+        + "<div class=\"share-report-footer-copy\">"
+        + "<strong>扫码测一测</strong>"
+        + "<p>解锁你的职业倾向报告</p>"
+        + "<p>更懂自己，更好选择未来</p>"
+        + "</div>"
+        + "<div class=\"share-report-footer-brand\">"
+        + "<span>Privoce, Inc</span>"
+        + "<span>major.voce.chat</span>"
+        + "</div>"
+        + "</footer>";
+    }
+
+    function formatShareCheckLabel(keyword) {
+      const map = {
+        "稳定就业": "稳定就业",
+        "确定性": "确定性强",
+        "家庭接受度": "家庭接受度高",
+        "长期积累": "长期积累高"
+      };
+      return map[keyword] || keyword;
+    }
+
+    function shareProfileImageSrc(rule) {
+      if (rule && rule.codename_en) {
+        return "./imgs/" + rule.codename_en + ".png";
+      }
+      return "./assets/share-hero-placeholder.svg";
+    }
+
+    function renderShareDanmaku(keywords) {
+      const list = (keywords || []).slice(0, 3);
+      if (!list.length) return "";
+      let html = "<ul class=\"share-report-danmaku\" aria-label=\"关键词\">";
+      list.forEach((label) => {
+        html += "<li class=\"share-danmaku-item\">" + formatShareCheckLabel(label) + "</li>";
+      });
+      html += "</ul>";
+      return html;
+    }
+
+    const SHARE_MAJOR_LAYOUT = {
+      contentWidth: 311,
+      gap: 6,
+      padX: 20,
+      charWidth: 11,
+      maxRows: 2
+    };
+
+    /** 简版：名称包含、同前缀或长公共前缀视为过近，只保留得分更高者 */
+    function majorsTooSimilar(nameA, nameB) {
+      const na = normalizeMajorName(nameA);
+      const nb = normalizeMajorName(nameB);
+      if (!na || !nb) return false;
+      if (na === nb) return true;
+      if (na.length >= 3 && nb.length >= 3 && (na.includes(nb) || nb.includes(na))) return true;
+      const short = na.length <= nb.length ? na : nb;
+      const long = na.length > nb.length ? na : nb;
+      if (short.length >= 4 && long.startsWith(short.slice(0, 4))) return true;
+      let common = 0;
+      const lim = Math.min(na.length, nb.length);
+      while (common < lim && na[common] === nb[common]) common += 1;
+      if (common >= 5) return true;
+      if (common >= 4 && common / lim >= 0.55) return true;
+      return false;
+    }
+
+    function estimateSharePillWidth(name) {
+      const L = SHARE_MAJOR_LAYOUT;
+      return L.padX + normalizeMajorName(name).length * L.charWidth;
+    }
+
+    /** 简版推荐：按分数优先，去相近专业，并尽量填满两行宽度 */
+    function buildShareDisplayMajors(combined) {
+      const L = SHARE_MAJOR_LAYOUT;
+      const sorted = [...(combined || [])].sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        if (Boolean(b.q16Match) !== Boolean(a.q16Match)) return (b.q16Match ? 1 : 0) - (a.q16Match ? 1 : 0);
+        const tierRank = (x) => (x.tier === "both" ? 3 : x.tier === "profile" ? 2 : x.tier === "mbti" ? 1 : 0);
+        return tierRank(b) - tierRank(a);
+      });
+      const rowWidths = Array(L.maxRows).fill(0);
+      const rows = Array.from({ length: L.maxRows }, () => []);
+      const picked = [];
+
+      function tryPlace(item) {
+        const w = estimateSharePillWidth(item.name);
+        const order = rowWidths[0] <= rowWidths[1] ? [0, 1] : [1, 0];
+        for (let i = 0; i < L.maxRows; i += 1) {
+          const r = order[i];
+          const gap = rows[r].length ? L.gap : 0;
+          if (rowWidths[r] + gap + w <= L.contentWidth) {
+            rows[r].push(item);
+            rowWidths[r] += gap + w;
+            return true;
+          }
+        }
+        return false;
+      }
+
+      for (let i = 0; i < sorted.length; i += 1) {
+        const item = sorted[i];
+        if (picked.some((p) => majorsTooSimilar(p.name, item.name))) continue;
+        if (!tryPlace(item)) break;
+        picked.push(item);
+      }
+      return picked;
+    }
+
+    function renderShareReportMajors(combined) {
+      const top = buildShareDisplayMajors(combined);
+      if (!top.length) return "";
+      let html = "<section class=\"share-report-section\">";
+      html += "<h4 class=\"share-report-section-title\"><span class=\"share-report-section-mark\"></span>综合推荐专业</h4>";
+      html += "<div class=\"share-report-pills\">";
+      top.forEach((item) => {
+        let cls = "share-report-pill";
+        if (item.q16Match || item.tier === "both") cls += " is-highlight";
+        html += "<span class=\"" + cls + "\">" + item.name + "</span>";
+      });
+      html += "</div></section>";
+      return html;
+    }
 
     function resolveProfileId(value) {
       if (!value) return "";
@@ -688,13 +1310,206 @@
       return PROFILE_SLUGS[id] || id;
     }
 
+    function profileCodename(rule) {
+      if (!rule) return "";
+      return rule.codename || rule.name || rule.display_name || "";
+    }
+
+    function renderProfileCodenameBlock(rule) {
+      let html = "<div class=\"profile-codename-wrap\">";
+      html += "<div class=\"profile-codename\">" + profileCodename(rule) + "</div>";
+      if (rule.codename_en) {
+        html += "<span class=\"profile-codename-en\">" + rule.codename_en + "</span>";
+      }
+      html += "</div>";
+      return html;
+    }
+
+    function renderProfileStory(rule, compact) {
+      if (!rule) return "";
+      let html = "";
+      if (rule.subtitle) {
+        html += "<span class=\"profile-subtitle-pill\">" + rule.subtitle + "</span>";
+      }
+      if (rule.signature) {
+        html += "<blockquote class=\"profile-signature\">" + rule.signature + "</blockquote>";
+      }
+      if (rule.description) {
+        html += "<p class=\"profile-story\">" + rule.description + "</p>";
+      }
+      if (rule.career_fit) {
+        if (compact) {
+          html += "<p class=\"profile-career-fit\">" + rule.career_fit + "</p>";
+        } else {
+          html += "<div class=\"section\"><h3>适合怎么走</h3><p>" + rule.career_fit + "</p></div>";
+        }
+      }
+      if (rule.roast || rule.comfort) {
+        html += "<div class=\"profile-punchlines\">";
+        if (rule.roast) html += "<p class=\"profile-roast\"><strong>扎心一句：</strong>" + rule.roast + "</p>";
+        if (rule.comfort) html += "<p class=\"profile-comfort\"><strong>收场白：</strong>" + rule.comfort + "</p>";
+        html += "</div>";
+      }
+      return html;
+    }
+
+    function encodeAnswerIndex(idx) {
+      const n = Math.max(0, Math.min(35, Number(idx) || 0));
+      if (n < 10) return String(n);
+      return String.fromCharCode(87 + n);
+    }
+
+    function decodeAnswerIndex(ch) {
+      if (!ch) return 0;
+      const code = ch.charCodeAt(0);
+      if (code >= 48 && code <= 57) return code - 48;
+      if (code >= 97 && code <= 122) return code - 87;
+      return 0;
+    }
+
+    function expectedAnswerCodecLength() {
+      let len = 1;
+      (config.questions || []).forEach((q) => {
+        if (q.type === "multi_choice") len += 2;
+        else len += 1;
+      });
+      return len;
+    }
+
+    function serializeAnswersToParam() {
+      let raw = ANSWER_CODEC_VERSION;
+      (config.questions || []).forEach((q) => {
+        const a = answers[q.id];
+        if (q.type === "single_choice") {
+          const idx = q.options.findIndex((o) => o.id === a);
+          raw += encodeAnswerIndex(idx < 0 ? 0 : idx);
+        } else if (q.type === "multi_choice") {
+          const indices = (Array.isArray(a) ? a : [])
+            .map((id) => q.options.findIndex((o) => o.id === id))
+            .filter((i) => i >= 0)
+            .sort((x, y) => x - y);
+          raw += encodeAnswerIndex(indices[0] ?? 0);
+          raw += encodeAnswerIndex(indices[1] ?? 0);
+        } else if (q.type === "scale_0_7" || q.type === "slider") {
+          const n = Math.max(0, Math.min(7, Math.round(Number(a) || 0)));
+          raw += String(n);
+        }
+      });
+      return raw;
+    }
+
+    function parseAnswersParam(raw) {
+      if (!raw || typeof raw !== "string") return null;
+      const v = raw.trim();
+      if (!v.length || v[0] !== ANSWER_CODEC_VERSION) return null;
+      if (v.length !== expectedAnswerCodecLength()) return null;
+      let pos = 1;
+      const out = {};
+      for (const q of config.questions || []) {
+        if (q.type === "single_choice") {
+          const idx = decodeAnswerIndex(v[pos++]);
+          const opt = q.options[idx] || q.options[0];
+          if (opt) out[q.id] = opt.id;
+        } else if (q.type === "multi_choice") {
+          const i0 = decodeAnswerIndex(v[pos++]);
+          const i1 = decodeAnswerIndex(v[pos++]);
+          const ids = [];
+          if (q.options[i0]) ids.push(q.options[i0].id);
+          if (i1 !== i0 && q.options[i1]) ids.push(q.options[i1].id);
+          out[q.id] = ids;
+        } else if (q.type === "scale_0_7" || q.type === "slider") {
+          const digit = v[pos++];
+          const n = digit >= "0" && digit <= "7" ? Number(digit) : defaultSliderValue(q);
+          out[q.id] = n;
+        }
+      }
+      return pos === v.length ? out : null;
+    }
+
+    function applyAnswersObject(next) {
+      (config.questions || []).forEach((q) => {
+        if (next[q.id] === undefined) initAnswerForQuestion(q);
+        else answers[q.id] = next[q.id];
+      });
+    }
+
+    function buildFullResultUrl() {
+      const v = serializeAnswersToParam();
+      return location.origin + location.pathname + "?v=" + encodeURIComponent(v);
+    }
+
+    function buildProfileViewUrl(ruleId, query) {
+      const q = query || {};
+      let url = location.pathname + "?r=" + encodeURIComponent(profileSlug(ruleId));
+      if (q.m) url += "&m=" + encodeURIComponent(q.m);
+      if (q.from) url += "&from=" + encodeURIComponent(profileSlug(q.from));
+      if (q.s) url += "&s=" + encodeURIComponent(profileSlug(q.s));
+      if (q.ref) url += "&ref=" + encodeURIComponent(q.ref);
+      return url;
+    }
+
+    function renderProfileHeader(rule, opts) {
+      const options = opts || {};
+      const variant = options.variant === "full" ? "full" : "share";
+      const secondary = options.secondary;
+      const conf = options.conf;
+      const mbti = options.mbti;
+      const fromPrimaryId = options.fromPrimaryId || "";
+      const ref = options.ref || "";
+      const mCode = mbti && mbti.code ? mbti.code : "";
+      const showSecondaryLink = conf === "低" && secondary && secondary.rule;
+      const showPrimaryLink = fromPrimaryId && rule.id !== fromPrimaryId;
+      const primaryRule = showPrimaryLink
+        ? (config.profile_rules || []).find((r) => r.id === fromPrimaryId)
+        : null;
+
+      let html = "<div class=\"profile-header\">";
+      if (variant === "full") {
+        html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
+        if (showSecondaryLink) {
+          const href = buildProfileViewUrl(secondary.rule.id, { m: mCode, from: rule.id, ref: ref });
+          html += "<p class=\"profile-alt-link\">你的结果也接近";
+          html += " <a href=\"" + href + "\">" + secondary.rule.display_name + "</a>";
+          html += "，点击查看 →</p>";
+        } else if (showPrimaryLink && primaryRule) {
+          const href = buildProfileViewUrl(fromPrimaryId, { m: mCode, s: rule.id, ref: ref });
+          html += "<p class=\"profile-alt-link\"><a href=\"" + href + "\">← 返回主画像：" + primaryRule.display_name + "</a></p>";
+        }
+      } else {
+        html += "<div class=\"profile-hero\">";
+        html += "<p class=\"profile-result-line\">";
+        html += "<span class=\"profile-result-prefix\">你的测试结果是</span> ";
+        html += "<strong class=\"profile-result-name\">" + rule.display_name + "</strong>";
+        html += "</p>";
+        html += renderProfileCodenameBlock(rule);
+        html += "</div>";
+        if (showSecondaryLink) {
+          const href = buildProfileViewUrl(secondary.rule.id, { m: mCode, from: rule.id, ref: ref });
+          html += "<p class=\"profile-alt-link\">你的结果也接近";
+          html += " <a href=\"" + href + "\">「" + profileCodename(secondary.rule) + "」" + secondary.rule.display_name + "</a>";
+          html += "，点击查看 →</p>";
+        } else if (showPrimaryLink && primaryRule) {
+          const href = buildProfileViewUrl(fromPrimaryId, { m: mCode, s: rule.id, ref: ref });
+          html += "<p class=\"profile-alt-link\"><a href=\"" + href + "\">← 返回主画像「" + profileCodename(primaryRule) + "」</a></p>";
+        }
+      }
+      html += "</div>";
+      return html;
+    }
+
     function parseShareData(params) {
       const slug = params.get("r") || params.get("p");
       if (slug) {
         const p = resolveProfileId(slug);
         const sRaw = params.get("s") || "";
         const s = resolveProfileId(sRaw);
-        return { p, s, c: s ? "低" : "中", m: params.get("m") || "" };
+        return {
+          p,
+          s,
+          c: s ? "低" : "中",
+          m: params.get("m") || "",
+          mp: params.get("mp") || ""
+        };
       }
       const legacy = params.get("result");
       if (legacy) return fromBase64Url(legacy);
@@ -1046,11 +1861,11 @@
       finance_business: ["金融", "经济", "工商", "会计", "审计", "财务", "税收", "财政", "保险", "投资", "贸易", "电子商务", "物流", "管理"],
       medicine_pharmacy: ["医学", "药学", "护理", "口腔", "临床", "康复", "检验", "中医"],
       law: ["法学"],
-      education: ["教育", "师范"],
+      education: ["教育", "师范", "外语", "英语", "日语", "翻译"],
       ee_automation: ["电子", "通信", "自动化", "电气", "机器人", "智能制造", "集成电路"],
       bio_chem_material_env: ["生物", "化学", "材料", "环境", "食品", "生态"],
       architecture_civil: ["建筑", "土木", "城乡规划", "工程管理"],
-      design_media: ["设计", "传媒", "视觉", "媒体", "动画", "美术", "广播电视", "播音", "广告", "新闻", "传播", "产品", "工业", "数字媒体", "戏剧", "编导", "主持", "音乐", "表演", "汉语言"]
+      design_media: ["设计", "传媒", "视觉", "媒体", "动画", "美术", "广播电视", "播音", "广告", "新闻", "传播", "产品", "工业", "数字媒体", "戏剧", "编导", "主持", "音乐", "表演"]
     };
 
     function normalizeMajorName(name) {
@@ -1146,11 +1961,11 @@
       let html = "<span class=\"combined-tags\">";
       if (item.tier === "both") {
         html += "<span class=\"combined-tag profile\">职业</span>";
-        html += "<span class=\"combined-tag mbti\">兴趣</span>";
+        html += "<span class=\"combined-tag mbti\">性格</span>";
       } else if (item.tier === "profile") {
         html += "<span class=\"combined-tag profile\">职业</span>";
       } else if (item.tier === "mbti") {
-        html += "<span class=\"combined-tag mbti\">兴趣</span>";
+        html += "<span class=\"combined-tag mbti\">性格</span>";
       } else {
         html += "<span class=\"combined-tag explore\">延伸</span>";
       }
@@ -1174,11 +1989,11 @@
           html += "<span class=\"" + cls + "\">" + item.name + "</span>";
         });
         html += "</div>";
-        html += "<p class=\"combined-note\">按职业倾向、兴趣匹配与你勾选的偏好综合排序；高亮项表示多维度一致。</p>";
+        html += "<p class=\"combined-note\">按职业倾向、性格匹配与你勾选的偏好综合排序；高亮项表示多维度一致。</p>";
         return html;
       }
       html += "<div class=\"section\"><h3>综合推荐专业</h3>";
-      html += "<p style=\"font-size:0.88rem;color:#7d8aa4;margin-bottom:10px;\">综合职业倾向、兴趣匹配";
+      html += "<p style=\"font-size:0.88rem;color:#7d8aa4;margin-bottom:10px;\">综合职业倾向、性格匹配";
       if (list.some((x) => x.q16Match)) html += "与你的偏好方向";
       html += "排序，优先展示多维度一致的方向。</p><ul class=\"combined-list\">";
       top.forEach((item) => {
@@ -1190,13 +2005,20 @@
       return html;
     }
 
+    function renderMbtiTypeRow(mbti) {
+      return "<div class=\"mbti-type-row\">"
+        + "<span class=\"mbti-code\">" + mbti.code + "</span>"
+        + "<span class=\"mbti-name\">" + mbti.name + "</span>"
+        + "</div>";
+    }
+
     function renderMbtiSection(mbti, compact) {
       if (!mbti || !mbti.code) return "";
       let html = "";
       if (compact) {
         html += "<div class=\"mbti-share-card\">";
-        html += "<p class=\"share-block-label\">性格参考 · MBTI</p>";
-        html += "<div class=\"mbti-badge\">" + mbti.code + " · " + mbti.name + "</div>";
+        html += "<p class=\"mbti-section-title\">性格参考 · MBTI</p>";
+        html += renderMbtiTypeRow(mbti);
         if (mbti.career_directions && mbti.career_directions.length) {
           html += "<p class=\"mbti-share-desc\">适合方向：" + mbti.career_directions.slice(0, 4).join("、") + "</p>";
         } else if (mbti.description) {
@@ -1206,9 +2028,9 @@
         return html;
       }
       html += "<div class=\"mbti-full-card\">";
-      html += "<h3>性格参考 · MBTI</h3>";
-      html += "<div class=\"mbti-badge\">" + mbti.code + " · " + mbti.name + "</div>";
-      html += "<p>" + mbti.description + "</p>";
+      html += "<h3 class=\"mbti-section-title\">性格参考 · MBTI</h3>";
+      html += renderMbtiTypeRow(mbti);
+      html += "<p class=\"mbti-body\">" + mbti.description + "</p>";
       if (mbti.career_directions && mbti.career_directions.length) {
         html += "<p class=\"mbti-careers\"><strong>适合的职业方向：</strong>" + mbti.career_directions.join("、") + "</p>";
       }
@@ -1228,6 +2050,7 @@
         .map((k) => ({ k, v: scores[k] }))
         .sort((a, b) => b.v - a.v)
         .slice(0, 5);
+      const matchPercent = computeMatchPercent(primary, secondary, ranked);
       return enrichPayload({
         scores,
         ranked,
@@ -1235,6 +2058,7 @@
         secondary,
         rule,
         conf,
+        matchPercent,
         consultants,
         topDims,
         choices: collectChoiceSummaryItems(),
@@ -1253,6 +2077,8 @@
       if (payload.conf === "低" && payload.secondary) {
         url += "&s=" + encodeURIComponent(profileSlug(payload.secondary.rule.id));
       }
+      const mp = resolveMatchPercent(payload, null);
+      if (mp > 0) url += "&mp=" + encodeURIComponent(String(mp));
       if (payload.mbti && payload.mbti.code) {
         url += "&m=" + encodeURIComponent(payload.mbti.code);
       }
@@ -1260,13 +2086,21 @@
     }
 
     function serializeFullResultPayload(payload) {
+      let v = "";
+      try {
+        v = serializeAnswersToParam();
+      } catch (e) {
+        console.warn(e);
+      }
       return {
         p: payload.primary.rule.id,
         s: payload.conf === "低" && payload.secondary ? payload.secondary.rule.id : "",
         c: payload.conf,
         d: payload.topDims.map((x) => [x.k, Math.round(x.v * 10) / 10]),
         ch: payload.choices,
-        m: payload.mbti ? payload.mbti.code : ""
+        m: payload.mbti ? payload.mbti.code : "",
+        mp: payload.matchPercent != null ? payload.matchPercent : "",
+        v: v
       };
     }
 
@@ -1284,7 +2118,8 @@
         topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
         choices: data.ch || [],
         primary: { rule },
-        mbti: lookupMbti(data.m)
+        mbti: lookupMbti(data.m),
+        matchPercent: data.mp !== "" && data.mp != null ? Number(data.mp) : null
       };
       return enrichPayload(payload);
     }
@@ -1318,7 +2153,10 @@
       document.body.classList.add("result-view");
       document.getElementById("shareBanner").classList.add("hidden");
       document.getElementById("shareBackBtn").classList.add("hidden");
-      history.replaceState(null, "", location.pathname);
+      const backUrl = data.v
+        ? location.pathname + "?v=" + encodeURIComponent(data.v)
+        : location.pathname;
+      history.replaceState(null, "", backUrl);
       document.title = payload.rule.display_name + " · AI专业测试";
       resultSection.innerHTML = renderResultSections(payload, { shareView: false });
       resultSection.classList.remove("hidden");
@@ -1352,24 +2190,55 @@
       const conf = payload.conf;
       const secondary = payload.secondary;
       const combined = payload.combinedMajors || [];
+      const ref = new URLSearchParams(location.search).get("ref") || "";
+      const mCode = payload.mbti && payload.mbti.code ? payload.mbti.code : "";
+      const checkLabels = (rule.keywords || []).slice(0, 3);
+      const matchPct = resolveMatchPercent(payload, new URLSearchParams(location.search).get("mp"));
+      const factorName = profileCodename(rule);
 
-      let html = "<div class=\"card result\">";
-      html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
-      if (conf === "低" && secondary) {
-        html += "<p class=\"result-subline\">辅助画像：" + secondary.rule.display_name + "</p>";
+      let html = "<div class=\"share-page-stack\">";
+      html += "<div class=\"card result share-report-card\">";
+
+      html += "<header class=\"share-report-header\">";
+      html += "<p class=\"share-report-intro\">你的测试结果是</p>";
+      html += "<h1 class=\"share-report-title\">" + profileCodename(rule) + "</h1>";
+      if (rule.codename_en) {
+        html += "<p class=\"share-report-code\">" + rule.codename_en + "</p>";
       }
-      html += "<div class=\"keywords\">";
-      (rule.keywords || []).slice(0, 4).forEach((kw) => { html += "<span class=\"kw\">" + kw + "</span>"; });
+      html += "</header>";
+
+      html += "<div class=\"share-report-hero\">";
+      html += "<div class=\"share-report-hero-media\">";
+      html += "<img class=\"share-report-illust\" src=\"" + shareProfileImageSrc(rule) + "\" alt=\""
+        + profileCodename(rule) + "\" width=\"200\" height=\"200\" loading=\"lazy\" decoding=\"async\">";
+      html += renderShareDanmaku(checkLabels);
+      html += "</div></div>";
+
+      if (rule.hero_tagline || rule.subtitle) {
+        html += "<p class=\"share-report-tagline\">" + (rule.hero_tagline || rule.subtitle) + "</p>";
+      }
+
+      html += "<div class=\"share-report-match-bar\">匹配度 " + matchPct + "% · " + factorName + "因子已激活</div>";
+
+      if (conf === "低" && secondary && secondary.rule) {
+        const href = buildProfileViewUrl(secondary.rule.id, { m: mCode, from: rule.id, ref: ref });
+        html += "<p class=\"share-report-match-secondary\">你与「<a href=\"" + href + "\">"
+          + profileCodename(secondary.rule) + " / " + secondary.rule.display_name
+          + "</a>」高度契合</p>";
+      } else {
+        html += "<p class=\"share-report-match-secondary\">你与「" + rule.display_name + "」高度契合</p>";
+      }
+
+      html += "<hr class=\"share-report-divider\">";
+      html += renderShareReportMajors(combined);
+      html += renderShareReportFooter();
       html += "</div>";
-      html += renderCombinedMajorsSection(combined, true);
-      html += renderMbtiSection(payload.mbti, true);
-      html += "<div class=\"result-actions result-actions-share\">";
-      html += "<div class=\"result-actions-row\">";
-      html += "<a class=\"btn btn-primary\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI 匹配学长学姐</a>";
-      html += "<a class=\"btn btn-outline\" href=\"" + location.pathname + "\">我也要测试</a>";
-      html += "</div>";
-      html += "<button type=\"button\" class=\"btn btn-share btn-share-copy\" id=\"copyShareLinkBtn\">复制链接分享</button>";
-      html += "<span id=\"shareLinkCopiedTip\" class=\"share-copied-tip\"></span>";
+
+      html += "<div class=\"share-actions-panel result-actions result-actions-share\">";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"downloadShareImageBtn\">下载图片分享</button>";
+      html += "<button type=\"button\" class=\"btn btn-outline\" id=\"viewFullAnalysisBtn\">查看全版分析</button>";
+      html += "<a class=\"btn btn-outline\" href=\"" + AI_MATCH_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\">匹配同专业学长学姐</a>";
+      html += "<span id=\"shareActionTip\" class=\"share-copied-tip\"></span>";
       html += "</div>";
       html += "</div>";
       return html;
@@ -1385,16 +2254,14 @@
 
       let html = "<div class=\"card result\">";
       html += "<h2>你的专业选择画像</h2>";
-      html += "<div class=\"profile-name\">" + rule.display_name + "</div>";
-      if (conf === "低" && secondary) {
-        html += "<p>辅助画像：<strong>" + secondary.rule.display_name + "</strong>（双画像接近，建议两个方向都了解）</p>";
-      } else {
-        html += "<p>匹配置信度：<strong>" + conf + "</strong></p>";
+      html += renderProfileHeader(rule, { secondary, conf, mbti: payload.mbti, ref: "self", variant: "full" });
+      if (!secondary || conf !== "低") {
+        html += "<p style=\"font-size:0.88rem;color:#7d8aa4;margin:0 0 4px;\">匹配置信度：<strong>" + conf + "</strong></p>";
       }
       html += "<div class=\"keywords\">";
       (rule.keywords || []).forEach((kw) => { html += "<span class=\"kw\">" + kw + "</span>"; });
       html += "</div>";
-      html += "<p>" + rule.description + "</p>";
+      html += renderProfileStory(rule, false);
       html += renderMbtiSection(payload.mbti, false);
       html += renderCombinedMajorsSection(payload.combinedMajors, false);
       html += renderChoiceSummaryItems(choices);
@@ -1447,8 +2314,10 @@
       html += "<div class=\"result-actions result-actions-full\">";
       html += "<div class=\"result-actions-row\">";
       html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享测试结果</button>";
+      html += "<button type=\"button\" class=\"btn btn-outline\" id=\"copyFullLinkBtn\">复制完整报告链接</button>";
       html += "<button type=\"button\" class=\"btn btn-secondary\" id=\"restartBtn\">重新测试</button>";
       html += "</div>";
+      html += "<span id=\"fullLinkCopiedTip\" class=\"share-copied-tip\"></span>";
       html += "</div>";
 
       html += "</div>";
@@ -1481,22 +2350,97 @@
       }
     }
 
-    function showShareLinkCopiedTip() {
-      const tip = document.getElementById("shareLinkCopiedTip");
+    function showShareActionTip(message) {
+      const tip = document.getElementById("shareActionTip");
       if (!tip) return;
-      tip.textContent = "链接已复制";
+      tip.textContent = message;
       tip.classList.add("show");
-      clearTimeout(showShareLinkCopiedTip._timer);
-      showShareLinkCopiedTip._timer = setTimeout(() => tip.classList.remove("show"), 2500);
+      clearTimeout(showShareActionTip._timer);
+      showShareActionTip._timer = setTimeout(() => tip.classList.remove("show"), 2800);
     }
 
-    function bindSharePageActions() {
-      const btn = document.getElementById("copyShareLinkBtn");
-      if (!btn) return;
-      btn.addEventListener("click", async () => {
-        await copyTextToClipboard(getPublicShareUrl());
-        showShareLinkCopiedTip();
+    async function downloadShareResultImage(payload) {
+      const card = document.querySelector(".share-report-card");
+      if (!card) throw new Error("no card");
+      const html2canvas = await loadHtml2Canvas();
+      await waitForImages(card);
+      const scale = Math.min(3, Math.max(2, window.devicePixelRatio || 2));
+      const canvas = await html2canvas(card, {
+        scale,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false
       });
+      const codename = payload && payload.rule && payload.rule.codename_en
+        ? payload.rule.codename_en
+        : "result";
+      const filename = "AI专业测试-" + codename + ".png";
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("export failed");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function openFullAnalysisFromShare() {
+      if (restoreFullResultView()) return true;
+      const params = new URLSearchParams(location.search);
+      const v = params.get("v");
+      if (v && tryRenderFullResultFromParam(v)) return true;
+      try {
+        const raw = sessionStorage.getItem(FULL_RESULT_SESSION_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data.v) {
+            location.href = location.pathname + "?v=" + encodeURIComponent(data.v);
+            return true;
+          }
+          if (restoreFullResultView()) return true;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+      showShareActionTip("暂无完整版数据，请先完成测试");
+      return false;
+    }
+
+    function bindSharePageActions(payload) {
+      const downloadBtn = document.getElementById("downloadShareImageBtn");
+      if (downloadBtn) {
+        downloadBtn.addEventListener("click", async () => {
+          const label = downloadBtn.textContent;
+          downloadBtn.disabled = true;
+          downloadBtn.textContent = "生成图片中…";
+          try {
+            await downloadShareResultImage(payload);
+            showShareActionTip("图片已保存");
+          } catch (e) {
+            console.error(e);
+            showShareActionTip("图片生成失败，请重试");
+          } finally {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = label;
+          }
+        });
+      }
+      const fullBtn = document.getElementById("viewFullAnalysisBtn");
+      if (fullBtn) {
+        fullBtn.addEventListener("click", () => { openFullAnalysisFromShare(); });
+      }
+    }
+
+    function showFullLinkCopiedTip() {
+      const tip = document.getElementById("fullLinkCopiedTip");
+      if (!tip) return;
+      tip.textContent = "完整报告链接已复制";
+      tip.classList.add("show");
+      clearTimeout(showFullLinkCopiedTip._timer);
+      showFullLinkCopiedTip._timer = setTimeout(() => tip.classList.remove("show"), 2500);
     }
 
     function bindResultActions(payload) {
@@ -1505,9 +2449,62 @@
         saveFullResultSession(payload);
         location.href = buildShareUrl(payload) + "&ref=self";
       });
+      const copyFullBtn = document.getElementById("copyFullLinkBtn");
+      if (copyFullBtn) {
+        copyFullBtn.addEventListener("click", async () => {
+          await copyTextToClipboard(buildFullResultUrl());
+          showFullLinkCopiedTip();
+        });
+      }
     }
 
-    function renderShareResultPage(data) {
+    function renderFullResultPage(options) {
+      const opts = options || {};
+      document.body.classList.remove("quiz-view", "share-view");
+      document.body.classList.add("result-view");
+      document.getElementById("shareBanner").classList.add("hidden");
+      document.getElementById("shareBackBtn").classList.add("hidden");
+      quizSection.classList.add("hidden");
+
+      const payload = buildResultPayload();
+      saveFullResultSession(payload);
+      document.title = payload.rule.display_name + " · AI专业测试";
+      resultSection.innerHTML = renderResultSections(payload, { shareView: false });
+      resultSection.classList.remove("hidden");
+      bindResultActions(payload);
+      if (!opts.skipUrlUpdate) {
+        history.replaceState(null, "", buildFullResultUrl());
+      }
+      if (!opts.skipScroll) {
+        resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function tryRenderFullResultFromParam(vRaw) {
+      const parsed = parseAnswersParam(vRaw);
+      if (!parsed) return false;
+      applyAnswersObject(parsed);
+      renderFullResultPage({ skipUrlUpdate: true, skipScroll: false });
+      return true;
+    }
+
+    function renderShareResultPage(data, urlParams) {
+      const params = urlParams || new URLSearchParams(location.search);
+      const vParam = params.get("v");
+      if (vParam) {
+        const parsed = parseAnswersParam(vParam);
+        if (parsed) {
+          applyAnswersObject(parsed);
+          const full = buildResultPayload();
+          const sharePayload = enrichPayload(full);
+          saveFullResultSession(full);
+          document.title = profileCodename(full.rule) + " · 分享结果";
+          resultSection.innerHTML = renderResultSections(sharePayload, { shareView: true });
+          bindSharePageActions(sharePayload);
+          return;
+        }
+      }
+
       const rule = (config.profile_rules || []).find((r) => r.id === data.p);
       if (!rule) {
         resultSection.innerHTML = "<div class=\"card result\"><p>分享链接无效或已过期，请重新测试。</p></div>";
@@ -1516,29 +2513,29 @@
       const secondaryRule = data.s
         ? (config.profile_rules || []).find((r) => r.id === data.s)
         : null;
+      const fromPrimaryId = resolveProfileId(params.get("from") || "");
       const payload = {
         rule,
         conf: data.c || "中",
         secondary: secondaryRule ? { rule: secondaryRule } : null,
+        fromPrimaryId: fromPrimaryId,
         consultants: matchConsultants(rule.id),
         topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
         choices: data.ch || [],
-        mbti: lookupMbti(data.m)
+        mbti: lookupMbti(data.m),
+        matchPercent: resolveMatchPercent(
+          { conf: data.c || "中", secondary: secondaryRule ? { rule: secondaryRule } : null, primary: { rule } },
+          data.mp
+        )
       };
-      document.title = rule.display_name + " · 分享结果";
-      resultSection.innerHTML = renderResultSections(enrichPayload(payload), { shareView: true });
-      bindSharePageActions();
+      const sharePayload = enrichPayload(payload);
+      document.title = profileCodename(rule) + " · 分享结果";
+      resultSection.innerHTML = renderResultSections(sharePayload, { shareView: true });
+      bindSharePageActions(sharePayload);
     }
 
     function renderResult() {
-      const payload = buildResultPayload();
-      document.body.classList.remove("quiz-view");
-      document.body.classList.add("result-view");
-      document.body.classList.remove("share-view");
-      resultSection.innerHTML = renderResultSections(payload, { shareView: false });
-      resultSection.classList.remove("hidden");
-      bindResultActions(payload);
-      resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      renderFullResultPage({ skipUrlUpdate: false, skipScroll: false });
     }
 
     function restartTest() {
@@ -1607,11 +2604,21 @@
       }
 
       const params = new URLSearchParams(location.search);
+      const vParam = params.get("v");
+      if (vParam) {
+        if (tryRenderFullResultFromParam(vParam)) return;
+        document.body.classList.add("result-view");
+        quizSection.classList.add("hidden");
+        resultSection.classList.remove("hidden");
+        resultSection.innerHTML = "<div class=\"card result\"><p>完整结果链接无效或题库已更新，请重新测试。</p><a class=\"btn btn-primary\" href=\"" + location.pathname + "\">重新测试</a></div>";
+        return;
+      }
+
       const shareData = parseShareData(params);
       if (shareData) {
         document.body.classList.add("share-view");
         document.getElementById("shareBanner").classList.remove("hidden");
-        renderShareResultPage(shareData);
+        renderShareResultPage(shareData, params);
         maybeShowShareBackButton(params);
         resultSection.classList.remove("hidden");
         return;
