@@ -148,6 +148,58 @@
       transition: opacity 0.2s ease;
     }
     .share-copied-tip.show { opacity: 1; }
+    .share-image-preview {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      padding: 16px;
+      background: rgba(20, 28, 40, 0.72);
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .share-image-preview.show {
+      display: flex;
+    }
+    .share-image-preview-panel {
+      width: min(100%, 360px);
+      max-height: 92vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 12px 40px rgba(20, 30, 50, 0.25);
+    }
+    .share-image-preview-hint {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 700;
+      color: #3d4a5c;
+    }
+    .share-image-preview-panel img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      -webkit-touch-callout: default;
+      user-select: auto;
+    }
+    .share-image-preview-close {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f5f7fb;
+      color: #4a5872;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .result-actions {
       display: flex;
@@ -1052,6 +1104,49 @@
       border-top: 1px solid var(--line);
       padding-top: 14px; margin-top: 16px;
     }
+    .share-capture-host {
+      position: fixed;
+      left: -10000px;
+      top: 0;
+      width: var(--share-card-w);
+      pointer-events: none;
+      opacity: 0;
+      z-index: -1;
+    }
+    .share-image-view {
+      gap: 12px;
+    }
+    .share-image-save-hint {
+      margin: 0;
+      text-align: center;
+      font-size: 13px;
+      line-height: 18px;
+      font-weight: 700;
+      color: #5a6880;
+    }
+    .share-result-photo {
+      display: block;
+      width: var(--share-card-w);
+      max-width: 100%;
+      margin: 0 auto;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(45, 55, 70, 0.1);
+      -webkit-touch-callout: default;
+      user-select: auto;
+    }
+    .share-image-loading {
+      width: var(--share-card-w);
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 48px 16px;
+      text-align: center;
+      color: #8b97ad;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+    }
     @media (max-width: 520px) {
       .brand-lockup { gap: 11px; }
       .brand-logo { width: 44px; height: 44px; }
@@ -1169,16 +1264,41 @@
     const AI_MATCH_URL = "https://ai.voce.chat";
     let html2canvasLoadPromise = null;
 
+    function isWeChatBrowser() {
+      return /MicroMessenger/i.test(navigator.userAgent || "");
+    }
+
+    function withTimeout(promise, ms, message) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(message)), ms);
+        })
+      ]);
+    }
+
     function loadHtml2Canvas() {
       if (window.html2canvas) return Promise.resolve(window.html2canvas);
       if (!html2canvasLoadPromise) {
         html2canvasLoadPromise = new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
-          script.async = true;
-          script.onload = () => resolve(window.html2canvas);
-          script.onerror = () => reject(new Error("html2canvas load failed"));
-          document.head.appendChild(script);
+          function loadScript(src, fallbackSrc) {
+            const script = document.createElement("script");
+            script.async = true;
+            script.onload = () => {
+              if (window.html2canvas) resolve(window.html2canvas);
+              else reject(new Error("html2canvas unavailable"));
+            };
+            script.onerror = () => {
+              if (fallbackSrc) loadScript(fallbackSrc, null);
+              else reject(new Error("html2canvas load failed"));
+            };
+            script.src = src;
+            document.head.appendChild(script);
+          }
+          loadScript(
+            "./assets/html2canvas.min.js",
+            "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+          );
         });
       }
       return html2canvasLoadPromise;
@@ -1193,6 +1313,77 @@
           img.addEventListener("error", resolve, { once: true });
         });
       }));
+    }
+
+    function blobToDataUrl(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function inlineCardImagesForCapture(card) {
+      await waitForImages(card);
+      const imgs = Array.from(card.querySelectorAll("img"));
+      await Promise.all(imgs.map(async (img) => {
+        const src = img.currentSrc || img.src;
+        if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
+        try {
+          const res = await withTimeout(fetch(src, { mode: "cors", credentials: "omit" }), 8000, "img fetch timeout");
+          if (!res.ok) throw new Error("img fetch failed");
+          const blob = await res.blob();
+          const dataUrl = await blobToDataUrl(blob);
+          img.src = dataUrl;
+          img.removeAttribute("crossorigin");
+        } catch (e) {
+          console.warn("inline image failed", src, e);
+          if (img.closest(".share-report-footer-qr")) {
+            img.style.visibility = "hidden";
+          }
+        }
+      }));
+    }
+
+    function showShareImagePreview(dataUrl) {
+      let overlay = document.getElementById("shareImagePreview");
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "shareImagePreview";
+        overlay.className = "share-image-preview";
+        overlay.innerHTML = "<div class=\"share-image-preview-panel\">"
+          + "<p class=\"share-image-preview-hint\"></p>"
+          + "<img alt=\"分享结果图\" />"
+          + "<button type=\"button\" class=\"share-image-preview-close\">关闭</button>"
+          + "</div>";
+        document.body.appendChild(overlay);
+        overlay.querySelector(".share-image-preview-close").addEventListener("click", () => {
+          overlay.classList.remove("show");
+        });
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) overlay.classList.remove("show");
+        });
+      }
+      overlay.querySelector("img").src = dataUrl;
+      overlay.querySelector(".share-image-preview-hint").textContent = isWeChatBrowser()
+        ? "长按下方图片保存到相册"
+        : "可长按或右键图片保存";
+      overlay.classList.add("show");
+    }
+
+    async function captureShareCardCanvas(card) {
+      const html2canvas = await withTimeout(loadHtml2Canvas(), 12000, "加载绘图组件超时，请换浏览器重试");
+      await inlineCardImagesForCapture(card);
+      const scale = Math.min(2, Math.max(1.5, window.devicePixelRatio || 1.5));
+      return withTimeout(html2canvas(card, {
+        scale,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        logging: false,
+        imageTimeout: 8000
+      }), 22000, "生成图片超时，请重试");
     }
 
     /**
@@ -2274,7 +2465,7 @@
         : location.pathname;
       history.replaceState(null, "", backUrl);
       document.title = payload.rule.display_name + " · AI专业测试";
-      resultSection.innerHTML = renderResultSections(payload, { shareView: false });
+      resultSection.innerHTML = renderResultSections(payload);
       resultSection.classList.remove("hidden");
       bindResultActions(payload);
       resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2299,66 +2490,6 @@
       }
       btn.classList.remove("hidden");
       btn.onclick = () => { restoreFullResultView(); };
-    }
-
-    function renderShareResultSections(payload) {
-      const rule = payload.rule;
-      const conf = payload.conf;
-      const secondary = payload.secondary;
-      const combined = payload.combinedMajors || [];
-      const ref = new URLSearchParams(location.search).get("ref") || "";
-      const mCode = payload.mbti && payload.mbti.code ? payload.mbti.code : "";
-      const checkLabels = (rule.keywords || []).slice(0, 3);
-      const matchPct = resolveMatchPercent(payload, new URLSearchParams(location.search).get("mp"));
-      const factorName = profileCodename(rule);
-
-      const shareTheme = shareThemeForRule(rule);
-      let html = "<div class=\"share-page-stack\">";
-      html += "<div class=\"card result share-report-card share-theme-" + shareTheme + "\">";
-
-      html += "<header class=\"share-report-header\">";
-      html += "<p class=\"share-report-intro\">你的测试结果是</p>";
-      html += "<h1 class=\"share-report-title\">" + profileCodename(rule) + "</h1>";
-      if (rule.codename_en) {
-        html += "<p class=\"share-report-code\">" + rule.codename_en + "</p>";
-      }
-      html += "</header>";
-
-      html += "<div class=\"share-report-hero\">";
-      html += "<div class=\"share-report-hero-media\">";
-      html += "<img class=\"share-report-illust\" src=\"" + shareProfileImageSrc(rule) + "\" alt=\""
-        + profileCodename(rule) + "\" width=\"200\" height=\"200\" loading=\"lazy\" decoding=\"async\">";
-      html += renderShareDanmaku(checkLabels);
-      html += "</div></div>";
-
-      if (rule.hero_tagline || rule.subtitle) {
-        html += "<p class=\"share-report-tagline\">" + (rule.hero_tagline || rule.subtitle) + "</p>";
-      }
-
-      html += "<div class=\"share-report-match-bar\">匹配度 " + matchPct + "% · " + factorName + "因子已激活</div>";
-
-      if (conf === "低" && secondary && secondary.rule) {
-        const href = buildProfileViewUrl(secondary.rule.id, { m: mCode, from: rule.id, ref: ref });
-        html += "<p class=\"share-report-match-secondary\">你与「<a href=\"" + href + "\">"
-          + profileCodename(secondary.rule) + " / " + secondary.rule.display_name
-          + "</a>」高度契合</p>";
-      } else {
-        html += "<p class=\"share-report-match-secondary\">你与「" + rule.display_name + "」高度契合</p>";
-      }
-
-      html += "<hr class=\"share-report-divider\">";
-      html += renderShareReportMajors(combined);
-      html += renderShareReportFooter(shareTheme);
-      html += "</div>";
-
-      html += "<div class=\"share-actions-panel result-actions result-actions-share\">";
-      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"downloadShareImageBtn\">下载图片分享</button>";
-      html += "<button type=\"button\" class=\"btn btn-outline\" id=\"viewFullAnalysisBtn\">查看全版分析</button>";
-      html += "<a class=\"btn btn-outline\" href=\"" + AI_MATCH_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\">匹配同专业学长学姐</a>";
-      html += "<span id=\"shareActionTip\" class=\"share-copied-tip\"></span>";
-      html += "</div>";
-      html += "</div>";
-      return html;
     }
 
     function renderFullResultSections(payload) {
@@ -2441,9 +2572,7 @@
       return html;
     }
 
-    function renderResultSections(payload, options) {
-      const opts = options || {};
-      if (opts.shareView) return renderShareResultSections(payload);
+    function renderResultSections(payload) {
       return renderFullResultSections(payload);
     }
 
@@ -2476,32 +2605,182 @@
       showShareActionTip._timer = setTimeout(() => tip.classList.remove("show"), 2800);
     }
 
-    async function downloadShareResultImage(payload) {
-      const card = document.querySelector(".share-report-card");
+    let shareCaptureHostEl = null;
+
+    function getShareCaptureHost() {
+      if (!shareCaptureHostEl) {
+        shareCaptureHostEl = document.createElement("div");
+        shareCaptureHostEl.id = "shareCaptureHost";
+        shareCaptureHostEl.className = "share-capture-host";
+        shareCaptureHostEl.setAttribute("aria-hidden", "true");
+        document.body.appendChild(shareCaptureHostEl);
+      }
+      return shareCaptureHostEl;
+    }
+
+    function renderShareReportCardHtml(payload) {
+      const rule = payload.rule;
+      const conf = payload.conf;
+      const secondary = payload.secondary;
+      const combined = payload.combinedMajors || [];
+      const mCode = payload.mbti && payload.mbti.code ? payload.mbti.code : "";
+      const checkLabels = (rule.keywords || []).slice(0, 3);
+      const matchPct = resolveMatchPercent(payload, new URLSearchParams(location.search).get("mp"));
+      const factorName = profileCodename(rule);
+      const shareTheme = shareThemeForRule(rule);
+
+      let html = "<div class=\"card result share-report-card share-theme-" + shareTheme + "\">";
+      html += "<header class=\"share-report-header\">";
+      html += "<p class=\"share-report-intro\">你的测试结果是</p>";
+      html += "<h1 class=\"share-report-title\">" + profileCodename(rule) + "</h1>";
+      if (rule.codename_en) {
+        html += "<p class=\"share-report-code\">" + rule.codename_en + "</p>";
+      }
+      html += "</header>";
+      html += "<div class=\"share-report-hero\">";
+      html += "<div class=\"share-report-hero-media\">";
+      html += "<img class=\"share-report-illust\" src=\"" + shareProfileImageSrc(rule) + "\" alt=\""
+        + profileCodename(rule) + "\" width=\"200\" height=\"200\" decoding=\"async\">";
+      html += renderShareDanmaku(checkLabels);
+      html += "</div></div>";
+      if (rule.hero_tagline || rule.subtitle) {
+        html += "<p class=\"share-report-tagline\">" + (rule.hero_tagline || rule.subtitle) + "</p>";
+      }
+      html += "<div class=\"share-report-match-bar\">匹配度 " + matchPct + "% · " + factorName + "因子已激活</div>";
+      if (conf === "低" && secondary && secondary.rule) {
+        html += "<p class=\"share-report-match-secondary\">你与「"
+          + profileCodename(secondary.rule) + " / " + secondary.rule.display_name + "」高度契合</p>";
+      } else {
+        html += "<p class=\"share-report-match-secondary\">你与「" + rule.display_name + "」高度契合</p>";
+      }
+      html += "<hr class=\"share-report-divider\">";
+      html += renderShareReportMajors(combined);
+      html += renderShareReportFooter(shareTheme);
+      html += "</div>";
+      return html;
+    }
+
+    function renderShareActionsPanelHtml() {
+      return "<div class=\"share-actions-panel result-actions result-actions-share\">"
+        + "<button type=\"button\" class=\"btn btn-primary\" id=\"downloadShareImageBtn\">保存图片</button>"
+        + "<button type=\"button\" class=\"btn btn-outline\" id=\"viewFullAnalysisBtn\">查看全版分析</button>"
+        + "<a class=\"btn btn-outline\" href=\"" + AI_MATCH_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\">匹配同专业学长学姐</a>"
+        + "<span id=\"shareActionTip\" class=\"share-copied-tip\"></span>"
+        + "</div>";
+    }
+
+    function renderShareImageResultView(payload, dataUrl) {
+      const alt = profileCodename(payload.rule) + " 测试结果";
+      const hint = isWeChatBrowser() ? "长按图片保存到相册" : "长按或右键图片可保存";
+      return "<div class=\"share-page-stack share-image-view\">"
+        + "<p class=\"share-image-save-hint\">" + hint + "</p>"
+        + "<img class=\"share-result-photo\" src=\"" + dataUrl + "\" alt=\"" + alt + "\" width=\"343\">"
+        + renderShareActionsPanelHtml()
+        + "</div>";
+    }
+
+    async function generateShareCardImageUrl(payload) {
+      const host = getShareCaptureHost();
+      host.innerHTML = renderShareReportCardHtml(payload);
+      const card = host.querySelector(".share-report-card");
       if (!card) throw new Error("no card");
-      const html2canvas = await loadHtml2Canvas();
-      await waitForImages(card);
-      const scale = Math.min(3, Math.max(2, window.devicePixelRatio || 2));
-      const canvas = await html2canvas(card, {
-        scale,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false
-      });
+      try {
+        const canvas = await captureShareCardCanvas(card);
+        return canvas.toDataURL("image/png");
+      } finally {
+        host.innerHTML = "";
+      }
+    }
+
+    async function mountShareImageResultPage(payload, options) {
+      const opts = options || {};
+      document.body.classList.remove("quiz-view", "result-view");
+      document.body.classList.add("share-view");
+      quizSection.classList.add("hidden");
+      resultSection.classList.remove("hidden");
+      resultSection.innerHTML = "<div class=\"share-page-stack share-image-loading\"><p>正在生成结果卡片…</p></div>";
+      document.title = profileCodename(payload.rule) + " · 分享结果";
+
+      try {
+        const dataUrl = await generateShareCardImageUrl(payload);
+        resultSection.innerHTML = renderShareImageResultView(payload, dataUrl);
+        bindSharePageActions(payload, dataUrl);
+        if (opts.updateUrl !== false) {
+          let url = opts.shareUrl;
+          if (!url) {
+            url = buildShareUrl(payload);
+            if (opts.refSelf) url += "&ref=self";
+          }
+          history.replaceState(null, "", url);
+        }
+        if (opts.refSelf) {
+          maybeShowShareBackButton(new URLSearchParams(location.search));
+        }
+        resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) {
+        console.error(e);
+        resultSection.innerHTML = "<div class=\"card result\"><p>生成分享图失败，请重试。</p>"
+          + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareImageBtn\">重新生成</button></div>";
+        const retry = document.getElementById("retryShareImageBtn");
+        if (retry) {
+          retry.addEventListener("click", () => mountShareImageResultPage(payload, opts));
+        }
+      }
+    }
+
+    async function downloadShareResultImage(payload, cachedDataUrl) {
+      if (cachedDataUrl) {
+        if (isWeChatBrowser()) {
+          showShareImagePreview(cachedDataUrl);
+          return "preview";
+        }
+        const codename = payload && payload.rule && payload.rule.codename_en
+          ? payload.rule.codename_en
+          : "result";
+        const filename = "AI专业测试-" + codename + ".png";
+        const link = document.createElement("a");
+        link.href = cachedDataUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return "download";
+      }
+      const card = document.querySelector(".share-report-card");
+      if (!card) {
+        const dataUrl = await generateShareCardImageUrl(payload);
+        return downloadShareResultImage(payload, dataUrl);
+      }
+      const canvas = await captureShareCardCanvas(card);
+      const dataUrl = canvas.toDataURL("image/png");
+      if (isWeChatBrowser()) {
+        showShareImagePreview(dataUrl);
+        return "preview";
+      }
       const codename = payload && payload.rule && payload.rule.codename_en
         ? payload.rule.codename_en
         : "result";
       const filename = "AI专业测试-" + codename + ".png";
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-      if (!blob) throw new Error("export failed");
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const blob = await new Promise((resolve) => {
+        if (canvas.toBlob) {
+          canvas.toBlob(resolve, "image/png");
+        } else {
+          resolve(null);
+        }
+      });
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        return "download";
+      }
+      showShareImagePreview(dataUrl);
+      return "preview";
     }
 
     function openFullAnalysisFromShare() {
@@ -2526,19 +2805,23 @@
       return false;
     }
 
-    function bindSharePageActions(payload) {
+    function bindSharePageActions(payload, cachedDataUrl) {
       const downloadBtn = document.getElementById("downloadShareImageBtn");
       if (downloadBtn) {
         downloadBtn.addEventListener("click", async () => {
           const label = downloadBtn.textContent;
           downloadBtn.disabled = true;
-          downloadBtn.textContent = "生成图片中…";
+          downloadBtn.textContent = cachedDataUrl ? "打开保存…" : "生成图片中…";
           try {
-            await downloadShareResultImage(payload);
-            showShareActionTip("图片已保存");
+            const mode = await downloadShareResultImage(payload, cachedDataUrl);
+            if (mode === "preview") {
+              showShareActionTip(isWeChatBrowser() ? "请长按图片保存" : "请长按或右键保存图片");
+            } else {
+              showShareActionTip("图片已保存");
+            }
           } catch (e) {
             console.error(e);
-            showShareActionTip("图片生成失败，请重试");
+            showShareActionTip(e && e.message ? e.message : "图片生成失败，请重试");
           } finally {
             downloadBtn.disabled = false;
             downloadBtn.textContent = label;
@@ -2564,7 +2847,7 @@
       document.getElementById("restartBtn").addEventListener("click", restartTest);
       document.getElementById("shareBtn").addEventListener("click", () => {
         saveFullResultSession(payload);
-        location.href = buildShareUrl(payload) + "&ref=self";
+        mountShareImageResultPage(payload, { refSelf: true });
       });
       const copyFullBtn = document.getElementById("copyFullLinkBtn");
       if (copyFullBtn) {
@@ -2585,7 +2868,7 @@
       const payload = buildResultPayload();
       saveFullResultSession(payload);
       document.title = payload.rule.display_name + " · AI专业测试";
-      resultSection.innerHTML = renderResultSections(payload, { shareView: false });
+      resultSection.innerHTML = renderResultSections(payload);
       resultSection.classList.remove("hidden");
       bindResultActions(payload);
       if (!opts.skipUrlUpdate) {
@@ -2604,7 +2887,31 @@
       return true;
     }
 
-    function renderShareResultPage(data, urlParams) {
+    function buildSharePayloadFromData(data, params) {
+      const rule = (config.profile_rules || []).find((r) => r.id === data.p);
+      if (!rule) return null;
+      const secondaryRule = data.s
+        ? (config.profile_rules || []).find((r) => r.id === data.s)
+        : null;
+      const payload = {
+        rule,
+        conf: data.c || "中",
+        secondary: secondaryRule ? { rule: secondaryRule } : null,
+        fromPrimaryId: resolveProfileId((params && params.get("from")) || ""),
+        consultants: matchConsultants(rule.id),
+        topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
+        choices: data.ch || [],
+        primary: { rule },
+        mbti: lookupMbti(data.m),
+        matchPercent: resolveMatchPercent(
+          { conf: data.c || "中", secondary: secondaryRule ? { rule: secondaryRule } : null, primary: { rule } },
+          data.mp
+        )
+      };
+      return enrichPayload(payload);
+    }
+
+    async function renderShareResultPage(data, urlParams) {
       const params = urlParams || new URLSearchParams(location.search);
       const vParam = params.get("v");
       if (vParam) {
@@ -2612,46 +2919,35 @@
         if (parsed) {
           applyAnswersObject(parsed);
           const full = buildResultPayload();
-          const sharePayload = enrichPayload(full);
           saveFullResultSession(full);
-          document.title = profileCodename(full.rule) + " · 分享结果";
-          resultSection.innerHTML = renderResultSections(sharePayload, { shareView: true });
-          bindSharePageActions(sharePayload);
+          await mountShareImageResultPage(full, {
+            refSelf: params.get("ref") === "self",
+            updateUrl: false
+          });
+          history.replaceState(null, "", location.pathname + "?v=" + encodeURIComponent(vParam)
+            + (params.get("ref") === "self" ? "&ref=self" : ""));
           return;
         }
       }
 
-      const rule = (config.profile_rules || []).find((r) => r.id === data.p);
-      if (!rule) {
+      const sharePayload = buildSharePayloadFromData(data, params);
+      if (!sharePayload) {
         resultSection.innerHTML = "<div class=\"card result\"><p>分享链接无效或已过期，请重新测试。</p></div>";
         return;
       }
-      const secondaryRule = data.s
-        ? (config.profile_rules || []).find((r) => r.id === data.s)
-        : null;
-      const fromPrimaryId = resolveProfileId(params.get("from") || "");
-      const payload = {
-        rule,
-        conf: data.c || "中",
-        secondary: secondaryRule ? { rule: secondaryRule } : null,
-        fromPrimaryId: fromPrimaryId,
-        consultants: matchConsultants(rule.id),
-        topDims: (data.d || []).map((item) => ({ k: item[0], v: item[1] })),
-        choices: data.ch || [],
-        mbti: lookupMbti(data.m),
-        matchPercent: resolveMatchPercent(
-          { conf: data.c || "中", secondary: secondaryRule ? { rule: secondaryRule } : null, primary: { rule } },
-          data.mp
-        )
-      };
-      const sharePayload = enrichPayload(payload);
-      document.title = profileCodename(rule) + " · 分享结果";
-      resultSection.innerHTML = renderResultSections(sharePayload, { shareView: true });
-      bindSharePageActions(sharePayload);
+      await mountShareImageResultPage(sharePayload, {
+        refSelf: params.get("ref") === "self",
+        updateUrl: false
+      });
     }
 
-    function renderResult() {
-      renderFullResultPage({ skipUrlUpdate: false, skipScroll: false });
+    async function renderResult() {
+      const payload = buildResultPayload();
+      saveFullResultSession(payload);
+      await mountShareImageResultPage(payload, {
+        refSelf: true,
+        shareUrl: buildFullResultUrl() + "&ref=self"
+      });
     }
 
     function restartTest() {
@@ -2707,7 +3003,7 @@
         renderQuestion();
       } else {
         quizSection.classList.add("hidden");
-        renderResult();
+        renderResult().catch((e) => console.error(e));
       }
     });
 
@@ -2733,9 +3029,11 @@
       const shareData = parseShareData(params);
       if (shareData) {
         document.body.classList.add("share-view");
-        renderShareResultPage(shareData, params);
-        maybeShowShareBackButton(params);
+        quizSection.classList.add("hidden");
         resultSection.classList.remove("hidden");
+        renderShareResultPage(shareData, params).then(() => {
+          maybeShowShareBackButton(params);
+        });
         return;
       }
 
