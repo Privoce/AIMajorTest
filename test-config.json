@@ -197,7 +197,7 @@
           "id": "communication_coordination",
           "text": "和人沟通、做组织协调",
           "scores": {
-            "people": 3,
+            "people": 4,
             "public_sector": 1
           }
         },
@@ -222,7 +222,7 @@
           "id": "design_content_expression",
           "text": "做设计、内容、表达、创意类事情",
           "scores": {
-            "creative": 3,
+            "creative": 4,
             "people": 1
           }
         },
@@ -288,14 +288,14 @@
           "id": "drawing_portfolio",
           "text": "大量画图、设计、作品集产出",
           "scores": {
-            "creative": -3
+            "creative": -2
           }
         },
         {
           "id": "communication_expression",
           "text": "大量沟通、表达、展示和协作",
           "scores": {
-            "people": -3,
+            "people": -2,
             "technical": 1,
             "research": 1
           }
@@ -350,7 +350,7 @@
           "id": "public_sector_friendly",
           "text": "体制内、考公、编制友好",
           "scores": {
-            "public_sector": 3,
+            "public_sector": 4,
             "stability": 2
           }
         },
@@ -444,7 +444,7 @@
           "text": "更自由，未来可以创业或转型",
           "scores": {
             "risk": 3,
-            "creative": 1,
+            "creative": 2,
             "interdisciplinary": 2
           }
         }
@@ -511,7 +511,7 @@
           "id": "communication_expression",
           "text": "沟通表达",
           "scores": {
-            "people": 3,
+            "people": 4,
             "creative": 1
           }
         },
@@ -998,7 +998,7 @@
       "codename": "苟命老头",
       "codename_en": "SAFE",
       "display_name": "稳健就业型规划者",
-      "match_formula": "stability * 1.2 + public_sector * 0.7 - risk * 0.3",
+      "match_formula": "stability * 1.0 + public_sector * 0.35 - risk * 0.2",
       "primary_conditions": {
         "stability": "high",
         "risk": "low_or_medium"
@@ -1062,7 +1062,7 @@
       "codename": "搞钱狗狗",
       "codename_en": "GOGO",
       "display_name": "高收入冲刺型竞争者",
-      "match_formula": "income * 1.3 + risk * 0.8 + city * 0.5 + technical * 0.4",
+      "match_formula": "income * 1.05 + risk * 0.6 + city * 0.35 + technical * 0.3",
       "primary_conditions": {
         "income": "high",
         "risk": "medium_or_high"
@@ -1125,7 +1125,7 @@
       "codename": "编制牛马",
       "codename_en": "IRON",
       "display_name": "体制规划型稳定派",
-      "match_formula": "public_sector * 1.4 + stability * 0.9 - risk * 0.4",
+      "match_formula": "public_sector * 1.65 + stability * 0.55 - risk * 0.3",
       "primary_conditions": {
         "public_sector": "high",
         "stability": "medium_or_high"
@@ -1305,7 +1305,7 @@
       "codename": "甲方动物",
       "codename_en": "PET",
       "display_name": "创意表达型实践者",
-      "match_formula": "creative * 1.4 + people * 0.5 + risk * 0.3",
+      "match_formula": "creative * 2.1 + risk * 0.35 + city * 0.15",
       "primary_conditions": {
         "creative": "high"
       },
@@ -1366,7 +1366,7 @@
       "codename": "社交悍匪",
       "codename_en": "CHAT",
       "display_name": "人际影响型连接者",
-      "match_formula": "people * 1.4 + city * 0.4 + income * 0.3",
+      "match_formula": "people * 2.1 + city * 0.25 + creative * 0.15",
       "primary_conditions": {
         "people": "high"
       },
