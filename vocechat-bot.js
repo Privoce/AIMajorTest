@@ -18,6 +18,7 @@ const VOCECHAT_BOT_API_KEY =
 const VOCECHAT_NOTIFY_UID = "394719";
 const DEFAULT_TEST_UID = VOCECHAT_NOTIFY_UID;
 const VOCE_NOTIFY_DEDUPE_PREFIX = "majorTestVoceNotify:";
+const VOCE_SAVE_DEDUPE_PREFIX = "majorTestVoceSave:";
 
 function getBaseUrl() {
   const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BASE_URL;
@@ -76,32 +77,30 @@ async function sendMarkdownToUser(uid, markdown) {
  * @param {string[]} [result.majors]
  */
 function formatResultMarkdown(result) {
-  const lines = [
-    "**ZYBT AI专业测试 · 你的结果**",
-    "",
-    `**${result.codename || ""}**${result.codenameEn ? ` · ${result.codenameEn}` : ""}`,
-    result.displayName ? `_${result.displayName}_` : "",
-    result.matchPercent != null && result.matchPercent !== ""
-      ? `匹配度：**${result.matchPercent}%**`
-      : "",
-    result.shareUrl ? `[查看完整报告](${result.shareUrl})` : "",
+  const parts = [
+    result.codenameEn || result.codename || "",
+    result.matchPercent != null && result.matchPercent !== "" ? result.matchPercent + "%" : "",
     Array.isArray(result.majors) && result.majors.length
-      ? `\n推荐专业：${result.majors.slice(0, 5).join("、")}`
-      : ""
+      ? result.majors.slice(0, 3).join(",")
+      : "",
+    result.shareUrl || ""
   ];
-  return lines.filter(Boolean).join("\n");
+  return parts.filter(Boolean).join(" ");
 }
 
 async function sendResultToUser(uid, result) {
-  const markdown = formatResultMarkdown(result);
-  return sendMarkdownToUser(uid, markdown);
+  return sendTextToUser(uid, formatResultMarkdown(result));
 }
 
-function profileLabel(rule) {
-  if (!rule) return "";
-  const codename = rule.codename || rule.name || "";
-  const en = rule.codename_en ? ` · ${rule.codename_en}` : "";
-  return `${codename}${en}`;
+function shortReportUrl(url) {
+  if (!url) return "";
+  try {
+    const u = new URL(url, "https://major.voce.chat");
+    const v = u.searchParams.get("v");
+    return v ? "?v=" + v : u.pathname + u.search;
+  } catch (_) {
+    return url;
+  }
 }
 
 /**
@@ -153,71 +152,41 @@ async function collectClientMeta() {
   return meta;
 }
 
-/**
- * @param {object} payload – buildResultPayload() from index.html
- * @param {object} meta – from collectClientMeta()
- * @param {object} [opts]
- * @param {string} [opts.reportUrl]
- */
-function formatCompletionNotifyMarkdown(payload, meta, opts) {
+/** Compact one-line notify for test completion. */
+function formatCompletionNotifyText(payload, meta, opts) {
   const options = opts || {};
   const rule = payload && payload.rule;
   const secondary = payload && payload.secondary && payload.secondary.rule;
-  const mbti = payload && payload.mbti;
-  const majors = (payload && payload.combinedMajors || [])
-    .slice(0, 6)
-    .map((m) => m.name)
-    .filter(Boolean);
-  const topDims = (payload && payload.topDims || [])
-    .slice(0, 4)
-    .map((d) => `${d.k} ${Math.round(d.v * 10) / 10}`)
-    .join(" · ");
-
-  const lines = [
-    "**新用户完成 ZYBT 专业测试**",
-    "",
-    `**画像：** ${profileLabel(rule)}`,
-    rule && rule.display_name ? `类型：${rule.display_name}` : "",
-    payload && payload.matchPercent != null ? `匹配度：**${payload.matchPercent}%**` : "",
-    payload && payload.conf ? `置信度：${payload.conf}` : "",
-    payload && payload.conf === "低" && secondary
-      ? `接近画像：${profileLabel(secondary)} / ${secondary.display_name || ""}`
+  const parts = [
+    "测完",
+    rule && rule.codename_en ? rule.codename_en : "",
+    payload && payload.matchPercent != null ? payload.matchPercent + "%" : "",
+    payload && payload.mbti && payload.mbti.code ? payload.mbti.code : "",
+    payload && payload.conf === "低" && secondary && secondary.codename_en
+      ? "~" + secondary.codename_en
       : "",
-    mbti && mbti.code ? `MBTI：${mbti.code}${mbti.name ? `（${mbti.name}）` : ""}` : "",
-    majors.length ? `推荐专业：${majors.join("、")}` : "",
-    topDims ? `维度：${topDims}` : "",
-    options.reportUrl ? `[完整报告](${options.reportUrl})` : "",
-    "",
-    "---",
-    "**环境信息**",
-    meta.completedAtLocal ? `- 本地时间：${meta.completedAtLocal}` : "",
-    meta.completedAtUtc ? `- UTC：${meta.completedAtUtc}` : "",
-    meta.timezone ? `- 时区：${meta.timezone}` : "",
-    meta.language ? `- 语言：${meta.language}` : "",
-    meta.location ? `- 位置：${meta.location}` : "",
-    meta.ip ? `- IP：${meta.ip}` : "",
-    meta.pageUrl ? `- 页面：${meta.pageUrl}` : "",
-    meta.viewport ? `- 视口：${meta.viewport}` : "",
-    meta.screen ? `- 屏幕：${meta.screen}` : "",
-    meta.platform ? `- 平台：${meta.platform}` : "",
-    meta.referrer ? `- 来源：${meta.referrer}` : "",
-    meta.userAgent ? `- UA：${meta.userAgent}` : ""
+    meta.ip || "",
+    meta.location ? meta.location.split(",")[0].trim() : "",
+    shortReportUrl(options.reportUrl)
   ];
-
-  return lines.filter(Boolean).join("\n");
+  return parts.filter(Boolean).join(" ");
 }
 
-function markNotifySent(dedupeKey) {
+function formatCompletionNotifyMarkdown(payload, meta, opts) {
+  return formatCompletionNotifyText(payload, meta, opts);
+}
+
+function markNotifyFlag(prefix, dedupeKey) {
   if (typeof sessionStorage === "undefined" || !dedupeKey) return;
   try {
-    sessionStorage.setItem(VOCE_NOTIFY_DEDUPE_PREFIX + dedupeKey, "1");
+    sessionStorage.setItem(prefix + dedupeKey, "1");
   } catch (_) { /* ignore */ }
 }
 
-function wasNotifySent(dedupeKey) {
+function wasNotifyFlag(prefix, dedupeKey) {
   if (typeof sessionStorage === "undefined" || !dedupeKey) return false;
   try {
-    return sessionStorage.getItem(VOCE_NOTIFY_DEDUPE_PREFIX + dedupeKey) === "1";
+    return sessionStorage.getItem(prefix + dedupeKey) === "1";
   } catch (_) {
     return false;
   }
@@ -234,16 +203,36 @@ function wasNotifySent(dedupeKey) {
 async function notifyTestCompletion(payload, opts) {
   const options = opts || {};
   const dedupeKey = options.dedupeKey || "";
-  if (dedupeKey && wasNotifySent(dedupeKey)) {
+  if (dedupeKey && wasNotifyFlag(VOCE_NOTIFY_DEDUPE_PREFIX, dedupeKey)) {
     return { skipped: true, reason: "duplicate" };
   }
 
   const meta = await collectClientMeta();
-  const markdown = formatCompletionNotifyMarkdown(payload, meta, options);
+  const text = formatCompletionNotifyText(payload, meta, options);
   const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
-  await sendMarkdownToUser(uid, markdown);
+  await sendTextToUser(uid, text);
 
-  if (dedupeKey) markNotifySent(dedupeKey);
+  if (dedupeKey) markNotifyFlag(VOCE_NOTIFY_DEDUPE_PREFIX, dedupeKey);
+  return { sent: true, uid };
+}
+
+/**
+ * Notify admin when the user saves / opens the share image (button or unlock dialog).
+ * Short message only — full result was already sent on test completion.
+ */
+async function notifyTestImageSaved(payload, opts) {
+  const options = opts || {};
+  const dedupeKey = options.dedupeKey || "";
+  if (dedupeKey && wasNotifyFlag(VOCE_SAVE_DEDUPE_PREFIX, dedupeKey)) {
+    return { skipped: true, reason: "duplicate" };
+  }
+
+  const meta = await collectClientMeta();
+  const ip = meta.ip || "?";
+  const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
+  await sendTextToUser(uid, ip + " 存图");
+
+  if (dedupeKey) markNotifyFlag(VOCE_SAVE_DEDUPE_PREFIX, dedupeKey);
   return { sent: true, uid };
 }
 
@@ -282,8 +271,10 @@ const exportApi = {
   formatResultMarkdown,
   sendResultToUser,
   collectClientMeta,
+  formatCompletionNotifyText,
   formatCompletionNotifyMarkdown,
   notifyTestCompletion,
+  notifyTestImageSaved,
   getBaseUrl
 };
 
