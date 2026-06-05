@@ -77,30 +77,32 @@ async function sendMarkdownToUser(uid, markdown) {
  * @param {string[]} [result.majors]
  */
 function formatResultMarkdown(result) {
-  const parts = [
-    result.codenameEn || result.codename || "",
-    result.matchPercent != null && result.matchPercent !== "" ? result.matchPercent + "%" : "",
-    Array.isArray(result.majors) && result.majors.length
-      ? result.majors.slice(0, 3).join(",")
+  const lines = [
+    "### ZYBT AI专业测试 · 你的结果",
+    "",
+    `${result.codename || ""}${result.codenameEn ? ` · ${result.codenameEn}` : ""}`,
+    result.displayName ? `_${result.displayName}_` : "",
+    result.matchPercent != null && result.matchPercent !== ""
+      ? `匹配度：${result.matchPercent}%`
       : "",
-    result.shareUrl || ""
+    result.shareUrl ? `[查看完整报告](${result.shareUrl})` : "",
+    Array.isArray(result.majors) && result.majors.length
+      ? `推荐专业：${result.majors.slice(0, 5).join("、")}`
+      : ""
   ];
-  return parts.filter(Boolean).join(" ");
+  return lines.filter(Boolean).join("\n");
 }
 
 async function sendResultToUser(uid, result) {
-  return sendTextToUser(uid, formatResultMarkdown(result));
+  const markdown = formatResultMarkdown(result);
+  return sendMarkdownToUser(uid, markdown);
 }
 
-function shortReportUrl(url) {
-  if (!url) return "";
-  try {
-    const u = new URL(url, "https://major.voce.chat");
-    const v = u.searchParams.get("v");
-    return v ? "?v=" + v : u.pathname + u.search;
-  } catch (_) {
-    return url;
-  }
+function profileLabel(rule) {
+  if (!rule) return "";
+  const codename = rule.codename || rule.name || "";
+  const en = rule.codename_en ? ` · ${rule.codename_en}` : "";
+  return `${codename}${en}`;
 }
 
 /**
@@ -152,28 +154,111 @@ async function collectClientMeta() {
   return meta;
 }
 
-/** Compact one-line notify for test completion. */
-function formatCompletionNotifyText(payload, meta, opts) {
+/**
+ * @param {object} payload – buildResultPayload() from index.html
+ * @param {object} meta – from collectClientMeta()
+ * @param {object} [opts]
+ * @param {string} [opts.reportUrl]
+ */
+function formatCompletionNotifyMarkdown(payload, meta, opts) {
   const options = opts || {};
   const rule = payload && payload.rule;
   const secondary = payload && payload.secondary && payload.secondary.rule;
-  const parts = [
-    "测完",
-    rule && rule.codename_en ? rule.codename_en : "",
-    payload && payload.matchPercent != null ? payload.matchPercent + "%" : "",
-    payload && payload.mbti && payload.mbti.code ? payload.mbti.code : "",
-    payload && payload.conf === "低" && secondary && secondary.codename_en
-      ? "~" + secondary.codename_en
+  const mbti = payload && payload.mbti;
+  const majors = (payload && payload.combinedMajors || [])
+    .slice(0, 6)
+    .map((m) => m.name)
+    .filter(Boolean);
+  const topDims = (payload && payload.topDims || [])
+    .slice(0, 4)
+    .map((d) => `${d.k} ${Math.round(d.v * 10) / 10}`)
+    .join(" · ");
+
+  const lines = [
+    "### 新用户完成 ZYBT 专业测试",
+    "",
+    `画像：${profileLabel(rule)}`,
+    rule && rule.display_name ? `类型：${rule.display_name}` : "",
+    payload && payload.matchPercent != null ? `匹配度：${payload.matchPercent}%` : "",
+    payload && payload.conf ? `置信度：${payload.conf}` : "",
+    payload && payload.conf === "低" && secondary
+      ? `接近画像：${profileLabel(secondary)} / ${secondary.display_name || ""}`
       : "",
-    meta.ip || "",
-    meta.location ? meta.location.split(",")[0].trim() : "",
-    shortReportUrl(options.reportUrl)
+    mbti && mbti.code ? `MBTI：${mbti.code}${mbti.name ? `（${mbti.name}）` : ""}` : "",
+    majors.length ? `推荐专业：${majors.join("、")}` : "",
+    topDims ? `维度：${topDims}` : "",
+    options.reportUrl ? `[完整报告](${options.reportUrl})` : "",
+    "",
+    "---",
+    "### 环境信息",
+    meta.completedAtLocal ? `- 本地时间：${meta.completedAtLocal}` : "",
+    meta.completedAtUtc ? `- UTC：${meta.completedAtUtc}` : "",
+    meta.timezone ? `- 时区：${meta.timezone}` : "",
+    meta.language ? `- 语言：${meta.language}` : "",
+    meta.location ? `- 位置：${meta.location}` : "",
+    meta.ip ? `- IP：${meta.ip}` : "",
+    meta.pageUrl ? `- 页面：${meta.pageUrl}` : "",
+    meta.viewport ? `- 视口：${meta.viewport}` : "",
+    meta.screen ? `- 屏幕：${meta.screen}` : "",
+    meta.platform ? `- 平台：${meta.platform}` : "",
+    meta.referrer ? `- 来源：${meta.referrer}` : "",
+    meta.userAgent ? `- UA：${meta.userAgent}` : ""
   ];
-  return parts.filter(Boolean).join(" ");
+
+  return lines.filter(Boolean).join("\n");
 }
 
-function formatCompletionNotifyMarkdown(payload, meta, opts) {
-  return formatCompletionNotifyText(payload, meta, opts);
+function formatCompletionNotifyText(payload, meta, opts) {
+  return formatCompletionNotifyMarkdown(payload, meta, opts);
+}
+
+/**
+ * @param {object} payload
+ * @param {object} meta
+ * @param {object} [opts]
+ * @param {string} [opts.reportUrl]
+ */
+function formatImageSavedNotifyMarkdown(payload, meta, opts) {
+  const options = opts || {};
+  const rule = payload && payload.rule;
+  const secondary = payload && payload.secondary && payload.secondary.rule;
+  const mbti = payload && payload.mbti;
+  const majors = (payload && payload.combinedMajors || [])
+    .slice(0, 6)
+    .map((m) => m.name)
+    .filter(Boolean);
+
+  const lines = [
+    "### 用户保存了分享图",
+    "",
+    `画像：${profileLabel(rule)}`,
+    rule && rule.display_name ? `类型：${rule.display_name}` : "",
+    payload && payload.matchPercent != null ? `匹配度：${payload.matchPercent}%` : "",
+    payload && payload.conf ? `置信度：${payload.conf}` : "",
+    payload && payload.conf === "低" && secondary
+      ? `接近画像：${profileLabel(secondary)} / ${secondary.display_name || ""}`
+      : "",
+    mbti && mbti.code ? `MBTI：${mbti.code}${mbti.name ? `（${mbti.name}）` : ""}` : "",
+    majors.length ? `推荐专业：${majors.join("、")}` : "",
+    options.reportUrl ? `[完整报告](${options.reportUrl})` : "",
+    "",
+    "---",
+    "### 环境信息",
+    meta.completedAtLocal ? `- 本地时间：${meta.completedAtLocal}` : "",
+    meta.completedAtUtc ? `- UTC：${meta.completedAtUtc}` : "",
+    meta.timezone ? `- 时区：${meta.timezone}` : "",
+    meta.language ? `- 语言：${meta.language}` : "",
+    meta.location ? `- 位置：${meta.location}` : "",
+    meta.ip ? `- IP：${meta.ip}` : "",
+    meta.pageUrl ? `- 页面：${meta.pageUrl}` : "",
+    meta.viewport ? `- 视口：${meta.viewport}` : "",
+    meta.screen ? `- 屏幕：${meta.screen}` : "",
+    meta.platform ? `- 平台：${meta.platform}` : "",
+    meta.referrer ? `- 来源：${meta.referrer}` : "",
+    meta.userAgent ? `- UA：${meta.userAgent}` : ""
+  ];
+
+  return lines.filter(Boolean).join("\n");
 }
 
 function markNotifyFlag(prefix, dedupeKey) {
@@ -208,9 +293,9 @@ async function notifyTestCompletion(payload, opts) {
   }
 
   const meta = await collectClientMeta();
-  const text = formatCompletionNotifyText(payload, meta, options);
+  const markdown = formatCompletionNotifyMarkdown(payload, meta, options);
   const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
-  await sendTextToUser(uid, text);
+  await sendMarkdownToUser(uid, markdown);
 
   if (dedupeKey) markNotifyFlag(VOCE_NOTIFY_DEDUPE_PREFIX, dedupeKey);
   return { sent: true, uid };
@@ -218,7 +303,6 @@ async function notifyTestCompletion(payload, opts) {
 
 /**
  * Notify admin when the user saves / opens the share image (button or unlock dialog).
- * Short message only — full result was already sent on test completion.
  */
 async function notifyTestImageSaved(payload, opts) {
   const options = opts || {};
@@ -228,9 +312,9 @@ async function notifyTestImageSaved(payload, opts) {
   }
 
   const meta = await collectClientMeta();
-  const ip = meta.ip || "?";
+  const markdown = formatImageSavedNotifyMarkdown(payload, meta, options);
   const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
-  await sendTextToUser(uid, ip + " 存图");
+  await sendMarkdownToUser(uid, markdown);
 
   if (dedupeKey) markNotifyFlag(VOCE_SAVE_DEDUPE_PREFIX, dedupeKey);
   return { sent: true, uid };
@@ -273,6 +357,7 @@ const exportApi = {
   collectClientMeta,
   formatCompletionNotifyText,
   formatCompletionNotifyMarkdown,
+  formatImageSavedNotifyMarkdown,
   notifyTestCompletion,
   notifyTestImageSaved,
   getBaseUrl

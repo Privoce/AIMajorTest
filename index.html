@@ -614,6 +614,7 @@
       box-sizing: border-box;
     }
     .share-report-card {
+      position: relative;
       width: var(--share-card-w);
       max-width: 100%;
       margin: 0 auto;
@@ -625,6 +626,22 @@
       font-size: 16px;
       -webkit-text-size-adjust: none;
       text-size-adjust: none;
+      overflow: visible;
+    }
+    .share-report-stamp {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      z-index: 3;
+      transform: rotate(-12deg);
+      opacity: 0.97;
+      pointer-events: none;
+    }
+    .share-report-stamp-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
     .share-report-header {
       text-align: center;
@@ -1506,6 +1523,7 @@
       .result-actions-share .result-actions-row .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
   </style>
+  <link rel="preload" href="./assets/stamp-gaokao-2026.jpeg" as="image">
   <link rel="preload" href="./assets/html2canvas.min.js" as="script">
   <script src="./assets/html2canvas.min.js" defer></script>
 </head>
@@ -1602,7 +1620,7 @@
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
-    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q2:";
+    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q5:";
     let shareImageGenerationPromise = null;
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
@@ -1734,6 +1752,7 @@
       loadHtml2Canvas().catch(() => {});
       const img = new Image();
       img.src = new URL(SHARE_QR_FALLBACK_SRC, location.href).href;
+      ensureShareStampReady().catch(() => {});
       prefetchAllShareHeroes();
     }
 
@@ -1873,6 +1892,49 @@
     }
 
     const SHARE_QR_FALLBACK_SRC = "./assets/qr-major-voce.png";
+    const SHARE_STAMP_SRC = "./assets/stamp-gaokao-2026.jpeg";
+    const SHARE_STAMP_DISPLAY_SIZE = 92;
+    let shareStampReadyPromise = null;
+
+    function shareStampAssetUrl() {
+      return new URL(SHARE_STAMP_SRC, location.href).href;
+    }
+
+    function ensureShareStampReady() {
+      if (!shareStampReadyPromise) {
+        shareStampReadyPromise = new Promise((resolve, reject) => {
+          const img = new Image();
+          const timer = setTimeout(() => reject(new Error("stamp timeout")), 8000);
+          img.onload = () => {
+            clearTimeout(timer);
+            resolve(shareStampAssetUrl());
+          };
+          img.onerror = () => {
+            clearTimeout(timer);
+            reject(new Error("stamp load failed"));
+          };
+          img.src = shareStampAssetUrl();
+        }).catch((err) => {
+          shareStampReadyPromise = null;
+          throw err;
+        });
+      }
+      return shareStampReadyPromise;
+    }
+
+    let shareStampImagePromise = null;
+
+    function loadShareStampImage() {
+      if (!shareStampImagePromise) {
+        shareStampImagePromise = ensureShareStampReady()
+          .then((url) => loadShareImageElement(url))
+          .catch((err) => {
+            shareStampImagePromise = null;
+            throw err;
+          });
+      }
+      return shareStampImagePromise;
+    }
 
     function preloadQrDataUrl(theme) {
       const remoteSrc = shareQrImageSrc(theme);
@@ -2015,6 +2077,22 @@
       });
     }
 
+    async function drawShareReportStamp(ctx, cardWidth) {
+      const size = SHARE_STAMP_DISPLAY_SIZE;
+      const x = cardWidth - 4 - size;
+      const y = 4;
+      try {
+        const img = await loadShareStampImage();
+        ctx.save();
+        ctx.translate(x + size / 2, y + size / 2);
+        ctx.rotate(-12 * Math.PI / 180);
+        ctx.drawImage(img, -size / 2, -size / 2, size, size);
+        ctx.restore();
+      } catch (e) {
+        console.warn("stamp draw skipped", e);
+      }
+    }
+
     function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
       const chars = String(text || "").split("");
       let line = "";
@@ -2049,6 +2127,7 @@
       canvas.height = Math.round(W * SHARE_CARD_ESTIMATE_ASPECT);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await drawShareReportStamp(ctx, W);
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
 
@@ -3463,6 +3542,14 @@
       return shareCaptureHostEl;
     }
 
+    function renderShareReportStampHtml(stampSrc) {
+      const src = stampSrc || shareStampAssetUrl();
+      const size = SHARE_STAMP_DISPLAY_SIZE;
+      return "<div class=\"share-report-stamp\" style=\"width:" + size + "px;height:" + size + "px\" aria-hidden=\"true\">"
+        + "<img class=\"share-report-stamp-img\" src=\"" + src + "\" alt=\"\" width=\"" + size + "\" height=\"" + size + "\" decoding=\"sync\">"
+        + "</div>";
+    }
+
     function renderShareReportCardHtml(payload, opts) {
       const options = opts || {};
       const rule = payload.rule;
@@ -3477,6 +3564,7 @@
       const forCapture = !!options.forCapture;
 
       let html = "<div class=\"card result share-report-card share-theme-" + shareTheme + "\">";
+      html += renderShareReportStampHtml(options.stampSrc);
       html += "<header class=\"share-report-header\">";
       html += "<p class=\"share-report-intro\">你的测试结果是</p>";
       html += "<h1 class=\"share-report-title\">" + profileCodename(rule) + "</h1>";
@@ -3877,15 +3965,16 @@
           console.warn("qr preload failed, use fallback src", e);
           return qrFallback;
         });
+      const stampPromise = ensureShareStampReady().catch(() => shareStampAssetUrl());
       const libPromise = loadHtml2Canvas().catch(() => null);
-      const [heroSrc, qrSrc] = await Promise.all([heroPromise, qrPromise]);
+      const [heroSrc, qrSrc, stampSrc] = await Promise.all([heroPromise, qrPromise, stampPromise]);
       await libPromise;
 
       const host = getShareCaptureHost();
       host.style.width = SHARE_CARD_EXPORT_WIDTH + "px";
       setShareCapturing(true);
       host.classList.add("is-capturing");
-      host.innerHTML = renderShareReportCardHtml(payload, { heroSrc, qrSrc, forCapture: true });
+      host.innerHTML = renderShareReportCardHtml(payload, { heroSrc, qrSrc, stampSrc, forCapture: true });
       const card = host.querySelector(".share-report-card");
       if (!card) throw new Error("no card");
       applyShareCardTextCompensation(card);
