@@ -187,7 +187,7 @@
       "options": [
         {
           "id": "coding_systems",
-          "text": "写代码、做系统、解决技术问题",
+          "text": "构建系统、解决技术问题",
           "scores": {
             "technical": 3,
             "income": 1
@@ -243,7 +243,7 @@
       "type": "scale_0_7",
       "question": "忙完一整周课和作业后，周末你通常怎么恢复状态？",
       "required": true,
-      "min": 0,
+      "min": 1,
       "max": 7,
       "min_label": "更想一个人待着，安静休息",
       "max_label": "更想约朋友见面、聊天出去玩",
@@ -317,7 +317,7 @@
       "type": "scale_0_7",
       "question": "了解一个陌生专业或新领域时，什么更容易抓住你的注意力？",
       "required": true,
-      "min": 0,
+      "min": 1,
       "max": 7,
       "min_label": "具体学什么、怎么考、毕业去哪",
       "max_label": "未来趋势、还能往哪些方向走",
@@ -456,13 +456,13 @@
       "type": "scale_0_7",
       "question": "你对“就业不确定性”的接受程度是多少？",
       "required": true,
-      "min": 0,
+      "min": 1,
       "max": 7,
       "min_label": "完全不能接受",
       "max_label": "很能接受",
       "score_formula": {
-        "risk": "(value - 3.5) * 1.03",
-        "stability": "(3.5 - value) * 0.64"
+        "risk": "(value - 4) * 1.20",
+        "stability": "(4 - value) * 0.75"
       }
     },
     {
@@ -531,7 +531,7 @@
       "type": "scale_0_7",
       "question": "小组作业意见不一致，或者朋友向你倾诉烦恼时，你更常怎么做？",
       "required": true,
-      "min": 0,
+      "min": 1,
       "max": 7,
       "min_label": "先分析问题和哪个方案更合理",
       "max_label": "先照顾对方感受，再慢慢商量",
@@ -628,7 +628,7 @@
       "type": "scale_0_7",
       "question": "面对大考复习或一个耗时较长的任务，你通常怎么安排？",
       "required": true,
-      "min": 0,
+      "min": 1,
       "max": 7,
       "min_label": "先动手做，边做边调整节奏",
       "max_label": "先列计划，按时间表一步步推进",
@@ -1773,7 +1773,7 @@
     }
   },
   "scoring_logic": {
-    "answer_scoring": "每个选项包含 scores 字段。multi_choice 题对所选选项按维度取平均分（避免选 2 项时权重翻倍），最多 2 项。scale_0_7 题使用 score_formula 计算。",
+    "answer_scoring": "每个选项包含 scores 字段。multi_choice 题对所选选项按维度取平均分（避免选 2 项时权重翻倍），最多 2 项。scale_0_7 题为 1–7 量表，使用 score_formula 计算（中点 4）。",
     "normalization": "每个维度分数可做 min-max 或 z-score 标准化；MVP 可直接使用原始分排序。",
     "profile_selection": "对每个 profile_rules 中的 match_formula 计算匹配分，最高分为主画像，第二高为辅助画像。",
     "tie_breaking": [

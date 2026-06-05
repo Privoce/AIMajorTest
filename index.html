@@ -454,32 +454,6 @@
     }
     .full-result-main.is-locked .full-analysis-body {
       user-select: none;
-      -webkit-mask-image: linear-gradient(
-        to bottom,
-        #000 0%,
-        #000 14%,
-        rgba(0, 0, 0, 0.96) 17%,
-        rgba(0, 0, 0, 0.78) 21%,
-        rgba(0, 0, 0, 0.52) 26%,
-        rgba(0, 0, 0, 0.26) 31%,
-        rgba(0, 0, 0, 0.08) 36%,
-        transparent 40%
-      );
-      mask-image: linear-gradient(
-        to bottom,
-        #000 0%,
-        #000 14%,
-        rgba(0, 0, 0, 0.96) 17%,
-        rgba(0, 0, 0, 0.78) 21%,
-        rgba(0, 0, 0, 0.52) 26%,
-        rgba(0, 0, 0, 0.26) 31%,
-        rgba(0, 0, 0, 0.08) 36%,
-        transparent 40%
-      );
-    }
-    .full-result-main.is-unlocked .full-analysis-body {
-      -webkit-mask-image: none;
-      mask-image: none;
     }
     .full-analysis-guard {
       display: none;
@@ -489,70 +463,54 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 10%;
+      top: 14%;
       bottom: 0;
       z-index: 4;
       pointer-events: auto;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
     .full-analysis-fade {
       position: absolute;
       left: 0;
       right: 0;
-      top: -28px;
+      top: -36px;
       bottom: 0;
       pointer-events: none;
       opacity: 1;
       transition: opacity 0.55s ease;
-    }
-    .full-analysis-fade::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      backdrop-filter: blur(18px) saturate(1.08);
-      -webkit-backdrop-filter: blur(18px) saturate(1.08);
-      -webkit-mask-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgba(0, 0, 0, 0.35) 14%,
-        rgba(0, 0, 0, 0.75) 28%,
-        #000 46%
-      );
-      mask-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgba(0, 0, 0, 0.35) 14%,
-        rgba(0, 0, 0, 0.75) 28%,
-        #000 46%
-      );
-    }
-    .full-analysis-fade::after {
-      content: "";
-      position: absolute;
-      inset: 0;
+      -webkit-backdrop-filter: blur(22px) saturate(1.12);
+      backdrop-filter: blur(22px) saturate(1.12);
       background: linear-gradient(
         to bottom,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.18) 10%,
-        rgba(255, 255, 255, 0.48) 22%,
-        rgba(255, 255, 255, 0.78) 36%,
-        rgba(255, 255, 255, 0.92) 50%,
-        rgba(255, 255, 255, 0.98) 64%,
-        #fff 80%
+        rgba(255, 255, 255, 0.12) 6%,
+        rgba(255, 255, 255, 0.38) 16%,
+        rgba(255, 255, 255, 0.68) 28%,
+        rgba(255, 255, 255, 0.86) 40%,
+        rgba(255, 255, 255, 0.95) 52%,
+        rgba(255, 255, 255, 0.99) 64%,
+        #fff 76%
       );
       -webkit-mask-image: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(0, 0, 0, 0.5) 12%,
-        #000 26%,
+        rgba(0, 0, 0, 0.45) 10%,
+        rgba(0, 0, 0, 0.85) 22%,
+        #000 36%,
         #000 100%
       );
       mask-image: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(0, 0, 0, 0.5) 12%,
-        #000 26%,
+        rgba(0, 0, 0, 0.45) 10%,
+        rgba(0, 0, 0, 0.85) 22%,
+        #000 36%,
         #000 100%
       );
+    }
+    .full-result-main.is-unlocked .full-analysis-guard {
+      display: none;
     }
     .full-result-main.is-unlocked .full-analysis-fade {
       opacity: 0;
@@ -593,9 +551,6 @@
     }
     .full-analysis-prompt-panel .btn {
       width: 100%;
-    }
-    .full-result-main.is-unlocked .full-analysis-guard {
-      pointer-events: none;
     }
     .share-page-stack > .card {
       margin-bottom: 0;
@@ -1042,11 +997,11 @@
       flex-shrink: 0;
       transition: all 0.15s ease;
     }
-    .scale07-btn[data-v="0"], .scale07-btn[data-v="7"] { --sz: 42px; }
-    .scale07-btn[data-v="1"], .scale07-btn[data-v="6"] { --sz: 38px; }
-    .scale07-btn[data-v="2"], .scale07-btn[data-v="5"] { --sz: 34px; }
-    .scale07-btn[data-v="0"], .scale07-btn[data-v="1"], .scale07-btn[data-v="2"] { border-color: #c9a8d8; color: #7a4f92; }
-    .scale07-btn[data-v="3"], .scale07-btn[data-v="4"] { border-color: #c5cfe0; color: #5a6880; }
+    .scale07-btn[data-v="1"], .scale07-btn[data-v="7"] { --sz: 42px; }
+    .scale07-btn[data-v="2"], .scale07-btn[data-v="6"] { --sz: 38px; }
+    .scale07-btn[data-v="3"], .scale07-btn[data-v="5"] { --sz: 34px; }
+    .scale07-btn[data-v="1"], .scale07-btn[data-v="2"], .scale07-btn[data-v="3"] { border-color: #c9a8d8; color: #7a4f92; }
+    .scale07-btn[data-v="4"] { border-color: #c5cfe0; color: #5a6880; }
     .scale07-btn[data-v="5"], .scale07-btn[data-v="6"], .scale07-btn[data-v="7"] { border-color: #7ec9b0; color: #2d8a66; }
     .scale07-btn:hover:not(.selected) {
       background: #f8fafd;
@@ -1253,15 +1208,19 @@
     .consultant-card {
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px 14px 12px;
       background: #f8fafe;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
-    .consultant-card strong { display: block; margin-bottom: 4px; }
+    .cta-guide + .consultant-card {
+      margin-top: 20px;
+    }
+    .consultant-card strong { display: block; margin-bottom: 8px; }
     .consultant-card span { font-size: 0.88rem; color: var(--muted); }
     .cta-guide {
-      margin-top: 14px;
-      padding: 16px;
+      margin-top: 16px;
+      margin-bottom: 4px;
+      padding: 18px 16px 20px;
       border-radius: 12px;
       border: 1px solid #cfe0f8;
       background: linear-gradient(135deg, #f0f7ff 0%, #eefaf8 100%);
@@ -1283,7 +1242,8 @@
       text-decoration: none;
       background: linear-gradient(120deg, #2f8fef 0%, #1ab8c4 100%);
       color: #fff;
-      padding: 11px 18px;
+      margin-top: 4px;
+      padding: 12px 18px;
       border-radius: 999px;
       font-weight: 700;
       font-size: 0.92rem;
@@ -1557,6 +1517,7 @@
     };
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
+    const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
 
@@ -2116,8 +2077,9 @@
           raw += encodeAnswerIndex(indices[0] ?? 0);
           raw += encodeAnswerIndex(indices[1] ?? 0);
         } else if (q.type === "scale_0_7" || q.type === "slider") {
-          const n = Math.max(0, Math.min(7, Math.round(Number(a) || 0)));
-          raw += String(n);
+          const n = clampScaleAnswer(q, a);
+          const min = typeof q.min === "number" ? q.min : 1;
+          raw += String(n == null ? min : n);
         }
       });
       return raw;
@@ -2144,8 +2106,9 @@
           out[q.id] = ids;
         } else if (q.type === "scale_0_7" || q.type === "slider") {
           const digit = v[pos++];
-          const n = digit >= "0" && digit <= "7" ? Number(digit) : defaultSliderValue(q);
-          out[q.id] = n;
+          let n = digit >= "1" && digit <= "9" ? Number(digit) : defaultSliderValue(q);
+          if (digit === "0") n = q.min ?? 1;
+          out[q.id] = clampScaleAnswer(q, n);
         }
       }
       return pos === v.length ? out : null;
@@ -2333,7 +2296,10 @@
     function isAnswered(q) {
       const ans = answers[q.id];
       if (q.type === "multi_choice") return Array.isArray(ans) && ans.length > 0;
-      if (q.type === "slider" || q.type === "scale_0_7") {
+      if (q.type === "scale_0_7") {
+        return typeof ans === "number" && !Number.isNaN(ans);
+      }
+      if (q.type === "slider") {
         return typeof ans === "number" && !Number.isNaN(ans);
       }
       return ans !== undefined && ans !== null && ans !== "";
@@ -2343,9 +2309,25 @@
       return Math.round((q.min + q.max) / 2);
     }
 
+    function clampScaleAnswer(q, raw) {
+      const min = typeof q.min === "number" ? q.min : 1;
+      const max = typeof q.max === "number" ? q.max : 7;
+      if (raw === null || raw === undefined || raw === "") {
+        return q.type === "scale_0_7" ? null : defaultSliderValue(q);
+      }
+      let n = Math.round(Number(raw));
+      if (Number.isNaN(n)) {
+        return q.type === "scale_0_7" ? null : defaultSliderValue(q);
+      }
+      if (n < min) n = min;
+      if (n > max) n = max;
+      return n;
+    }
+
     function initAnswerForQuestion(q) {
       if (q.type === "multi_choice") answers[q.id] = [];
       else if (q.type === "slider") answers[q.id] = defaultSliderValue(q);
+      else if (q.type === "scale_0_7") answers[q.id] = null;
       else answers[q.id] = null;
     }
 
@@ -2398,11 +2380,15 @@
         wrap.className = "scale07-wrap";
         const labels = document.createElement("div");
         labels.className = "scale07-labels";
-        labels.innerHTML = "<span class=\"low\">" + (q.min_label || "0") + "</span><span class=\"high\">" + (q.max_label || "7") + "</span>";
+        labels.innerHTML = "<span class=\"low\">" + (q.min_label || String(q.min ?? 1)) + "</span><span class=\"high\">" + (q.max_label || String(q.max ?? 7)) + "</span>";
         const btns = document.createElement("div");
         btns.className = "scale07-btns";
-        const selected = answers[q.id];
-        for (let v = 0; v <= 7; v += 1) {
+        const minV = typeof q.min === "number" ? q.min : 1;
+        const maxV = typeof q.max === "number" ? q.max : 7;
+        const selected = typeof answers[q.id] === "number" && !Number.isNaN(answers[q.id])
+          ? clampScaleAnswer(q, answers[q.id])
+          : null;
+        for (let v = minV; v <= maxV; v += 1) {
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "scale07-btn";
@@ -2410,7 +2396,7 @@
           btn.textContent = String(v);
           if (selected === v) {
             btn.classList.add("selected");
-            if (v <= 2) btn.classList.add("low-side");
+            if (v <= 3) btn.classList.add("low-side");
             else if (v >= 5) btn.classList.add("high-side");
             else btn.classList.add("mid-side");
           }
@@ -2567,7 +2553,7 @@
           code += axisMap[axis];
           return;
         }
-        code += answers[q.id] > 3.5 ? highMap[axis] : axisMap[axis];
+        code += answers[q.id] >= 4 ? highMap[axis] : axisMap[axis];
       });
       const info = types[code];
       if (!info) return { code, name: code, description: "", career_directions: [], recommended_majors: [] };
@@ -3218,6 +3204,25 @@
       requestAnimationFrame(() => prompt.classList.add("is-visible"));
     }
 
+    function markShareImageSaved() {
+      try {
+        sessionStorage.setItem(SHARE_IMAGE_SAVED_KEY, "1");
+      } catch (e) { /* ignore */ }
+    }
+
+    function hasShareImageSaved() {
+      try {
+        return sessionStorage.getItem(SHARE_IMAGE_SAVED_KEY) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function getShareImageSrc(cachedDataUrl) {
+      const img = document.querySelector(".full-result-stack .share-result-photo, .share-page-stack .share-result-photo");
+      return (img && img.src) || cachedDataUrl || null;
+    }
+
     function unlockFullAnalysis() {
       try {
         sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
@@ -3230,6 +3235,35 @@
       if (fullAnalysisGateObserver) {
         fullAnalysisGateObserver.disconnect();
         fullAnalysisGateObserver = null;
+      }
+    }
+
+    async function confirmFullAnalysisUnlock(payload) {
+      const confirmBtn = document.getElementById("confirmFullAnalysisBtn");
+      const confirmLabel = confirmBtn ? confirmBtn.textContent : "";
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = hasShareImageSaved() ? "正在打开…" : "正在保存图片…";
+      }
+      try {
+        if (!hasShareImageSaved()) {
+          const mode = await downloadShareResultImage(payload, getShareImageSrc(null));
+          markShareImageSaved();
+          if (mode === "preview") {
+            showShareActionTip(isWeChatBrowser() ? "请长按图片保存，全版分析已解锁" : "请保存图片，全版分析已解锁");
+          } else {
+            showShareActionTip("图片已保存，全文已解锁");
+          }
+        }
+        unlockFullAnalysis();
+      } catch (e) {
+        console.error(e);
+        showShareActionTip(e && e.message ? e.message : "保存图片失败，请重试");
+      } finally {
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = confirmLabel;
+        }
       }
     }
 
@@ -3252,10 +3286,10 @@
       window.setTimeout(showFullAnalysisPrompt, 320);
     }
 
-    function initFullAnalysisGate() {
+    function initFullAnalysisGate(payload) {
       const main = document.getElementById("fullResultMain");
       const guard = document.getElementById("fullAnalysisGuard");
-      const confirmBtn = document.getElementById("confirmFullAnalysisBtn");
+      let confirmBtn = document.getElementById("confirmFullAnalysisBtn");
       if (!main || !guard) return;
 
       if (fullAnalysisGateObserver) {
@@ -3275,7 +3309,10 @@
       hideFullAnalysisPrompt(false);
 
       if (confirmBtn) {
-        confirmBtn.addEventListener("click", unlockFullAnalysis);
+        confirmBtn = replaceNodeForBind(confirmBtn);
+        confirmBtn.addEventListener("click", () => {
+          confirmFullAnalysisUnlock(payload).catch((err) => console.error(err));
+        });
       }
 
       fullAnalysisGateObserver = new IntersectionObserver((entries) => {
@@ -3291,7 +3328,7 @@
     function mountFullResultDom(payload, topHtml) {
       resultSection.innerHTML = renderFullResultPageHtml(payload, topHtml);
       bindResultActions(payload);
-      initFullAnalysisGate();
+      initFullAnalysisGate(payload);
       const img = resultSection.querySelector(".share-result-photo");
       bindSharePageActions(payload, img && img.src ? img.src : null);
     }
@@ -3303,7 +3340,13 @@
       document.getElementById("shareBackBtn").classList.add("hidden");
       quizSection.classList.add("hidden");
       resultSection.classList.remove("hidden");
-      if (!opts.skipSave) saveFullResultSession(payload);
+      if (!opts.skipSave) {
+        saveFullResultSession(payload);
+        try {
+          sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
+          sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
+        } catch (e) { /* ignore */ }
+      }
       document.title = payload.rule.display_name + " · ZYBT AI专业测试";
       resultSection.innerHTML = renderResultBootScreen();
 
@@ -3539,12 +3582,12 @@
         downloadBtn = replaceNodeForBind(downloadBtn);
         downloadBtn.addEventListener("click", async () => {
           const label = downloadBtn.textContent;
-          const imgSrc = downloadBtn.closest(".full-result-stack, .share-page-stack")
-            ?.querySelector(".share-result-photo")?.src || cachedDataUrl;
+          const imgSrc = getShareImageSrc(cachedDataUrl);
           downloadBtn.disabled = true;
           downloadBtn.textContent = imgSrc ? "打开保存…" : "生成图片中…";
           try {
             const mode = await downloadShareResultImage(payload, imgSrc || cachedDataUrl);
+            markShareImageSaved();
             if (mode === "preview") {
               showShareActionTip(isWeChatBrowser() ? "请长按图片保存" : "请长按或右键保存图片");
             } else {
@@ -3682,6 +3725,7 @@
       try {
         sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
         sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
+        sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
       } catch (e) { /* ignore */ }
       document.getElementById("shareBackBtn").classList.add("hidden");
       resultSection.classList.add("hidden");
