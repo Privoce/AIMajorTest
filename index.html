@@ -227,6 +227,64 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .wechat-browser-guide {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      background: rgba(12, 18, 28, 0.88);
+      padding: 20px 16px;
+      box-sizing: border-box;
+    }
+    .wechat-browser-guide.show {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .wechat-browser-guide-arrow {
+      align-self: flex-end;
+      margin: 4px 8px 18px 0;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: right;
+    }
+    .wechat-browser-guide-panel {
+      width: min(100%, 360px);
+      margin-top: 8vh;
+      padding: 18px 16px 14px;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+      text-align: center;
+    }
+    .wechat-browser-guide-title {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #2f3a52;
+    }
+    .wechat-browser-guide-text {
+      margin: 0 0 14px;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: #5a6880;
+      font-weight: 600;
+      text-align: left;
+    }
+    .wechat-browser-guide-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .wechat-browser-guide-actions .btn {
+      width: 100%;
+    }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .result-actions {
       display: flex;
@@ -3826,8 +3884,63 @@
       return url.toString();
     }
 
-    function beginStripeUnlock(payload) {
+    function buildStripeBrowserOpenUrl() {
+      const url = new URL(buildFullResultUrl());
+      url.searchParams.set("openStripe", "1");
+      return url.toString();
+    }
+
+    function hideWeChatStripeBrowserGuide() {
+      const overlay = document.getElementById("wechatStripeBrowserGuide");
+      if (overlay) overlay.classList.remove("show");
+    }
+
+    function showWeChatStripeBrowserGuide(openUrl) {
+      let overlay = document.getElementById("wechatStripeBrowserGuide");
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "wechatStripeBrowserGuide";
+        overlay.className = "wechat-browser-guide";
+        overlay.innerHTML = "<div class=\"wechat-browser-guide-arrow\">请点右上角 ···</div>"
+          + "<div class=\"wechat-browser-guide-panel\">"
+          + "<p class=\"wechat-browser-guide-title\">请在系统浏览器中完成支付</p>"
+          + "<p class=\"wechat-browser-guide-text\">微信内无法直接跳转支付。请点击右上角「···」，选择「在浏览器中打开」或「在 Safari 中打开」。<br><br>打开后会自动继续 ￥5.99 付费解锁，并回到你的测试结果页。</p>"
+          + "<div class=\"wechat-browser-guide-actions\">"
+          + "<button type=\"button\" class=\"btn btn-primary\" id=\"wechatStripeCopyLinkBtn\">复制链接到浏览器打开</button>"
+          + "<button type=\"button\" class=\"btn btn-outline\" id=\"wechatStripeGuideCloseBtn\">稍后再说</button>"
+          + "</div></div>";
+        document.body.appendChild(overlay);
+        overlay.querySelector("#wechatStripeGuideCloseBtn").addEventListener("click", () => {
+          hideWeChatStripeBrowserGuide();
+        });
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) hideWeChatStripeBrowserGuide();
+        });
+      }
+      const copyBtn = overlay.querySelector("#wechatStripeCopyLinkBtn");
+      if (copyBtn) {
+        copyBtn.onclick = async () => {
+          const ok = await copyTextToClipboard(openUrl);
+          copyBtn.textContent = ok ? "链接已复制，请到浏览器粘贴打开" : "请手动复制地址栏链接";
+          window.setTimeout(() => {
+            copyBtn.textContent = "复制链接到浏览器打开";
+          }, 2600);
+        };
+      }
+      overlay.classList.add("show");
+    }
+
+    function beginStripeUnlock(payload, options) {
+      const opts = options || {};
       if (payload) saveFullResultSession(payload);
+      const browserOpenUrl = buildStripeBrowserOpenUrl();
+
+      if (isWeChatBrowser() && !opts.forceDirect) {
+        history.replaceState(null, "", browserOpenUrl);
+        showWeChatStripeBrowserGuide(browserOpenUrl);
+        return;
+      }
+
       try {
         sessionStorage.setItem(STRIPE_PAY_PENDING_KEY, String(Date.now()));
         sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
@@ -4540,9 +4653,24 @@
 
       const stripeReturn = handleStripePaymentReturn();
       const params = new URLSearchParams(location.search);
+      const openStripe = params.get("openStripe") === "1";
       const vParam = params.get("v");
+
+      if (openStripe && vParam && !isWeChatBrowser()) {
+        params.delete("openStripe");
+        const qs = params.toString();
+        history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+        if (await tryRenderFullResultFromParam(vParam)) {
+          beginStripeUnlock(buildResultPayload(), { forceDirect: true });
+          return;
+        }
+      }
+
       if (vParam) {
         if (await tryRenderFullResultFromParam(vParam)) {
+          if (openStripe && isWeChatBrowser()) {
+            showWeChatStripeBrowserGuide(buildStripeBrowserOpenUrl());
+          }
           if (stripeReturn.unlocked) showShareActionTip("支付成功，完全版分析已解锁");
           else if (stripeReturn.canceled) showShareActionTip("支付未完成，完全版分析仍未解锁");
           return;
