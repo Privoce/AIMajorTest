@@ -1720,7 +1720,7 @@
     const BETA_UNLOCK_SECRET = "zybt-inner2026";
     const BETA_UNLOCK_SESSION_KEY = "majorTestBetaUnlock";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
-    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q10:";
+    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q11:";
     let shareImageGenerationPromise = null;
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
@@ -1748,10 +1748,6 @@
       const ua = navigator.userAgent || "";
       if (/iPad/i.test(ua)) return true;
       return /Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1;
-    }
-
-    function prefersCanvas2dShareCapture() {
-      return isIPadDevice() && isWeChatBrowser();
     }
 
     function isSlowShareDevice() {
@@ -2260,17 +2256,15 @@
       const combined = payload.combinedMajors || [];
       const matchPct = resolveMatchPercent(payload, new URLSearchParams(location.search).get("mp"));
       const factorName = profileCodename(rule);
-      const scale = shareCaptureScale();
       const W = SHARE_CARD_EXPORT_WIDTH;
       const pad = 16;
       const heroSize = shareHeroDisplaySize();
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      canvas.width = W * scale;
-      canvas.height = Math.round(W * SHARE_CARD_ESTIMATE_ASPECT * scale);
-      ctx.scale(scale, scale);
+      canvas.width = W;
+      canvas.height = Math.round(W * SHARE_CARD_ESTIMATE_ASPECT);
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, W, canvas.height / scale);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       await drawShareReportStamp(ctx, W);
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
@@ -2357,15 +2351,11 @@
       ctx.textAlign = "right";
       ctx.fillText("ZYBT AI专业测试", W - pad, footerY + qrSize - 6);
       const usedBottom = footerY + qrSize + pad;
-      const logicalH = canvas.height / scale;
-      if (usedBottom < logicalH - 4) {
+      if (usedBottom < canvas.height - 4) {
         const trimmed = document.createElement("canvas");
-        trimmed.width = W * scale;
-        trimmed.height = Math.round(usedBottom * scale);
-        trimmed.getContext("2d").drawImage(
-          canvas, 0, 0, trimmed.width, trimmed.height,
-          0, 0, trimmed.width, trimmed.height
-        );
+        trimmed.width = W;
+        trimmed.height = usedBottom;
+        trimmed.getContext("2d").drawImage(canvas, 0, 0);
         return trimmed;
       }
       return canvas;
@@ -4009,18 +3999,29 @@
       const opts = options || {};
       if (payload) saveFullResultSession(payload);
       const browserOpenUrl = buildStripeBrowserOpenUrl();
+      const stripeUrl = buildStripePaymentUrl();
+      const payNotifyCtx = {
+        amount: "￥5.99",
+        stripeUrl: stripeUrl,
+        browserOpenUrl: browserOpenUrl
+      };
 
       if (isWeChatBrowser() && !opts.forceDirect) {
+        payNotifyCtx.channel = "wechat_guide";
+        queueVoceChatStripePayClickNotify(payload, payNotifyCtx);
         history.replaceState(null, "", browserOpenUrl);
         showWeChatStripeBrowserGuide(browserOpenUrl);
         return;
       }
 
+      payNotifyCtx.channel = "stripe_redirect";
+      queueVoceChatStripePayClickNotify(payload, Object.assign({ keepalive: true }, payNotifyCtx));
+
       try {
         sessionStorage.setItem(STRIPE_PAY_PENDING_KEY, String(Date.now()));
         sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
       } catch (e) { /* ignore */ }
-      location.assign(buildStripePaymentUrl());
+      location.assign(stripeUrl);
     }
 
     function stripStripePayParamsFromUrl() {
@@ -4271,7 +4272,6 @@
 
       const shareTheme = shareThemeForRule(payload.rule);
       const slow = isSlowShareDevice();
-      const useCanvas2d = prefersCanvas2dShareCapture();
       const assetMs = slow ? 10000 : 8000;
       const qrFallback = shareQrImageSrc(shareTheme);
 
@@ -4282,16 +4282,8 @@
           return qrFallback;
         });
       const stampPromise = ensureShareStampReady().catch(() => shareStampAssetUrl());
-      const [heroSrc, qrSrc, stampSrc] = await Promise.all([heroPromise, qrPromise, stampPromise]);
-
-      if (useCanvas2d) {
-        const canvas = await composeShareCardCanvas2d(payload, heroSrc, qrSrc);
-        const exportResult = canvasToShareExport(canvas);
-        writeShareImageCache(cacheKey, exportResult);
-        return exportResult;
-      }
-
       const libPromise = loadHtml2Canvas().catch(() => null);
+      const [heroSrc, qrSrc, stampSrc] = await Promise.all([heroPromise, qrPromise, stampPromise]);
       await libPromise;
 
       const host = getShareCaptureHost();
@@ -4652,6 +4644,13 @@
       const ctx = getVoceChatNotifyContext();
       VoceChatBot.notifyTestImageSaved(payload, ctx)
         .catch((e) => console.warn("VoceChat image-save notify failed", e));
+    }
+
+    function queueVoceChatStripePayClickNotify(payload, payOpts) {
+      if (!window.VoceChatBot || typeof VoceChatBot.notifyStripePayClick !== "function") return;
+      const ctx = Object.assign({}, getVoceChatNotifyContext(), payOpts || {});
+      VoceChatBot.notifyStripePayClick(payload, ctx)
+        .catch((e) => console.warn("VoceChat stripe pay notify failed", e));
     }
 
     async function renderResult() {

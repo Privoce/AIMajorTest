@@ -12,8 +12,12 @@
  */
 
 const VOCECHAT_BASE_URL = "https://dev.voce.chat";
+/** 测完、存图等常规通知 */
 const VOCECHAT_BOT_API_KEY =
   "24145bc2c1724293676b7fbc341fa27a8b4a36c639658273845dc2fe73bf40877b22756964223a3433363639382c226e6f6e6365223a22743351414e657331496d6f4141414141325439566a705a372b38457244717748227d";
+/** Stripe 付费点击通知 */
+const VOCECHAT_BOT_API_KEY_PAY =
+  "0f4a1946f3f299aa44c8b286ee451e65912e5f9b0f9969b53376ef202a224c2d7b22756964223a3433363738342c226e6f6e6365223a2270596a72414c5459496d6f414141414132577763576377396f36474965575048227d";
 /** Admin inbox: new completions are pushed here (no prompt to the test taker). */
 const VOCECHAT_NOTIFY_UID = "394719";
 const DEFAULT_TEST_UID = VOCECHAT_NOTIFY_UID;
@@ -25,7 +29,12 @@ function getBaseUrl() {
   return (fromEnv || VOCECHAT_BASE_URL).replace(/\/$/, "");
 }
 
-function getApiKey() {
+function getApiKey(profile) {
+  const kind = profile || "default";
+  if (kind === "pay") {
+    const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY_PAY;
+    return fromEnv || VOCECHAT_BOT_API_KEY_PAY;
+  }
   const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY;
   return fromEnv || VOCECHAT_BOT_API_KEY;
 }
@@ -35,9 +44,9 @@ function getApiKey() {
  * @param {string} body
  * @param {"text/plain"|"text/markdown"} contentType
  */
-async function sendToUser(uid, body, contentType = "text/plain") {
+async function sendToUser(uid, body, contentType = "text/plain", options = {}) {
   const baseUrl = getBaseUrl();
-  const apiKey = getApiKey();
+  const apiKey = options.apiKey || getApiKey(options.apiKeyProfile);
   const url = `${baseUrl}/api/bot/send_to_user/${encodeURIComponent(String(uid))}`;
 
   const response = await fetch(url, {
@@ -46,7 +55,8 @@ async function sendToUser(uid, body, contentType = "text/plain") {
       "x-api-key": apiKey,
       "content-type": contentType
     },
-    body
+    body,
+    keepalive: !!options.keepalive
   });
 
   if (!response.ok) {
@@ -63,8 +73,8 @@ async function sendTextToUser(uid, text) {
   return sendToUser(uid, text, "text/plain");
 }
 
-async function sendMarkdownToUser(uid, markdown) {
-  return sendToUser(uid, markdown, "text/markdown");
+async function sendMarkdownToUser(uid, markdown, options = {}) {
+  return sendToUser(uid, markdown, "text/markdown", options);
 }
 
 /**
@@ -172,8 +182,35 @@ function appendMetaNotifyLines(lines, meta) {
 
 /**
  * Browser-only metadata (no permission prompts).
+ * @param {object} [opts]
+ * @param {boolean} [opts.skipGeo]
  */
-async function collectClientMeta() {
+async function collectClientMeta(opts) {
+  const options = opts || {};
+  const meta = collectClientMetaSync();
+
+  if (options.skipGeo || typeof fetch === "undefined") {
+    return meta;
+  }
+
+  try {
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
+    const response = await fetch("https://ipapi.co/json/", {
+      signal: controller ? controller.signal : undefined
+    });
+    if (timer) clearTimeout(timer);
+    if (response.ok) {
+      const geo = await response.json();
+      meta.location = [geo.city, geo.region, geo.country_name].filter(Boolean).join(", ");
+      meta.ip = geo.ip || "";
+    }
+  } catch (_) { /* geo is optional */ }
+
+  return meta;
+}
+
+function collectClientMetaSync() {
   const now = new Date();
   const meta = {
     completedAtLocal: now.toLocaleString("zh-CN", { hour12: false }),
@@ -199,22 +236,6 @@ async function collectClientMeta() {
   try {
     meta.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
   } catch (_) { /* ignore */ }
-
-  if (typeof fetch !== "undefined") {
-    try {
-      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-      const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
-      const response = await fetch("https://ipapi.co/json/", {
-        signal: controller ? controller.signal : undefined
-      });
-      if (timer) clearTimeout(timer);
-      if (response.ok) {
-        const geo = await response.json();
-        meta.location = [geo.city, geo.region, geo.country_name].filter(Boolean).join(", ");
-        meta.ip = geo.ip || "";
-      }
-    } catch (_) { /* geo is optional */ }
-  }
 
   return meta;
 }
@@ -245,6 +266,26 @@ function formatCompletionNotifyText(payload, meta, opts) {
 function formatImageSavedNotifyMarkdown(payload, meta, opts) {
   const lines = ["- 通知：用户保存了分享图"];
   appendResultNotifyLines(lines, payload, opts);
+  appendMetaNotifyLines(lines, meta);
+  return lines.join("\n");
+}
+
+function formatStripePayClickNotifyMarkdown(payload, meta, opts) {
+  const options = opts || {};
+  const lines = ["- 通知：用户点击付费解锁（Stripe）"];
+  pushNotifyLine(lines, "金额", options.amount || "￥5.99");
+  if (options.channel === "wechat_guide") {
+    pushNotifyLine(lines, "动作", "微信内点击，已展示「浏览器打开」引导");
+  } else {
+    pushNotifyLine(lines, "动作", "跳转 Stripe 支付页");
+  }
+  if (options.stripeUrl) {
+    lines.push(`- Stripe：[链接](${options.stripeUrl})`);
+  }
+  if (options.browserOpenUrl) {
+    lines.push(`- 浏览器打开链接：[链接](${options.browserOpenUrl})`);
+  }
+  appendResultNotifyLines(lines, payload, options);
   appendMetaNotifyLines(lines, meta);
   return lines.join("\n");
 }
@@ -308,6 +349,24 @@ async function notifyTestImageSaved(payload, opts) {
   return { sent: true, uid };
 }
 
+/**
+ * Notify admin when the user clicks the Stripe pay-unlock button.
+ * Fires before redirect; payment success/failure is not required.
+ */
+async function notifyStripePayClick(payload, opts) {
+  const options = opts || {};
+  const meta = options.keepalive
+    ? collectClientMetaSync()
+    : await collectClientMeta();
+  const markdown = formatStripePayClickNotifyMarkdown(payload, meta, options);
+  const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
+  await sendMarkdownToUser(uid, markdown, {
+    keepalive: !!options.keepalive,
+    apiKeyProfile: "pay"
+  });
+  return { sent: true, uid };
+}
+
 async function main(argv) {
   const args = argv.slice(2);
   const command = args[0] || "test";
@@ -336,6 +395,7 @@ async function main(argv) {
 const exportApi = {
   VOCECHAT_BASE_URL,
   VOCECHAT_BOT_API_KEY,
+  VOCECHAT_BOT_API_KEY_PAY,
   VOCECHAT_NOTIFY_UID,
   sendToUser,
   sendTextToUser,
@@ -346,8 +406,12 @@ const exportApi = {
   formatCompletionNotifyText,
   formatCompletionNotifyMarkdown,
   formatImageSavedNotifyMarkdown,
+  formatStripePayClickNotifyMarkdown,
   notifyTestCompletion,
   notifyTestImageSaved,
+  notifyStripePayClick,
+  collectClientMetaSync,
+  getApiKey,
   getBaseUrl
 };
 
