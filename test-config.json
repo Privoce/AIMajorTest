@@ -315,7 +315,7 @@
       "id": "q19_mbti_info",
       "module": "性格习惯",
       "type": "scale_0_7",
-      "question": "了解一个陌生专业或新领域时，什么更容易抓住你的注意力？",
+      "question": "了解一个陌生专业或新领域时，你的第一个问题会是什么？",
       "required": true,
       "min": 1,
       "max": 7,
@@ -461,8 +461,8 @@
       "min_label": "完全不能接受",
       "max_label": "很能接受",
       "score_formula": {
-        "risk": "(value - 4) * 1.20",
-        "stability": "(4 - value) * 0.75"
+        "risk": "(value - 3.5) * 1.03",
+        "stability": "(3.5 - value) * 0.64"
       }
     },
     {
@@ -583,7 +583,7 @@
       "id": "q11_extra_competition",
       "module": "学习方式适配",
       "type": "single_choice",
-      "question": "如果一个专业“课内不够，必须靠自学、实习、竞赛拉开差距”，你能接受吗？",
+      "question": "如果一个专业“课内不够，必须靠自学、实习拉开差距”，你能接受吗？",
       "required": true,
       "options": [
         {
@@ -1773,7 +1773,7 @@
     }
   },
   "scoring_logic": {
-    "answer_scoring": "每个选项包含 scores 字段。multi_choice 题对所选选项按维度取平均分（避免选 2 项时权重翻倍），最多 2 项。scale_0_7 题为 1–7 量表，使用 score_formula 计算（中点 4）。",
+    "answer_scoring": "每个选项包含 scores 字段。multi_choice 题对所选选项按维度取平均分（避免选 2 项时权重翻倍），最多 2 项。scale_0_7 题为 1–7 量表（无 0 档），计分时仍按 3.5 中点与旧 0–7 的 1–7 档对齐。",
     "normalization": "每个维度分数可做 min-max 或 z-score 标准化；MVP 可直接使用原始分排序。",
     "profile_selection": "对每个 profile_rules 中的 match_formula 计算匹配分，最高分为主画像，第二高为辅助画像。",
     "tie_breaking": [

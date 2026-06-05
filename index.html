@@ -2553,7 +2553,7 @@
           code += axisMap[axis];
           return;
         }
-        code += answers[q.id] >= 4 ? highMap[axis] : axisMap[axis];
+        code += answers[q.id] > 3.5 ? highMap[axis] : axisMap[axis];
       });
       const info = types[code];
       if (!info) return { code, name: code, description: "", career_directions: [], recommended_majors: [] };
