@@ -844,12 +844,20 @@
     }
     .share-report-footer {
       display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 8px 10px;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       margin-top: 4px;
       padding-top: 12px;
       border-top: 1px solid #eceff3;
+    }
+    .share-report-footer-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
     }
     .share-report-footer-qr {
       flex-shrink: 0;
@@ -867,6 +875,10 @@
     .share-report-footer-copy {
       flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 60px;
     }
     .share-report-footer-copy strong {
       display: block;
@@ -874,25 +886,35 @@
       line-height: 18px;
       color: #3d4a5c;
       margin-bottom: 2px;
+      white-space: nowrap;
     }
     .share-report-footer-copy p {
       font-size: 11px;
       line-height: 15px;
       color: #8b97ad;
       margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .share-report-footer-brand {
       flex-shrink: 0;
-      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      align-self: stretch;
+      min-height: 60px;
+      padding-left: 4px;
       text-align: right;
-      align-self: flex-end;
     }
     .share-report-footer-brand span,
     .share-report-footer-brand a {
       display: block;
-      font-size: 11px;
-      line-height: 15px;
+      font-size: 10px;
+      line-height: 14px;
       color: #a8b4c4;
+      white-space: nowrap;
     }
     .share-report-footer-brand a {
       text-decoration: underline;
@@ -1387,6 +1409,10 @@
       width: 100%;
       box-sizing: border-box;
     }
+    .share-capture-host.is-capturing .share-report-footer-left {
+      flex: 1;
+      min-width: 0;
+    }
     .share-capture-host.is-capturing .share-report-footer-copy {
       flex: 1;
       min-width: 0;
@@ -1522,6 +1548,7 @@
     <section id="resultSection" class="result hidden"></section>
   </div>
 
+  <script src="./vocechat-bot.js"></script>
   <script>
     let config = null;
     let currentIndex = 0;
@@ -1905,10 +1932,12 @@
         : "<a class=\"share-report-footer-qr\" href=\"" + SHARE_SITE_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"扫码测一测\">"
           + qrImg + "</a>";
       return "<footer class=\"share-report-footer\">"
+        + "<div class=\"share-report-footer-left\">"
         + qrBlock
         + "<div class=\"share-report-footer-copy\">"
         + "<strong>扫码测一测</strong>"
         + "<p>属于你的职业倾向报告</p>"
+        + "</div>"
         + "</div>"
         + "<div class=\"share-report-footer-brand\">"
         + "<span>Privoce, Inc</span>"
@@ -1921,7 +1950,7 @@
       const map = {
         "稳定就业": "稳定就业",
         "确定性": "确定性强",
-        "家庭接受度": "家庭接受度高",
+        "家庭接受度": "爸妈省心",
         "长期积累": "长期积累高"
       };
       return map[keyword] || keyword;
@@ -3797,11 +3826,27 @@
       });
     }
 
+    function queueVoceChatCompletionNotify(payload) {
+      if (!window.VoceChatBot || typeof VoceChatBot.notifyTestCompletion !== "function") return;
+      let dedupeKey = "";
+      let reportUrl = "";
+      try {
+        dedupeKey = serializeAnswersToParam();
+        reportUrl = buildFullResultUrl();
+      } catch (e) {
+        console.warn("VoceChat notify: could not build dedupe key", e);
+        dedupeKey = String(Date.now());
+        reportUrl = location.href;
+      }
+      VoceChatBot.notifyTestCompletion(payload, { dedupeKey, reportUrl })
+        .catch((e) => console.warn("VoceChat notify failed", e));
+    }
+
     async function renderResult() {
       const payload = buildResultPayload();
-      await mountFullResultPage(payload, {
-        url: buildFullResultUrl()
-      });
+      const reportUrl = buildFullResultUrl();
+      await mountFullResultPage(payload, { url: reportUrl });
+      queueVoceChatCompletionNotify(payload);
     }
 
     function restartTest() {
