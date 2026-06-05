@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI专业测试 · 专业选择画像测试</title>
+  <title>ZYBT AI专业测试 · 专业选择画像测试</title>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -16,6 +16,11 @@
       --shadow: 0 8px 24px rgba(32, 46, 79, 0.08);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      scrollbar-gutter: stable;
+    }
     body {
       /* 仅系统字体栈：无 Web 字体文件，各平台默认可商用（UI 渲染用途） */
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -23,6 +28,9 @@
       background: var(--bg);
       color: var(--ink);
       line-height: 1.5;
+    }
+    body.result-view {
+      --share-card-w: 343px;
     }
     .shell { max-width: 720px; margin: 0 auto; padding: 0 16px 40px; }
 
@@ -413,15 +421,23 @@
     .full-result-stack {
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 16px;
+    }
+    .full-result-stack > .card.result {
+      align-self: stretch;
+      width: 100%;
     }
     .full-result-share-top {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      width: 100%;
-      max-width: var(--share-card-w, 343px);
-      margin: 0 auto;
+      width: var(--share-card-w, 343px);
+      max-width: 100%;
+      flex-shrink: 0;
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
     }
     body.result-view .full-result-share-top .share-actions-panel {
       width: 100%;
@@ -431,6 +447,155 @@
     body.result-view .full-result-share-top .share-actions-panel .btn {
       font-size: 13px;
       padding: 12px 10px;
+    }
+    .full-result-main {
+      position: relative;
+      overflow: hidden;
+    }
+    .full-result-main.is-locked .full-analysis-body {
+      user-select: none;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        #000 0%,
+        #000 14%,
+        rgba(0, 0, 0, 0.96) 17%,
+        rgba(0, 0, 0, 0.78) 21%,
+        rgba(0, 0, 0, 0.52) 26%,
+        rgba(0, 0, 0, 0.26) 31%,
+        rgba(0, 0, 0, 0.08) 36%,
+        transparent 40%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        #000 0%,
+        #000 14%,
+        rgba(0, 0, 0, 0.96) 17%,
+        rgba(0, 0, 0, 0.78) 21%,
+        rgba(0, 0, 0, 0.52) 26%,
+        rgba(0, 0, 0, 0.26) 31%,
+        rgba(0, 0, 0, 0.08) 36%,
+        transparent 40%
+      );
+    }
+    .full-result-main.is-unlocked .full-analysis-body {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .full-analysis-guard {
+      display: none;
+    }
+    .full-result-main.is-locked .full-analysis-guard {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 10%;
+      bottom: 0;
+      z-index: 4;
+      pointer-events: auto;
+    }
+    .full-analysis-fade {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -28px;
+      bottom: 0;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.55s ease;
+    }
+    .full-analysis-fade::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(18px) saturate(1.08);
+      -webkit-backdrop-filter: blur(18px) saturate(1.08);
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 14%,
+        rgba(0, 0, 0, 0.75) 28%,
+        #000 46%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 14%,
+        rgba(0, 0, 0, 0.75) 28%,
+        #000 46%
+      );
+    }
+    .full-analysis-fade::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.18) 10%,
+        rgba(255, 255, 255, 0.48) 22%,
+        rgba(255, 255, 255, 0.78) 36%,
+        rgba(255, 255, 255, 0.92) 50%,
+        rgba(255, 255, 255, 0.98) 64%,
+        #fff 80%
+      );
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.5) 12%,
+        #000 26%,
+        #000 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.5) 12%,
+        #000 26%,
+        #000 100%
+      );
+    }
+    .full-result-main.is-unlocked .full-analysis-fade {
+      opacity: 0;
+    }
+    .full-analysis-prompt {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      top: 18px;
+      z-index: 5;
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .full-analysis-prompt.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .full-analysis-prompt-panel {
+      width: min(100%, 360px);
+      padding: 18px 16px 16px;
+      border-radius: 14px;
+      border: 1px solid #d8e2f0;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 10px 32px rgba(32, 46, 79, 0.14);
+      text-align: center;
+    }
+    .full-analysis-prompt-text {
+      margin: 0 0 14px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: #4a5872;
+      font-weight: 600;
+    }
+    .full-analysis-prompt-panel .btn {
+      width: 100%;
+    }
+    .full-result-main.is-unlocked .full-analysis-guard {
+      pointer-events: none;
     }
     .share-page-stack > .card {
       margin-bottom: 0;
@@ -486,11 +651,14 @@
       max-width: calc(var(--share-card-w) + 32px);
       padding: 10px 16px 20px;
     }
-    body.share-view .share-page-stack {
-      width: var(--share-card-w);
+    body.share-view .share-page-stack,
+    body.result-view #resultSection > .share-page-stack {
+      width: var(--share-card-w, 343px);
       max-width: 100%;
-      margin: 0 auto;
+      margin-left: auto;
+      margin-right: auto;
       gap: 12px;
+      box-sizing: border-box;
     }
     .share-report-card {
       width: var(--share-card-w);
@@ -498,8 +666,8 @@
       margin: 0 auto;
       padding: 16px 16px 14px;
       border-radius: 16px;
-      border-color: #e8eaec;
-      box-shadow: 0 6px 20px rgba(45, 55, 70, 0.07);
+      border: 1px solid #e8eaec;
+      box-shadow: none;
       box-sizing: border-box;
     }
     .share-report-header {
@@ -792,6 +960,12 @@
       box-shadow: var(--shadow);
       margin-bottom: 16px;
     }
+    .card.share-report-card {
+      border: 1px solid #e8eaec;
+      border-radius: 16px;
+      padding: 16px 16px 14px;
+      box-shadow: none;
+    }
     .module-tag {
       display: inline-block;
       font-size: 0.75rem;
@@ -950,6 +1124,12 @@
       margin: 0;
       line-height: 1.05;
       letter-spacing: 0.03em;
+    }
+    body.result-view .result .profile-name {
+      font-size: 1.65rem;
+    }
+    body.result-view .profile-codename {
+      font-size: 2.75rem;
     }
     .profile-codename-en {
       display: block;
@@ -1141,6 +1321,27 @@
     .share-capture-host.is-capturing {
       visibility: visible;
     }
+    body.is-share-capturing::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: var(--bg);
+      pointer-events: none;
+    }
+    .result-boot-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42vh;
+      margin: 0 auto;
+      max-width: var(--share-card-w, 343px);
+      text-align: center;
+      color: #8b97ad;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
     .share-capture-host.is-capturing .share-report-card {
       width: 343px !important;
       max-width: 343px !important;
@@ -1148,6 +1349,8 @@
       margin: 0;
       box-sizing: border-box;
       background: #fff;
+      border: 1px solid #e8eaec !important;
+      box-shadow: none !important;
     }
     .share-capture-host.is-capturing .share-report-hero-media {
       width: 200px !important;
@@ -1196,17 +1399,48 @@
       font-weight: 700;
       color: #5a6880;
     }
+    .share-result-photo-wrap {
+      width: 100%;
+      margin: 0;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .share-result-photo-skeleton {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #f0f4fa 0%, #e4ebf5 45%, #f0f4fa 90%);
+      background-size: 200% 100%;
+      animation: share-photo-shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes share-photo-shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
     .share-result-photo {
       display: block;
       width: 100%;
-      max-width: var(--share-card-w);
       height: auto;
-      margin: 0 auto;
+      vertical-align: top;
+      object-fit: contain;
+      margin: 0;
       border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(45, 55, 70, 0.1);
+      box-shadow: none;
+      border: 0;
+      opacity: 1;
+      transition: opacity 0.28s ease;
       -webkit-touch-callout: default;
       user-select: auto;
       image-rendering: auto;
+    }
+    .full-result-share-top.is-generating .share-result-photo {
+      opacity: 0;
+    }
+    .share-image-save-hint.is-pending {
+      color: #8b97ad;
     }
     .share-image-loading {
       width: var(--share-card-w);
@@ -1225,6 +1459,8 @@
       .brand-lockup { gap: 11px; }
       .brand-logo { width: 44px; height: 44px; }
       .brand-title { font-size: 1.05rem; }
+      body.result-view .profile-codename { font-size: 2.35rem; }
+      body.result-view .result .profile-name { font-size: 1.45rem; }
       .result-actions-share { flex-direction: column; }
       .result-actions-share .result-actions-row .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
@@ -1233,10 +1469,10 @@
 <body>
   <header class="site-header">
     <div class="brand-lockup">
-      <img src="./assets/logo.png" alt="AI专业测试" class="brand-logo" width="52" height="52">
+      <img src="./assets/logo.png" alt="ZYBT AI专业测试" class="brand-logo" width="52" height="52">
       <div class="brand-text">
-        <div class="brand-title">AI专业测试</div>
-        <div class="brand-powered">powered by <a href="https://ai.voce.chat" target="_blank" rel="noopener noreferrer">ai.voce.chat</a></div>
+        <div class="brand-title">ZYBT AI专业测试</div>
+        <div class="brand-powered">Zhuan Ye Before Tianzhiyuan</div>
       </div>
     </div>
   </header>
@@ -1320,6 +1556,7 @@
       red: "9a5c5c"
     };
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
+    const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
 
@@ -1399,6 +1636,7 @@
     }
 
     const SHARE_CARD_EXPORT_WIDTH = 343;
+    const SHARE_CARD_ESTIMATE_ASPECT = 1.38;
     const SHARE_HERO_EXPORT_SIZE = 400;
 
     function preloadImageAsDataUrl(src, targetSize) {
@@ -1509,6 +1747,28 @@
       });
     }
 
+    function canvasLooksBlank(canvas) {
+      if (!canvas || !canvas.width || !canvas.height) return true;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return true;
+      const w = Math.min(canvas.width, 48);
+      const h = Math.min(canvas.height, 48);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      for (let i = 0; i < data.length; i += 4) {
+        const a = data[i + 3];
+        if (a < 8) continue;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        if (r < 248 || g < 248 || b < 248) return false;
+      }
+      return true;
+    }
+
+    function setShareCapturing(active) {
+      document.body.classList.toggle("is-share-capturing", !!active);
+    }
+
     async function captureShareCardCanvas(card) {
       const html2canvas = await withTimeout(loadHtml2Canvas(), 8000, "加载绘图组件超时");
       await waitForImages(card, 3000);
@@ -1516,7 +1776,7 @@
       const wx = isWeChatBrowser();
       const scale = wx ? 2 : 3;
       const captureMs = wx ? 15000 : 20000;
-      return withTimeout(html2canvas(card, {
+      const canvas = await withTimeout(html2canvas(card, {
         scale,
         width: SHARE_CARD_EXPORT_WIDTH,
         windowWidth: SHARE_CARD_EXPORT_WIDTH,
@@ -1524,11 +1784,15 @@
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
-        imageTimeout: 5000,
+        imageTimeout: 8000,
         removeContainer: true,
         scrollX: 0,
-        scrollY: 0
+        scrollY: -window.scrollY
       }), captureMs, "生成图片超时，请重试");
+      if (canvasLooksBlank(canvas)) {
+        throw new Error("分享图生成为空白，请重试");
+      }
+      return canvas;
     }
 
     /**
@@ -2649,7 +2913,8 @@
       const topDims = payload.topDims || [];
       const choices = payload.choices || [];
 
-      let html = "<div class=\"card result\" id=\"fullResultMain\">";
+      let html = "<div class=\"card result full-result-main\" id=\"fullResultMain\">";
+      html += "<div class=\"full-analysis-body\">";
       html += "<h2>你的专业选择画像</h2>";
       html += renderProfileHeader(rule, { secondary, conf, mbti: payload.mbti, ref: "self", variant: "full" });
       if (!secondary || conf !== "低") {
@@ -2716,7 +2981,14 @@
       html += "</div>";
       html += "<span id=\"fullLinkCopiedTip\" class=\"share-copied-tip\"></span>";
       html += "</div>";
-
+      html += "</div>";
+      html += "<div class=\"full-analysis-guard\" id=\"fullAnalysisGuard\">";
+      html += "<div class=\"full-analysis-fade\" aria-hidden=\"true\"></div>";
+      html += "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\">";
+      html += "<div class=\"full-analysis-prompt-panel\">";
+      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">限时免费阅览全版分析，请保存图片后继续，如果分析的准，不要忘记分享到朋友圈，让有需要的同学入对行业！</p>";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">确认同意，继续阅读</button>";
+      html += "</div></div></div>";
       html += "</div>";
       return html;
     }
@@ -2823,30 +3095,205 @@
         + "</div>";
     }
 
-    function renderShareImageTopHtml(payload, dataUrl, exportMeta) {
-      const alt = profileCodename(payload.rule) + " 测试结果";
-      const hint = isWeChatBrowser() ? "长按图片保存到相册" : "长按或右键图片可保存";
+    function shareImageHintText(pending) {
+      if (pending) return "正在生成分享卡片…";
+      return isWeChatBrowser() ? "长按图片保存到相册" : "长按或右键图片可保存";
+    }
+
+    function sharePhotoDimensions(exportMeta) {
       const meta = exportMeta || {};
-      const imgW = meta.width || SHARE_CARD_EXPORT_WIDTH;
-      let imgTag = "<img class=\"share-result-photo\" src=\"" + dataUrl + "\" alt=\"" + alt + "\" width=\"" + imgW + "\"";
-      if (meta.height) imgTag += " height=\"" + meta.height + "\"";
-      imgTag += ">";
-      return "<div id=\"shareResultTop\" class=\"full-result-share-top\">"
-        + "<p class=\"share-image-save-hint\">" + hint + "</p>"
-        + imgTag
+      const pixelW = Number(meta.width) || SHARE_CARD_EXPORT_WIDTH;
+      const pixelH = Number(meta.height) || Math.round(pixelW * SHARE_CARD_ESTIMATE_ASPECT);
+      const displayW = SHARE_CARD_EXPORT_WIDTH;
+      const displayH = Math.max(1, Math.round(pixelH * displayW / pixelW));
+      return { displayW, displayH };
+    }
+
+    function renderSharePhotoWrapHtml(payload, dataUrl, exportMeta, pending) {
+      const dims = sharePhotoDimensions(exportMeta);
+      const aspect = dims.displayW + " / " + dims.displayH;
+      if (pending || !dataUrl) {
+        return "<div class=\"share-result-photo-wrap\" style=\"aspect-ratio:" + aspect + "\">"
+          + "<div class=\"share-result-photo-skeleton\" role=\"status\" aria-live=\"polite\" aria-label=\"正在生成分享卡片\"></div>"
+          + "</div>";
+      }
+      const alt = profileCodename(payload.rule) + " 测试结果";
+      const imgTag = "<img class=\"share-result-photo\" src=\"" + dataUrl + "\" alt=\"" + alt
+        + "\" decoding=\"async\">";
+      return "<div class=\"share-result-photo-wrap\" style=\"aspect-ratio:" + aspect + "\">" + imgTag + "</div>";
+    }
+
+    function renderShareImageTopHtml(payload, dataUrl, exportMeta, pending) {
+      const isPending = pending || !dataUrl;
+      return "<div id=\"shareResultTop\" class=\"full-result-share-top" + (isPending ? " is-generating" : "") + "\">"
+        + "<p class=\"share-image-save-hint" + (isPending ? " is-pending" : "") + "\">"
+        + shareImageHintText(isPending) + "</p>"
+        + renderSharePhotoWrapHtml(payload, dataUrl, exportMeta, isPending)
         + renderShareActionsPanelHtml()
         + "</div>";
     }
 
+    function renderShareTopGeneratingHtml(payload) {
+      return renderShareImageTopHtml(payload, null, null, true);
+    }
+
+    function applyShareImageToTop(payload, exportResult) {
+      const top = document.getElementById("shareResultTop");
+      if (!top) return false;
+      const scrollY = window.scrollY;
+      const hint = top.querySelector(".share-image-save-hint");
+      if (hint) {
+        hint.textContent = shareImageHintText(false);
+        hint.classList.remove("is-pending");
+      }
+      const dims = sharePhotoDimensions(exportResult);
+      let wrap = top.querySelector(".share-result-photo-wrap");
+      if (!wrap) {
+        wrap = document.createElement("div");
+        wrap.className = "share-result-photo-wrap";
+        const actions = top.querySelector(".share-actions-panel");
+        top.insertBefore(wrap, actions || null);
+      }
+      wrap.style.aspectRatio = dims.displayW + " / " + dims.displayH;
+      wrap.innerHTML = "";
+      const img = document.createElement("img");
+      img.className = "share-result-photo";
+      img.alt = profileCodename(payload.rule) + " 测试结果";
+      img.decoding = "async";
+      img.style.opacity = "0";
+      const reveal = () => {
+        top.classList.remove("is-generating");
+        requestAnimationFrame(() => { img.style.opacity = "1"; });
+      };
+      img.addEventListener("load", reveal, { once: true });
+      img.addEventListener("error", reveal, { once: true });
+      wrap.appendChild(img);
+      img.src = exportResult.dataUrl;
+      if (img.complete && img.naturalWidth) reveal();
+      window.scrollTo(0, scrollY);
+      bindSharePageActions(payload, exportResult.dataUrl);
+      return true;
+    }
+
     function renderShareImageResultView(payload, dataUrl, exportMeta) {
       return "<div class=\"share-page-stack share-image-view\">"
-        + renderShareImageTopHtml(payload, dataUrl, exportMeta)
+        + renderShareImageTopHtml(payload, dataUrl, exportMeta, false)
         + "</div>";
     }
 
     function renderFullResultPageHtml(payload, topHtml) {
-      const top = topHtml || "<div id=\"shareResultTop\" class=\"full-result-share-top share-image-loading\"><p>正在生成结果卡片…</p></div>";
+      const top = topHtml || renderShareTopGeneratingHtml(payload);
       return "<div class=\"full-result-stack\">" + top + renderFullResultSections(payload) + "</div>";
+    }
+
+    function renderResultBootScreen(message) {
+      return "<div class=\"result-boot-screen\" role=\"status\" aria-live=\"polite\">"
+        + (message || "正在生成分享卡片…") + "</div>";
+    }
+
+    let fullAnalysisGateObserver = null;
+
+    function isFullAnalysisUnlocked() {
+      try {
+        return sessionStorage.getItem(FULL_ANALYSIS_UNLOCK_KEY) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function hideFullAnalysisPrompt(animate) {
+      const prompt = document.getElementById("fullAnalysisPrompt");
+      if (!prompt) return;
+      prompt.classList.remove("is-visible");
+      if (animate) {
+        prompt.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function showFullAnalysisPrompt() {
+      const main = document.getElementById("fullResultMain");
+      const prompt = document.getElementById("fullAnalysisPrompt");
+      if (!main || !prompt || !main.classList.contains("is-locked")) return;
+      prompt.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(() => prompt.classList.add("is-visible"));
+    }
+
+    function unlockFullAnalysis() {
+      try {
+        sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
+      } catch (e) { /* ignore */ }
+      const main = document.getElementById("fullResultMain");
+      if (!main) return;
+      hideFullAnalysisPrompt(true);
+      main.classList.remove("is-locked");
+      main.classList.add("is-unlocked");
+      if (fullAnalysisGateObserver) {
+        fullAnalysisGateObserver.disconnect();
+        fullAnalysisGateObserver = null;
+      }
+    }
+
+    function scrollToFullAnalysisGate() {
+      const guard = document.getElementById("fullAnalysisGuard");
+      if (guard) {
+        guard.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      const main = document.getElementById("fullResultMain");
+      if (main) main.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function requestFullAnalysisUnlock() {
+      if (isFullAnalysisUnlocked()) {
+        scrollToFullAnalysisGate();
+        return;
+      }
+      scrollToFullAnalysisGate();
+      window.setTimeout(showFullAnalysisPrompt, 320);
+    }
+
+    function initFullAnalysisGate() {
+      const main = document.getElementById("fullResultMain");
+      const guard = document.getElementById("fullAnalysisGuard");
+      const confirmBtn = document.getElementById("confirmFullAnalysisBtn");
+      if (!main || !guard) return;
+
+      if (fullAnalysisGateObserver) {
+        fullAnalysisGateObserver.disconnect();
+        fullAnalysisGateObserver = null;
+      }
+
+      if (isFullAnalysisUnlocked()) {
+        main.classList.remove("is-locked");
+        main.classList.add("is-unlocked");
+        hideFullAnalysisPrompt(false);
+        return;
+      }
+
+      main.classList.add("is-locked");
+      main.classList.remove("is-unlocked");
+      hideFullAnalysisPrompt(false);
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener("click", unlockFullAnalysis);
+      }
+
+      fullAnalysisGateObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && main.classList.contains("is-locked")) {
+            showFullAnalysisPrompt();
+          }
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      fullAnalysisGateObserver.observe(guard);
+    }
+
+    function mountFullResultDom(payload, topHtml) {
+      resultSection.innerHTML = renderFullResultPageHtml(payload, topHtml);
+      bindResultActions(payload);
+      initFullAnalysisGate();
+      const img = resultSection.querySelector(".share-result-photo");
+      bindSharePageActions(payload, img && img.src ? img.src : null);
     }
 
     async function mountFullResultPage(payload, options) {
@@ -2857,40 +3304,38 @@
       quizSection.classList.add("hidden");
       resultSection.classList.remove("hidden");
       if (!opts.skipSave) saveFullResultSession(payload);
-      document.title = payload.rule.display_name + " · AI专业测试";
-      resultSection.innerHTML = renderFullResultPageHtml(payload, null);
-      bindResultActions(payload);
+      document.title = payload.rule.display_name + " · ZYBT AI专业测试";
+      resultSection.innerHTML = renderResultBootScreen();
 
+      if (!opts.skipScroll) {
+        resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      let topHtml = renderShareTopGeneratingHtml(payload);
       try {
         const exportResult = await withTimeout(
           generateShareCardImageUrl(payload),
           22000,
           "生成图片超时，请点重新生成"
         );
-        const topHtml = renderShareImageTopHtml(payload, exportResult.dataUrl, exportResult);
-        resultSection.innerHTML = renderFullResultPageHtml(payload, topHtml);
-        bindResultActions(payload);
-        bindSharePageActions(payload, exportResult.dataUrl);
+        topHtml = renderShareImageTopHtml(payload, exportResult.dataUrl, exportResult, false);
       } catch (e) {
         console.error(e);
         const errMsg = e && e.message ? e.message : "生成分享图失败";
-        const topEl = document.getElementById("shareResultTop");
-        if (topEl) {
-          topEl.className = "full-result-share-top share-image-loading";
-          topEl.innerHTML = "<p>" + errMsg + "。</p>"
-            + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareTopBtn\">重新生成分享图</button>";
-          const retry = document.getElementById("retryShareTopBtn");
-          if (retry) {
-            retry.addEventListener("click", () => mountFullResultPage(payload, opts));
-          }
-        }
+        topHtml = "<div id=\"shareResultTop\" class=\"full-result-share-top\">"
+          + "<p class=\"share-image-save-hint\">" + errMsg + "。</p>"
+          + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareTopBtn\">重新生成分享图</button>"
+          + renderShareActionsPanelHtml() + "</div>";
+      }
+
+      mountFullResultDom(payload, topHtml);
+      const retry = document.getElementById("retryShareTopBtn");
+      if (retry) {
+        retry.addEventListener("click", () => mountFullResultPage(payload, Object.assign({}, opts, { skipScroll: true })));
       }
 
       if (!opts.skipUrlUpdate) {
         history.replaceState(null, "", opts.url || buildFullResultUrl());
-      }
-      if (!opts.skipScroll) {
-        resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
 
@@ -2910,11 +3355,13 @@
       }
       const host = getShareCaptureHost();
       host.style.width = SHARE_CARD_EXPORT_WIDTH + "px";
+      setShareCapturing(true);
       host.classList.add("is-capturing");
       host.innerHTML = renderShareReportCardHtml(payload, { heroSrc, qrSrc, forCapture: true });
       const card = host.querySelector(".share-report-card");
       if (!card) throw new Error("no card");
       try {
+        await flushCardLayout(card);
         const canvas = await captureShareCardCanvas(card);
         return {
           dataUrl: canvas.toDataURL("image/png"),
@@ -2925,6 +3372,7 @@
         host.classList.remove("is-capturing");
         host.innerHTML = "";
         host.style.width = "";
+        setShareCapturing(false);
       }
     }
 
@@ -2934,8 +3382,12 @@
       document.body.classList.add("share-view");
       quizSection.classList.add("hidden");
       resultSection.classList.remove("hidden");
-      resultSection.innerHTML = "<div class=\"share-page-stack share-image-loading\"><p>正在生成结果卡片…</p></div>";
+      resultSection.innerHTML = renderResultBootScreen();
       document.title = profileCodename(payload.rule) + " · 分享结果";
+
+      if (!opts.skipScroll) {
+        resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
 
       try {
         const exportResult = await withTimeout(
@@ -2943,9 +3395,9 @@
           22000,
           "生成图片超时，请点重新生成"
         );
-        const dataUrl = exportResult.dataUrl;
-        resultSection.innerHTML = renderShareImageResultView(payload, dataUrl, exportResult);
-        bindSharePageActions(payload, dataUrl);
+        resultSection.innerHTML = "<div class=\"share-page-stack share-image-view\">"
+          + renderShareImageTopHtml(payload, exportResult.dataUrl, exportResult, false) + "</div>";
+        bindSharePageActions(payload, exportResult.dataUrl);
         if (opts.updateUrl !== false) {
           let url = opts.shareUrl;
           if (!url) {
@@ -2957,7 +3409,6 @@
         if (opts.refSelf) {
           maybeShowShareBackButton(new URLSearchParams(location.search));
         }
-        resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (e) {
         console.error(e);
         const errMsg = e && e.message ? e.message : "生成分享图失败";
@@ -3038,8 +3489,13 @@
     }
 
     async function openFullAnalysisFromShare() {
-      if (document.getElementById("fullResultMain")) {
-        document.getElementById("fullResultMain").scrollIntoView({ behavior: "smooth", block: "start" });
+      const main = document.getElementById("fullResultMain");
+      if (main) {
+        if (main.classList.contains("is-unlocked") || isFullAnalysisUnlocked()) {
+          main.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          requestFullAnalysisUnlock();
+        }
         return true;
       }
       if (await restoreFullResultView()) return true;
@@ -3070,15 +3526,25 @@
       return false;
     }
 
+    function replaceNodeForBind(el) {
+      if (!el || !el.parentNode) return el;
+      const fresh = el.cloneNode(true);
+      el.parentNode.replaceChild(fresh, el);
+      return fresh;
+    }
+
     function bindSharePageActions(payload, cachedDataUrl) {
-      const downloadBtn = document.getElementById("downloadShareImageBtn");
+      let downloadBtn = document.getElementById("downloadShareImageBtn");
       if (downloadBtn) {
+        downloadBtn = replaceNodeForBind(downloadBtn);
         downloadBtn.addEventListener("click", async () => {
           const label = downloadBtn.textContent;
+          const imgSrc = downloadBtn.closest(".full-result-stack, .share-page-stack")
+            ?.querySelector(".share-result-photo")?.src || cachedDataUrl;
           downloadBtn.disabled = true;
-          downloadBtn.textContent = cachedDataUrl ? "打开保存…" : "生成图片中…";
+          downloadBtn.textContent = imgSrc ? "打开保存…" : "生成图片中…";
           try {
-            const mode = await downloadShareResultImage(payload, cachedDataUrl);
+            const mode = await downloadShareResultImage(payload, imgSrc || cachedDataUrl);
             if (mode === "preview") {
               showShareActionTip(isWeChatBrowser() ? "请长按图片保存" : "请长按或右键保存图片");
             } else {
@@ -3093,8 +3559,9 @@
           }
         });
       }
-      const fullBtn = document.getElementById("viewFullAnalysisBtn");
+      let fullBtn = document.getElementById("viewFullAnalysisBtn");
       if (fullBtn) {
+        fullBtn = replaceNodeForBind(fullBtn);
         fullBtn.addEventListener("click", () => {
           openFullAnalysisFromShare().catch((err) => console.error(err));
         });
@@ -3212,7 +3679,10 @@
       config.questions.forEach((q) => initAnswerForQuestion(q));
       document.body.classList.remove("result-view");
       document.body.classList.add("quiz-view");
-      try { sessionStorage.removeItem(FULL_RESULT_SESSION_KEY); } catch (e) { /* ignore */ }
+      try {
+        sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
+        sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
+      } catch (e) { /* ignore */ }
       document.getElementById("shareBackBtn").classList.add("hidden");
       resultSection.classList.add("hidden");
       resultSection.innerHTML = "";
