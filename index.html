@@ -544,8 +544,6 @@
       bottom: 0;
       z-index: 4;
       pointer-events: auto;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
     }
     .full-analysis-fade {
       position: absolute;
@@ -591,15 +589,17 @@
       opacity: 0;
     }
     .full-analysis-prompt {
-      position: absolute;
-      left: 16px;
-      right: 16px;
-      top: 18px;
-      z-index: 5;
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
       display: flex;
+      align-items: center;
       justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+      background: rgba(12, 18, 28, 0.42);
       opacity: 0;
-      transform: translateY(16px);
+      transform: translateY(12px);
       pointer-events: none;
       transition: opacity 0.28s ease, transform 0.28s ease;
     }
@@ -608,8 +608,13 @@
       transform: translateY(0);
       pointer-events: auto;
     }
+    body.full-analysis-modal-open {
+      overflow: hidden;
+      touch-action: none;
+    }
     .full-analysis-prompt-panel {
       width: min(100%, 360px);
+      flex-shrink: 0;
       padding: 18px 16px 16px;
       border-radius: 14px;
       border: 1px solid #d8e2f0;
@@ -3625,7 +3630,12 @@
       html += "</div>";
       html += "<div class=\"full-analysis-guard\" id=\"fullAnalysisGuard\">";
       html += "<div class=\"full-analysis-fade\" aria-hidden=\"true\"></div>";
-      html += "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\">";
+      html += "</div>";
+      return html;
+    }
+
+    function renderFullAnalysisPromptHtml() {
+      let html = "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\" aria-hidden=\"true\">";
       html += "<div class=\"full-analysis-prompt-panel\">";
       html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">前500名可分享解锁完全版分析；也可 ￥5.99 付费直接解锁。</p>";
       html += "<div class=\"full-analysis-prompt-actions\">";
@@ -3633,7 +3643,6 @@
       html += "<p class=\"full-analysis-prompt-divider\">或</p>";
       html += "<button type=\"button\" class=\"btn btn-outline\" id=\"stripeUnlockBtn\">￥5.99 付费解锁</button>";
       html += "</div></div></div>";
-      html += "</div>";
       return html;
     }
 
@@ -3909,7 +3918,8 @@
 
     function renderFullResultPageHtml(payload, topHtml) {
       const top = topHtml || renderShareTopGeneratingHtml(payload);
-      return "<div class=\"full-result-stack\">" + top + renderFullResultSections(payload) + "</div>";
+      return "<div class=\"full-result-stack\">" + top + renderFullResultSections(payload)
+        + renderFullAnalysisPromptHtml() + "</div>";
     }
 
     function renderResultBootScreen(message) {
@@ -4087,10 +4097,24 @@
       }
     }
 
+    function ensureFullAnalysisPromptOnBody() {
+      const prompt = document.getElementById("fullAnalysisPrompt");
+      if (prompt && prompt.parentElement !== document.body) {
+        document.body.appendChild(prompt);
+      }
+    }
+
+    function removeFullAnalysisPromptFromDom() {
+      const prompt = document.getElementById("fullAnalysisPrompt");
+      if (prompt) prompt.remove();
+      document.body.classList.remove("full-analysis-modal-open");
+    }
+
     function hideFullAnalysisPrompt(animate) {
       const prompt = document.getElementById("fullAnalysisPrompt");
       if (!prompt) return;
       prompt.classList.remove("is-visible");
+      document.body.classList.remove("full-analysis-modal-open");
       if (animate) {
         prompt.setAttribute("aria-hidden", "true");
       }
@@ -4101,6 +4125,7 @@
       const prompt = document.getElementById("fullAnalysisPrompt");
       if (!main || !prompt || !main.classList.contains("is-locked")) return;
       prompt.setAttribute("aria-hidden", "false");
+      document.body.classList.add("full-analysis-modal-open");
       requestAnimationFrame(() => prompt.classList.add("is-visible"));
     }
 
@@ -4236,7 +4261,9 @@
     }
 
     function mountFullResultDom(payload, topHtml) {
+      removeFullAnalysisPromptFromDom();
       resultSection.innerHTML = renderFullResultPageHtml(payload, topHtml);
+      ensureFullAnalysisPromptOnBody();
       bindResultActions(payload);
       initFullAnalysisGate(payload);
       const img = resultSection.querySelector(".share-result-photo");
@@ -4245,7 +4272,7 @@
 
     async function mountFullResultPage(payload, options) {
       const opts = options || {};
-      document.body.classList.remove("quiz-view", "share-view");
+      document.body.classList.remove("quiz-view", "share-view", "full-analysis-modal-open");
       document.body.classList.add("result-view");
       document.getElementById("shareBackBtn").classList.add("hidden");
       quizSection.classList.add("hidden");
@@ -4680,8 +4707,9 @@
     function restartTest() {
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
-      document.body.classList.remove("result-view");
+      document.body.classList.remove("result-view", "full-analysis-modal-open");
       document.body.classList.add("quiz-view");
+      removeFullAnalysisPromptFromDom();
       try {
         sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
         sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
