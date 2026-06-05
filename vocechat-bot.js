@@ -77,20 +77,23 @@ async function sendMarkdownToUser(uid, markdown) {
  * @param {string[]} [result.majors]
  */
 function formatResultMarkdown(result) {
-  const lines = [
-    "### ZYBT AI专业测试 · 你的结果",
-    "",
-    `${result.codename || ""}${result.codenameEn ? ` · ${result.codenameEn}` : ""}`,
-    result.displayName ? `_${result.displayName}_` : "",
-    result.matchPercent != null && result.matchPercent !== ""
-      ? `匹配度：${result.matchPercent}%`
-      : "",
-    result.shareUrl ? `[查看完整报告](${result.shareUrl})` : "",
-    Array.isArray(result.majors) && result.majors.length
-      ? `推荐专业：${result.majors.slice(0, 5).join("、")}`
-      : ""
-  ];
-  return lines.filter(Boolean).join("\n");
+  const lines = ["- 通知：ZYBT AI专业测试 · 你的结果"];
+  pushNotifyLine(
+    lines,
+    "画像",
+    `${result.codename || ""}${result.codenameEn ? ` · ${result.codenameEn}` : ""}`
+  );
+  pushNotifyLine(lines, "类型", result.displayName);
+  if (result.matchPercent != null && result.matchPercent !== "") {
+    pushNotifyLine(lines, "匹配度", `${result.matchPercent}%`);
+  }
+  if (result.shareUrl) {
+    lines.push(`- 完整报告：[链接](${result.shareUrl})`);
+  }
+  if (Array.isArray(result.majors) && result.majors.length) {
+    pushNotifyLine(lines, "推荐专业", result.majors.slice(0, 5).join("、"));
+  }
+  return lines.join("\n");
 }
 
 async function sendResultToUser(uid, result) {
@@ -103,6 +106,68 @@ function profileLabel(rule) {
   const codename = rule.codename || rule.name || "";
   const en = rule.codename_en ? ` · ${rule.codename_en}` : "";
   return `${codename}${en}`;
+}
+
+function pushNotifyLine(lines, label, value) {
+  if (value != null && value !== "") {
+    lines.push(`- ${label}：${value}`);
+  }
+}
+
+function appendResultNotifyLines(lines, payload, opts) {
+  const options = opts || {};
+  const rule = payload && payload.rule;
+  const secondary = payload && payload.secondary && payload.secondary.rule;
+  const mbti = payload && payload.mbti;
+  const majors = (payload && payload.combinedMajors || [])
+    .slice(0, 6)
+    .map((m) => m.name)
+    .filter(Boolean);
+  const topDims = (payload && payload.topDims || [])
+    .slice(0, 4)
+    .map((d) => `${d.k} ${Math.round(d.v * 10) / 10}`)
+    .join(" · ");
+
+  pushNotifyLine(lines, "画像", profileLabel(rule));
+  pushNotifyLine(lines, "类型", rule && rule.display_name);
+  if (payload && payload.matchPercent != null) {
+    pushNotifyLine(lines, "匹配度", `${payload.matchPercent}%`);
+  }
+  pushNotifyLine(lines, "置信度", payload && payload.conf);
+  if (payload && payload.conf === "低" && secondary) {
+    pushNotifyLine(
+      lines,
+      "接近画像",
+      `${profileLabel(secondary)} / ${secondary.display_name || ""}`
+    );
+  }
+  if (mbti && mbti.code) {
+    pushNotifyLine(
+      lines,
+      "MBTI",
+      `${mbti.code}${mbti.name ? `（${mbti.name}）` : ""}`
+    );
+  }
+  if (majors.length) pushNotifyLine(lines, "推荐专业", majors.join("、"));
+  if (topDims) pushNotifyLine(lines, "维度", topDims);
+  if (options.reportUrl) {
+    lines.push(`- 完整报告：[链接](${options.reportUrl})`);
+  }
+}
+
+function appendMetaNotifyLines(lines, meta) {
+  pushNotifyLine(lines, "本地时间", meta.completedAtLocal);
+  pushNotifyLine(lines, "UTC", meta.completedAtUtc);
+  pushNotifyLine(lines, "时区", meta.timezone);
+  pushNotifyLine(lines, "语言", meta.language);
+  pushNotifyLine(lines, "位置", meta.location);
+  pushNotifyLine(lines, "IP", meta.ip);
+  pushNotifyLine(lines, "页面", meta.pageUrl);
+  pushNotifyLine(lines, "视口", meta.viewport);
+  pushNotifyLine(lines, "屏幕", meta.screen);
+  pushNotifyLine(lines, "平台", meta.platform);
+  pushNotifyLine(lines, "来源", meta.referrer);
+  pushNotifyLine(lines, "UA", meta.userAgent);
 }
 
 /**
@@ -161,51 +226,10 @@ async function collectClientMeta() {
  * @param {string} [opts.reportUrl]
  */
 function formatCompletionNotifyMarkdown(payload, meta, opts) {
-  const options = opts || {};
-  const rule = payload && payload.rule;
-  const secondary = payload && payload.secondary && payload.secondary.rule;
-  const mbti = payload && payload.mbti;
-  const majors = (payload && payload.combinedMajors || [])
-    .slice(0, 6)
-    .map((m) => m.name)
-    .filter(Boolean);
-  const topDims = (payload && payload.topDims || [])
-    .slice(0, 4)
-    .map((d) => `${d.k} ${Math.round(d.v * 10) / 10}`)
-    .join(" · ");
-
-  const lines = [
-    "### 新用户完成 ZYBT 专业测试",
-    "",
-    `画像：${profileLabel(rule)}`,
-    rule && rule.display_name ? `类型：${rule.display_name}` : "",
-    payload && payload.matchPercent != null ? `匹配度：${payload.matchPercent}%` : "",
-    payload && payload.conf ? `置信度：${payload.conf}` : "",
-    payload && payload.conf === "低" && secondary
-      ? `接近画像：${profileLabel(secondary)} / ${secondary.display_name || ""}`
-      : "",
-    mbti && mbti.code ? `MBTI：${mbti.code}${mbti.name ? `（${mbti.name}）` : ""}` : "",
-    majors.length ? `推荐专业：${majors.join("、")}` : "",
-    topDims ? `维度：${topDims}` : "",
-    options.reportUrl ? `[完整报告](${options.reportUrl})` : "",
-    "",
-    "---",
-    "### 环境信息",
-    meta.completedAtLocal ? `- 本地时间：${meta.completedAtLocal}` : "",
-    meta.completedAtUtc ? `- UTC：${meta.completedAtUtc}` : "",
-    meta.timezone ? `- 时区：${meta.timezone}` : "",
-    meta.language ? `- 语言：${meta.language}` : "",
-    meta.location ? `- 位置：${meta.location}` : "",
-    meta.ip ? `- IP：${meta.ip}` : "",
-    meta.pageUrl ? `- 页面：${meta.pageUrl}` : "",
-    meta.viewport ? `- 视口：${meta.viewport}` : "",
-    meta.screen ? `- 屏幕：${meta.screen}` : "",
-    meta.platform ? `- 平台：${meta.platform}` : "",
-    meta.referrer ? `- 来源：${meta.referrer}` : "",
-    meta.userAgent ? `- UA：${meta.userAgent}` : ""
-  ];
-
-  return lines.filter(Boolean).join("\n");
+  const lines = ["- 通知：新用户完成 ZYBT 专业测试"];
+  appendResultNotifyLines(lines, payload, opts);
+  appendMetaNotifyLines(lines, meta);
+  return lines.join("\n");
 }
 
 function formatCompletionNotifyText(payload, meta, opts) {
@@ -219,46 +243,10 @@ function formatCompletionNotifyText(payload, meta, opts) {
  * @param {string} [opts.reportUrl]
  */
 function formatImageSavedNotifyMarkdown(payload, meta, opts) {
-  const options = opts || {};
-  const rule = payload && payload.rule;
-  const secondary = payload && payload.secondary && payload.secondary.rule;
-  const mbti = payload && payload.mbti;
-  const majors = (payload && payload.combinedMajors || [])
-    .slice(0, 6)
-    .map((m) => m.name)
-    .filter(Boolean);
-
-  const lines = [
-    "### 用户保存了分享图",
-    "",
-    `画像：${profileLabel(rule)}`,
-    rule && rule.display_name ? `类型：${rule.display_name}` : "",
-    payload && payload.matchPercent != null ? `匹配度：${payload.matchPercent}%` : "",
-    payload && payload.conf ? `置信度：${payload.conf}` : "",
-    payload && payload.conf === "低" && secondary
-      ? `接近画像：${profileLabel(secondary)} / ${secondary.display_name || ""}`
-      : "",
-    mbti && mbti.code ? `MBTI：${mbti.code}${mbti.name ? `（${mbti.name}）` : ""}` : "",
-    majors.length ? `推荐专业：${majors.join("、")}` : "",
-    options.reportUrl ? `[完整报告](${options.reportUrl})` : "",
-    "",
-    "---",
-    "### 环境信息",
-    meta.completedAtLocal ? `- 本地时间：${meta.completedAtLocal}` : "",
-    meta.completedAtUtc ? `- UTC：${meta.completedAtUtc}` : "",
-    meta.timezone ? `- 时区：${meta.timezone}` : "",
-    meta.language ? `- 语言：${meta.language}` : "",
-    meta.location ? `- 位置：${meta.location}` : "",
-    meta.ip ? `- IP：${meta.ip}` : "",
-    meta.pageUrl ? `- 页面：${meta.pageUrl}` : "",
-    meta.viewport ? `- 视口：${meta.viewport}` : "",
-    meta.screen ? `- 屏幕：${meta.screen}` : "",
-    meta.platform ? `- 平台：${meta.platform}` : "",
-    meta.referrer ? `- 来源：${meta.referrer}` : "",
-    meta.userAgent ? `- UA：${meta.userAgent}` : ""
-  ];
-
-  return lines.filter(Boolean).join("\n");
+  const lines = ["- 通知：用户保存了分享图"];
+  appendResultNotifyLines(lines, payload, opts);
+  appendMetaNotifyLines(lines, meta);
+  return lines.join("\n");
 }
 
 function markNotifyFlag(prefix, dedupeKey) {

@@ -49,6 +49,14 @@
       justify-content: center;
       gap: 12px;
     }
+    .brand-side {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     .brand-logo {
       width: 52px;
       height: 52px;
@@ -58,14 +66,25 @@
       flex-shrink: 0;
       display: block;
     }
+    .brand-qr {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      object-fit: contain;
+      display: block;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(32, 46, 79, 0.06);
+    }
     .brand-text {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: flex-start;
-      text-align: left;
+      align-items: center;
+      text-align: center;
       line-height: 1.2;
       min-height: 52px;
+      flex: 0 1 auto;
     }
     .brand-title {
       font-size: 1.2rem;
@@ -1515,7 +1534,8 @@
     }
     @media (max-width: 520px) {
       .brand-lockup { gap: 11px; }
-      .brand-logo { width: 44px; height: 44px; }
+      .brand-side { width: 44px; height: 44px; flex-basis: 44px; }
+      .brand-logo, .brand-qr { width: 44px; height: 44px; }
       .brand-title { font-size: 1.05rem; }
       body.result-view .profile-codename { font-size: 2.35rem; }
       body.result-view .result .profile-name { font-size: 1.45rem; }
@@ -1523,17 +1543,22 @@
       .result-actions-share .result-actions-row .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
   </style>
-  <link rel="preload" href="./assets/stamp-gaokao-2026.jpeg" as="image">
+  <link rel="preload" href="./assets/stamp-gaokao-2026.png" as="image">
   <link rel="preload" href="./assets/html2canvas.min.js" as="script">
   <script src="./assets/html2canvas.min.js" defer></script>
 </head>
 <body>
   <header class="site-header">
     <div class="brand-lockup">
-      <img src="./assets/logo.jpg" alt="ZYBT AI专业测试" class="brand-logo" width="52" height="52">
+      <div class="brand-side">
+        <img src="./assets/logo.jpg" alt="ZYBT AI专业测试" class="brand-logo" width="52" height="52">
+      </div>
       <div class="brand-text">
         <div class="brand-title">ZYBT AI专业测试</div>
         <div class="brand-powered">Zhuan Ye Before Tianzhiyuan</div>
+      </div>
+      <div class="brand-side">
+        <img src="./assets/qr-major-voce.png" alt="扫码打开测试" class="brand-qr" width="52" height="52">
       </div>
     </div>
   </header>
@@ -1620,7 +1645,7 @@
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
-    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q5:";
+    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q6:";
     let shareImageGenerationPromise = null;
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
@@ -1892,7 +1917,7 @@
     }
 
     const SHARE_QR_FALLBACK_SRC = "./assets/qr-major-voce.png";
-    const SHARE_STAMP_SRC = "./assets/stamp-gaokao-2026.jpeg";
+    const SHARE_STAMP_SRC = "./assets/stamp-gaokao-2026.png";
     const SHARE_STAMP_DISPLAY_SIZE = 92;
     let shareStampReadyPromise = null;
 
