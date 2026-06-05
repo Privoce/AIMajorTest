@@ -1716,6 +1716,9 @@
     const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/fZu14n4YhaimciUcTm6c01k";
     const STRIPE_PAY_PENDING_KEY = "majorTestStripePayPending";
     const STRIPE_PAY_CANCEL_FLAG_KEY = "majorTestStripePayCancel";
+    const BETA_UNLOCK_PARAM = "betaUnlock";
+    const BETA_UNLOCK_SECRET = "zybt-inner2026";
+    const BETA_UNLOCK_SESSION_KEY = "majorTestBetaUnlock";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
     const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q8:";
     let shareImageGenerationPromise = null;
@@ -3869,10 +3872,23 @@
 
     function isFullAnalysisUnlocked() {
       try {
-        return sessionStorage.getItem(FULL_ANALYSIS_UNLOCK_KEY) === "1";
+        return sessionStorage.getItem(FULL_ANALYSIS_UNLOCK_KEY) === "1"
+          || sessionStorage.getItem(BETA_UNLOCK_SESSION_KEY) === "1";
       } catch (e) {
         return false;
       }
+    }
+
+    function applyBetaUnlockFromUrl(params) {
+      if (params.get(BETA_UNLOCK_PARAM) !== BETA_UNLOCK_SECRET) return false;
+      try {
+        sessionStorage.setItem(BETA_UNLOCK_SESSION_KEY, "1");
+        sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
+      } catch (e) { /* ignore */ }
+      params.delete(BETA_UNLOCK_PARAM);
+      const qs = params.toString();
+      history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+      return true;
     }
 
     function buildStripePaymentUrl() {
@@ -4588,6 +4604,7 @@
         sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
         sessionStorage.removeItem(STRIPE_PAY_PENDING_KEY);
         sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
+        sessionStorage.removeItem(BETA_UNLOCK_SESSION_KEY);
       } catch (e) { /* ignore */ }
       document.getElementById("shareBackBtn").classList.add("hidden");
       resultSection.classList.add("hidden");
@@ -4651,8 +4668,9 @@
         return;
       }
 
-      const stripeReturn = handleStripePaymentReturn();
       const params = new URLSearchParams(location.search);
+      applyBetaUnlockFromUrl(params);
+      const stripeReturn = handleStripePaymentReturn();
       const openStripe = params.get("openStripe") === "1";
       const vParam = params.get("v");
 
