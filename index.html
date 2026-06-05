@@ -652,7 +652,7 @@
       top: 4px;
       right: 4px;
       z-index: 3;
-      transform: rotate(-27deg);
+      transform: rotate(27deg);
       opacity: 0.97;
       pointer-events: none;
     }
@@ -1645,7 +1645,7 @@
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
-    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q7:";
+    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q8:";
     let shareImageGenerationPromise = null;
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
@@ -2110,7 +2110,7 @@
         const img = await loadShareStampImage();
         ctx.save();
         ctx.translate(x + size / 2, y + size / 2);
-        ctx.rotate(-27 * Math.PI / 180);
+        ctx.rotate(27 * Math.PI / 180);
         ctx.drawImage(img, -size / 2, -size / 2, size, size);
         ctx.restore();
       } catch (e) {
