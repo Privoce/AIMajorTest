@@ -3928,6 +3928,14 @@
       }
     }
 
+    function isBetaUnlockSession() {
+      try {
+        return sessionStorage.getItem(BETA_UNLOCK_SESSION_KEY) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+
     function applyBetaUnlockFromUrl(params) {
       if (params.get(BETA_UNLOCK_PARAM) !== BETA_UNLOCK_SECRET) return false;
       try {
@@ -4653,11 +4661,20 @@
         .catch((e) => console.warn("VoceChat stripe pay notify failed", e));
     }
 
+    function queueVoceChatBetaCompletionNotify(payload) {
+      if (!isBetaUnlockSession()) return;
+      if (!window.VoceChatBot || typeof VoceChatBot.notifyBetaTestCompletion !== "function") return;
+      const ctx = getVoceChatNotifyContext();
+      VoceChatBot.notifyBetaTestCompletion(payload, ctx)
+        .catch((e) => console.warn("VoceChat beta notify failed", e));
+    }
+
     async function renderResult() {
       const payload = buildResultPayload();
       const reportUrl = buildFullResultUrl();
       await mountFullResultPage(payload, { url: reportUrl });
       queueVoceChatCompletionNotify(payload);
+      queueVoceChatBetaCompletionNotify(payload);
     }
 
     function restartTest() {

@@ -18,11 +18,15 @@ const VOCECHAT_BOT_API_KEY =
 /** Stripe 付费点击通知 */
 const VOCECHAT_BOT_API_KEY_PAY =
   "0f4a1946f3f299aa44c8b286ee451e65912e5f9b0f9969b53376ef202a224c2d7b22756964223a3433363738342c226e6f6e6365223a2270596a72414c5459496d6f414141414132577763576377396f36474965575048227d";
+/** 内测 beta 链接测完通知 */
+const VOCECHAT_BOT_API_KEY_BETA =
+  "a76eadb1f6d5359e2faf973cefe46c70f7185bedb6d0d52b1d61eab142b36de37b22756964223a3433363738352c226e6f6e6365223a22712f574f47555461496d6f414141414146634677464378464b70424563376168227d";
 /** Admin inbox: new completions are pushed here (no prompt to the test taker). */
 const VOCECHAT_NOTIFY_UID = "394719";
 const DEFAULT_TEST_UID = VOCECHAT_NOTIFY_UID;
 const VOCE_NOTIFY_DEDUPE_PREFIX = "majorTestVoceNotify:";
 const VOCE_SAVE_DEDUPE_PREFIX = "majorTestVoceSave:";
+const VOCE_BETA_NOTIFY_DEDUPE_PREFIX = "majorTestVoceBetaNotify:";
 
 function getBaseUrl() {
   const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BASE_URL;
@@ -34,6 +38,10 @@ function getApiKey(profile) {
   if (kind === "pay") {
     const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY_PAY;
     return fromEnv || VOCECHAT_BOT_API_KEY_PAY;
+  }
+  if (kind === "beta") {
+    const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY_BETA;
+    return fromEnv || VOCECHAT_BOT_API_KEY_BETA;
   }
   const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY;
   return fromEnv || VOCECHAT_BOT_API_KEY;
@@ -253,6 +261,14 @@ function formatCompletionNotifyMarkdown(payload, meta, opts) {
   return lines.join("\n");
 }
 
+function formatBetaTestCompletionNotifyMarkdown(payload, meta, opts) {
+  const lines = ["- 通知：内测 beta 链接用户完成 ZYBT 专业测试"];
+  pushNotifyLine(lines, "内测", "已免付费解锁完全版");
+  appendResultNotifyLines(lines, payload, opts);
+  appendMetaNotifyLines(lines, meta);
+  return lines.join("\n");
+}
+
 function formatCompletionNotifyText(payload, meta, opts) {
   return formatCompletionNotifyMarkdown(payload, meta, opts);
 }
@@ -331,6 +347,25 @@ async function notifyTestCompletion(payload, opts) {
 }
 
 /**
+ * Notify admin when a beta-link user freshly completes the test.
+ */
+async function notifyBetaTestCompletion(payload, opts) {
+  const options = opts || {};
+  const dedupeKey = options.dedupeKey || "";
+  if (dedupeKey && wasNotifyFlag(VOCE_BETA_NOTIFY_DEDUPE_PREFIX, dedupeKey)) {
+    return { skipped: true, reason: "duplicate" };
+  }
+
+  const meta = await collectClientMeta();
+  const markdown = formatBetaTestCompletionNotifyMarkdown(payload, meta, options);
+  const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
+  await sendMarkdownToUser(uid, markdown, { apiKeyProfile: "beta" });
+
+  if (dedupeKey) markNotifyFlag(VOCE_BETA_NOTIFY_DEDUPE_PREFIX, dedupeKey);
+  return { sent: true, uid };
+}
+
+/**
  * Notify admin when the user saves / opens the share image (button or unlock dialog).
  */
 async function notifyTestImageSaved(payload, opts) {
@@ -396,6 +431,7 @@ const exportApi = {
   VOCECHAT_BASE_URL,
   VOCECHAT_BOT_API_KEY,
   VOCECHAT_BOT_API_KEY_PAY,
+  VOCECHAT_BOT_API_KEY_BETA,
   VOCECHAT_NOTIFY_UID,
   sendToUser,
   sendTextToUser,
@@ -405,9 +441,11 @@ const exportApi = {
   collectClientMeta,
   formatCompletionNotifyText,
   formatCompletionNotifyMarkdown,
+  formatBetaTestCompletionNotifyMarkdown,
   formatImageSavedNotifyMarkdown,
   formatStripePayClickNotifyMarkdown,
   notifyTestCompletion,
+  notifyBetaTestCompletion,
   notifyTestImageSaved,
   notifyStripePayClick,
   collectClientMetaSync,
