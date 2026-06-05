@@ -478,34 +478,32 @@
       bottom: 0;
       pointer-events: none;
       opacity: 1;
-      transition: opacity 0.55s ease;
-      -webkit-backdrop-filter: blur(22px) saturate(1.12);
-      backdrop-filter: blur(22px) saturate(1.12);
+      transition: opacity 0.28s ease;
+      -webkit-backdrop-filter: blur(24px) saturate(1.12);
+      backdrop-filter: blur(24px) saturate(1.12);
       background: linear-gradient(
         to bottom,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.12) 6%,
-        rgba(255, 255, 255, 0.38) 16%,
-        rgba(255, 255, 255, 0.68) 28%,
-        rgba(255, 255, 255, 0.86) 40%,
-        rgba(255, 255, 255, 0.95) 52%,
-        rgba(255, 255, 255, 0.99) 64%,
-        #fff 76%
+        rgba(255, 255, 255, 0.22) 4%,
+        rgba(255, 255, 255, 0.62) 10%,
+        rgba(255, 255, 255, 0.9) 16%,
+        rgba(255, 255, 255, 0.98) 22%,
+        #fff 28%
       );
       -webkit-mask-image: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(0, 0, 0, 0.45) 10%,
-        rgba(0, 0, 0, 0.85) 22%,
-        #000 36%,
+        rgba(0, 0, 0, 0.55) 6%,
+        rgba(0, 0, 0, 0.92) 12%,
+        #000 18%,
         #000 100%
       );
       mask-image: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(0, 0, 0, 0.45) 10%,
-        rgba(0, 0, 0, 0.85) 22%,
-        #000 36%,
+        rgba(0, 0, 0, 0.55) 6%,
+        rgba(0, 0, 0, 0.92) 12%,
+        #000 18%,
         #000 100%
       );
     }
@@ -526,7 +524,7 @@
       opacity: 0;
       transform: translateY(16px);
       pointer-events: none;
-      transition: opacity 0.45s ease, transform 0.45s ease;
+      transition: opacity 0.28s ease, transform 0.28s ease;
     }
     .full-analysis-prompt.is-visible {
       opacity: 1;
@@ -624,6 +622,9 @@
       border: 1px solid #e8eaec;
       box-shadow: none;
       box-sizing: border-box;
+      font-size: 16px;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
     }
     .share-report-header {
       text-align: center;
@@ -660,6 +661,7 @@
       position: relative;
       width: 200px;
       max-width: 72%;
+      flex-shrink: 0;
       aspect-ratio: 1;
       border-radius: 12px;
       overflow: hidden;
@@ -682,10 +684,14 @@
     }
     .share-danmaku-item {
       position: absolute;
-      max-width: 78%;
-      padding: 5px 11px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      max-width: 86px;
+      height: 22px;
+      padding: 0 9px;
       font-size: 11px;
-      line-height: 1.25;
+      line-height: 1;
       font-weight: 700;
       color: var(--share-accent-ink);
       white-space: nowrap;
@@ -697,32 +703,39 @@
       box-shadow: 0 2px 10px var(--share-accent-shadow);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
     }
     .share-danmaku-item::before {
       content: "✓";
       display: inline-block;
+      flex-shrink: 0;
       margin-right: 4px;
       font-size: 10px;
+      line-height: 1;
       font-weight: 800;
       color: var(--share-accent);
     }
     .share-danmaku-item:nth-child(1) {
-      top: 14%;
-      left: 4%;
+      top: 26px;
+      left: 5px;
       transform: rotate(-4deg);
+      transform-origin: left center;
     }
     .share-danmaku-item:nth-child(2) {
-      top: 6%;
-      right: 4%;
+      top: 10px;
+      right: 5px;
       left: auto;
       transform: rotate(3deg);
+      transform-origin: right center;
     }
     .share-danmaku-item:nth-child(3) {
-      bottom: 6%;
-      right: 4%;
+      bottom: 10px;
+      right: 5px;
       left: auto;
       top: auto;
       transform: rotate(-2deg);
+      transform-origin: right bottom;
     }
     .share-report-tagline {
       text-align: center;
@@ -749,6 +762,13 @@
       line-height: 17px;
       color: #7d8aa4;
       margin: 0 0 12px;
+    }
+    .share-report-match-alt {
+      text-align: center;
+      font-size: 11px;
+      line-height: 16px;
+      color: #9aa6ba;
+      margin: -6px 0 12px;
     }
     .share-report-match-secondary a {
       color: var(--share-accent);
@@ -798,20 +818,24 @@
       box-sizing: border-box;
       flex: 0 0 auto;
       max-width: 100%;
-      min-height: 28px;
+      height: 28px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 5px 10px;
+      padding: 0 10px;
       text-align: center;
       font-size: 11px;
-      line-height: 14px;
+      line-height: 1;
       font-weight: 600;
       color: #4a5872;
       background: #f2f4f7;
       border: 1px solid #e8ecf1;
       border-radius: 6px;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
     }
     .share-report-pill.is-highlight {
       color: var(--share-accent-dark);
@@ -1277,6 +1301,9 @@
       z-index: -1;
       overflow: visible;
       background: #fff;
+      font-size: 16px;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
     }
     .share-capture-host.is-capturing {
       visibility: visible;
@@ -1326,6 +1353,34 @@
     .share-capture-host.is-capturing .share-danmaku-item {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
+    }
+    .share-report-card.is-sys-text-large .share-danmaku-item {
+      max-width: calc(86px / var(--share-root-scale, 1));
+      height: calc(22px / var(--share-root-scale, 1));
+      padding: 0 calc(9px / var(--share-root-scale, 1));
+      font-size: calc(11px / var(--share-root-scale, 1));
+      transform: none;
+    }
+    .share-report-card.is-sys-text-large .share-danmaku-item::before {
+      font-size: calc(10px / var(--share-root-scale, 1));
+      margin-right: calc(4px / var(--share-root-scale, 1));
+    }
+    .share-report-card.is-sys-text-large .share-danmaku-item:nth-child(1) {
+      top: 28px;
+      left: 4px;
+    }
+    .share-report-card.is-sys-text-large .share-danmaku-item:nth-child(2) {
+      top: 8px;
+      right: 4px;
+    }
+    .share-report-card.is-sys-text-large .share-danmaku-item:nth-child(3) {
+      bottom: 8px;
+      right: 4px;
+    }
+    .share-report-card.is-sys-text-large .share-report-pill {
+      height: calc(28px / var(--share-root-scale, 1));
+      padding: 0 calc(10px / var(--share-root-scale, 1));
+      font-size: calc(11px / var(--share-root-scale, 1));
     }
     .share-capture-host.is-capturing .share-report-footer {
       flex-wrap: nowrap;
@@ -1701,6 +1756,34 @@
       overlay.classList.add("show");
     }
 
+    function getSystemTextScale() {
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;height:0;width:0;overflow:hidden";
+      const pxProbe = document.createElement("span");
+      pxProbe.style.fontSize = "16px";
+      const remProbe = document.createElement("span");
+      remProbe.style.fontSize = "1rem";
+      wrap.appendChild(pxProbe);
+      wrap.appendChild(remProbe);
+      document.documentElement.appendChild(wrap);
+      const pxSize = parseFloat(getComputedStyle(pxProbe).fontSize) || 16;
+      const remSize = parseFloat(getComputedStyle(remProbe).fontSize) || 16;
+      wrap.remove();
+      return Math.max(pxSize, remSize) / 16;
+    }
+
+    function applyShareCardTextCompensation(card) {
+      if (!card) return;
+      const scale = getSystemTextScale();
+      if (scale > 1.08) {
+        card.classList.add("is-sys-text-large");
+        card.style.setProperty("--share-root-scale", scale.toFixed(3));
+      } else {
+        card.classList.remove("is-sys-text-large");
+        card.style.removeProperty("--share-root-scale");
+      }
+    }
+
     function flushCardLayout(card) {
       return new Promise((resolve) => {
         void card.offsetHeight;
@@ -1999,6 +2082,11 @@
     function profileCodename(rule) {
       if (!rule) return "";
       return rule.codename || rule.name || rule.display_name || "";
+    }
+
+    function profileMatchPhrase(rule) {
+      if (!rule) return "「」";
+      return "「" + profileCodename(rule) + " / " + rule.display_name + "」";
     }
 
     function renderProfileCodenameBlock(rule) {
@@ -2961,7 +3049,7 @@
 
       html += "<div class=\"result-actions result-actions-full\">";
       html += "<div class=\"result-actions-row\">";
-      html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享测试结果</button>";
+      html += "<button type=\"button\" class=\"btn btn-share\" id=\"shareBtn\">分享结果</button>";
       html += "<button type=\"button\" class=\"btn btn-outline\" id=\"copyFullLinkBtn\">复制完整报告链接</button>";
       html += "<button type=\"button\" class=\"btn btn-secondary\" id=\"restartBtn\">重新测试</button>";
       html += "</div>";
@@ -2972,8 +3060,8 @@
       html += "<div class=\"full-analysis-fade\" aria-hidden=\"true\"></div>";
       html += "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\">";
       html += "<div class=\"full-analysis-prompt-panel\">";
-      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">限时免费阅览全版分析，请保存图片后继续，如果分析的准，不要忘记分享到朋友圈，让有需要的同学入对行业！</p>";
-      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">确认同意，继续阅读</button>";
+      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">您作为前500名测试用户可以免费阅览全版分析，请将结果卡片分享到朋友圈，让有需要的同学入对行业！</p>";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">解锁全版分析</button>";
       html += "</div></div></div>";
       html += "</div>";
       return html;
@@ -3056,11 +3144,9 @@
         html += "<p class=\"share-report-tagline\">" + (rule.hero_tagline || rule.subtitle) + "</p>";
       }
       html += "<div class=\"share-report-match-bar\">匹配度 " + matchPct + "% · " + factorName + "因子已激活</div>";
+      html += "<p class=\"share-report-match-secondary\">你与" + profileMatchPhrase(rule) + "高度契合</p>";
       if (conf === "低" && secondary && secondary.rule) {
-        html += "<p class=\"share-report-match-secondary\">你与「"
-          + profileCodename(secondary.rule) + " / " + secondary.rule.display_name + "」高度契合</p>";
-      } else {
-        html += "<p class=\"share-report-match-secondary\">你与「" + rule.display_name + "」高度契合</p>";
+        html += "<p class=\"share-report-match-alt\">你的结果也接近" + profileMatchPhrase(secondary.rule) + "</p>";
       }
       html += "<hr class=\"share-report-divider\">";
       html += renderShareReportMajors(combined);
@@ -3403,6 +3489,7 @@
       host.innerHTML = renderShareReportCardHtml(payload, { heroSrc, qrSrc, forCapture: true });
       const card = host.querySelector(".share-report-card");
       if (!card) throw new Error("no card");
+      applyShareCardTextCompensation(card);
       try {
         await flushCardLayout(card);
         const canvas = await captureShareCardCanvas(card);
