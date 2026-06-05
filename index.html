@@ -3514,8 +3514,8 @@
       html += "<div class=\"full-analysis-fade\" aria-hidden=\"true\"></div>";
       html += "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\">";
       html += "<div class=\"full-analysis-prompt-panel\">";
-      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">您作为前500名测试用户可以免费阅览全版分析，请将结果卡片分享到朋友圈，让有需要的同学入对行业！</p>";
-      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">解锁全版分析</button>";
+      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">您作为前500名测试用户可以免费阅览完全版分析，请将结果卡片分享到朋友圈，让有需要的同学入对行业！</p>";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">解锁完全版分析</button>";
       html += "</div></div></div>";
       html += "</div>";
       return html;
@@ -3624,7 +3624,7 @@
     function renderShareActionsPanelHtml() {
       return "<div class=\"share-actions-panel result-actions result-actions-share\">"
         + "<button type=\"button\" class=\"btn btn-primary\" id=\"downloadShareImageBtn\">保存图片</button>"
-        + "<button type=\"button\" class=\"btn btn-outline\" id=\"viewFullAnalysisBtn\">查看全版分析</button>"
+        + "<button type=\"button\" class=\"btn btn-outline\" id=\"viewFullAnalysisBtn\">解锁完全版分析</button>"
         + "<a class=\"btn btn-outline\" href=\"" + AI_MATCH_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\">匹配同专业学长学姐</a>"
         + "<span id=\"shareActionTip\" class=\"share-copied-tip\"></span>"
         + "</div>";
@@ -3863,9 +3863,9 @@
           const mode = await downloadShareResultImage(payload, getShareImageSrc(null));
           markShareImageSaved();
           if (mode === "preview") {
-            showShareActionTip(isWeChatBrowser() ? "请长按图片保存，全版分析已解锁" : "请保存图片，全版分析已解锁");
+            showShareActionTip(isWeChatBrowser() ? "请长按图片保存，完全版分析已解锁" : "请保存图片，完全版分析已解锁");
           } else {
-            showShareActionTip("图片已保存，全文已解锁");
+            showShareActionTip("图片已保存，完全版分析已解锁");
           }
         }
         unlockFullAnalysis();
@@ -4060,9 +4060,9 @@
         console.error(e);
         const errMsg = e && e.message ? e.message : "生成分享图失败";
         resultSection.innerHTML = "<div class=\"card result\"><p>" + errMsg + "。</p>"
-          + "<p style=\"font-size:0.88rem;color:#8b97ad;margin:8px 0 12px;\">微信内若反复失败，可点「查看全版分析」后截屏，或换 Safari/Chrome 打开。</p>"
+          + "<p style=\"font-size:0.88rem;color:#8b97ad;margin:8px 0 12px;\">微信内若反复失败，可点「解锁完全版分析」后截屏，或换 Safari/Chrome 打开。</p>"
           + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareImageBtn\">重新生成</button>"
-          + "<button type=\"button\" class=\"btn btn-outline\" id=\"fallbackFullBtn\" style=\"margin-top:8px;width:100%;\">查看全版分析</button></div>";
+          + "<button type=\"button\" class=\"btn btn-outline\" id=\"fallbackFullBtn\" style=\"margin-top:8px;width:100%;\">解锁完全版分析</button></div>";
         const fallbackFull = document.getElementById("fallbackFullBtn");
         if (fallbackFull) {
           fallbackFull.addEventListener("click", () => {
