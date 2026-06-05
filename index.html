@@ -1622,6 +1622,28 @@
       return /MicroMessenger/i.test(navigator.userAgent || "");
     }
 
+    function isSlowShareDevice() {
+      const mobile = window.innerWidth < 768
+        || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      const slowNet = conn && /(?:2g|slow-2g)/i.test(String(conn.effectiveType || ""));
+      return isWeChatBrowser() || mobile || slowNet;
+    }
+
+    function shareCaptureScale() {
+      return isSlowShareDevice() ? 2 : 3;
+    }
+
+    function shareExportBudgetMs() {
+      return isSlowShareDevice() ? 60000 : 40000;
+    }
+
+    function preloadSharePipeline() {
+      loadHtml2Canvas().catch(() => {});
+      const img = new Image();
+      img.src = new URL(SHARE_QR_FALLBACK_SRC, location.href).href;
+    }
+
     function withTimeout(promise, ms, message) {
       return Promise.race([
         promise,
@@ -1680,14 +1702,14 @@
 
     const SHARE_CARD_EXPORT_WIDTH = 343;
     const SHARE_CARD_ESTIMATE_ASPECT = 1.38;
-    const SHARE_HERO_EXPORT_SIZE = 400;
+    const SHARE_HERO_EXPORT_SIZE = 240;
 
     function preloadImageAsDataUrl(src, targetSize) {
       const url = src.startsWith("http") ? src : new URL(src, location.href).href;
       const size = targetSize || SHARE_HERO_EXPORT_SIZE;
       return new Promise((resolve, reject) => {
         const img = new Image();
-        const timer = setTimeout(() => reject(new Error("hero timeout")), 5000);
+        const timer = setTimeout(() => reject(new Error("hero timeout")), isSlowShareDevice() ? 11000 : 7000);
         img.onload = () => {
           clearTimeout(timer);
           try {
@@ -1752,9 +1774,9 @@
         };
         img.src = src.startsWith("http") ? src : new URL(src, location.href).href;
       });
-      return trySrc(remoteSrc, true)
-        .catch(() => trySrc(remoteSrc, false))
-        .catch(() => trySrc(SHARE_QR_FALLBACK_SRC, false));
+      return trySrc(SHARE_QR_FALLBACK_SRC, false)
+        .catch(() => trySrc(remoteSrc, true))
+        .catch(() => trySrc(remoteSrc, false));
     }
 
     function showShareImagePreview(dataUrl) {
@@ -1841,12 +1863,16 @@
     }
 
     async function captureShareCardCanvas(card) {
-      const html2canvas = await withTimeout(loadHtml2Canvas(), 8000, "加载绘图组件超时");
-      await waitForImages(card, 3000);
+      const slow = isSlowShareDevice();
+      const html2canvas = await withTimeout(
+        loadHtml2Canvas(),
+        slow ? 15000 : 10000,
+        "加载绘图组件超时"
+      );
+      await waitForImages(card, slow ? 6000 : 4000);
       await flushCardLayout(card);
-      const wx = isWeChatBrowser();
-      const scale = wx ? 2 : 3;
-      const captureMs = wx ? 15000 : 20000;
+      const scale = shareCaptureScale();
+      const captureMs = slow ? 35000 : 25000;
       const canvas = await withTimeout(html2canvas(card, {
         scale,
         width: SHARE_CARD_EXPORT_WIDTH,
@@ -1855,7 +1881,7 @@
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
-        imageTimeout: 8000,
+        imageTimeout: slow ? 12000 : 8000,
         removeContainer: true,
         scrollX: 0,
         scrollY: -window.scrollY
@@ -3238,6 +3264,65 @@
       return renderShareImageTopHtml(payload, null, null, true);
     }
 
+    function runShareImageGeneration(payload) {
+      return withTimeout(
+        generateShareCardImageUrl(payload),
+        shareExportBudgetMs(),
+        "生成图片超时，请点重新生成"
+      );
+    }
+
+    function showShareImageTopError(payload, errMsg) {
+      const top = document.getElementById("shareResultTop");
+      if (!top) return;
+      top.classList.remove("is-generating");
+      const hint = top.querySelector(".share-image-save-hint");
+      if (hint) {
+        hint.textContent = (errMsg || "生成分享图失败") + "，请点重新生成。";
+        hint.classList.remove("is-pending");
+      }
+      if (!document.getElementById("retryShareTopBtn")) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-primary";
+        btn.id = "retryShareTopBtn";
+        btn.textContent = "重新生成分享图";
+        const actions = top.querySelector(".share-actions-panel");
+        top.insertBefore(btn, actions || null);
+        btn.addEventListener("click", () => startShareImageGeneration(payload));
+      }
+    }
+
+    function startShareImageGeneration(payload) {
+      const top = document.getElementById("shareResultTop");
+      if (top) {
+        top.classList.add("is-generating");
+        const hint = top.querySelector(".share-image-save-hint");
+        if (hint) {
+          hint.textContent = shareImageHintText(true);
+          hint.classList.add("is-pending");
+        }
+        const retry = document.getElementById("retryShareTopBtn");
+        if (retry) retry.remove();
+        const wrap = top.querySelector(".share-result-photo-wrap");
+        if (wrap) {
+          wrap.innerHTML = "<div class=\"share-result-photo-skeleton\" role=\"status\" aria-live=\"polite\" aria-label=\"正在生成分享卡片\"></div>";
+        }
+      }
+      return runShareImageGeneration(payload)
+        .then((exportResult) => {
+          if (!applyShareImageToTop(payload, exportResult)) {
+            throw new Error("分享图容器未就绪");
+          }
+          return exportResult;
+        })
+        .catch((e) => {
+          console.error(e);
+          showShareImageTopError(payload, e && e.message ? e.message : "生成分享图失败");
+          throw e;
+        });
+    }
+
     function applyShareImageToTop(payload, exportResult) {
       const top = document.getElementById("shareResultTop");
       if (!top) return false;
@@ -3463,34 +3548,13 @@
         } catch (e) { /* ignore */ }
       }
       document.title = payload.rule.display_name + " · ZYBT AI专业测试";
-      resultSection.innerHTML = renderResultBootScreen();
+      mountFullResultDom(payload, renderShareTopGeneratingHtml(payload));
 
       if (!opts.skipScroll) {
         resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
-      let topHtml = renderShareTopGeneratingHtml(payload);
-      try {
-        const exportResult = await withTimeout(
-          generateShareCardImageUrl(payload),
-          22000,
-          "生成图片超时，请点重新生成"
-        );
-        topHtml = renderShareImageTopHtml(payload, exportResult.dataUrl, exportResult, false);
-      } catch (e) {
-        console.error(e);
-        const errMsg = e && e.message ? e.message : "生成分享图失败";
-        topHtml = "<div id=\"shareResultTop\" class=\"full-result-share-top\">"
-          + "<p class=\"share-image-save-hint\">" + errMsg + "。</p>"
-          + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareTopBtn\">重新生成分享图</button>"
-          + renderShareActionsPanelHtml() + "</div>";
-      }
-
-      mountFullResultDom(payload, topHtml);
-      const retry = document.getElementById("retryShareTopBtn");
-      if (retry) {
-        retry.addEventListener("click", () => mountFullResultPage(payload, Object.assign({}, opts, { skipScroll: true })));
-      }
+      startShareImageGeneration(payload).catch(() => {});
 
       if (!opts.skipUrlUpdate) {
         history.replaceState(null, "", opts.url || buildFullResultUrl());
@@ -3499,17 +3563,21 @@
 
     async function generateShareCardImageUrl(payload) {
       const shareTheme = shareThemeForRule(payload.rule);
-      let heroSrc = shareProfileImageSrc(payload.rule);
-      try {
-        heroSrc = await preloadShareHeroDataUrl(payload.rule);
-      } catch (e) {
-        console.warn("hero preload failed, use direct src", e);
+      const slow = isSlowShareDevice();
+      const assetMs = slow ? 12000 : 8000;
+      const heroFallback = shareProfileImageSrc(payload.rule);
+      const qrFallback = shareQrImageSrc(shareTheme);
+      const [heroSettled, qrSettled] = await Promise.allSettled([
+        withTimeout(preloadShareHeroDataUrl(payload.rule), assetMs, "hero timeout"),
+        withTimeout(preloadQrDataUrl(shareTheme), assetMs, "qr timeout")
+      ]);
+      const heroSrc = heroSettled.status === "fulfilled" ? heroSettled.value : heroFallback;
+      const qrSrc = qrSettled.status === "fulfilled" ? qrSettled.value : qrFallback;
+      if (heroSettled.status === "rejected") {
+        console.warn("hero preload failed, use direct src", heroSettled.reason);
       }
-      let qrSrc = shareQrImageSrc(shareTheme);
-      try {
-        qrSrc = await withTimeout(preloadQrDataUrl(shareTheme), 6000, "qr timeout");
-      } catch (e) {
-        console.warn("qr preload failed, use remote src", e);
+      if (qrSettled.status === "rejected") {
+        console.warn("qr preload failed, use fallback src", qrSettled.reason);
       }
       const host = getShareCaptureHost();
       host.style.width = SHARE_CARD_EXPORT_WIDTH + "px";
@@ -3549,11 +3617,7 @@
       }
 
       try {
-        const exportResult = await withTimeout(
-          generateShareCardImageUrl(payload),
-          22000,
-          "生成图片超时，请点重新生成"
-        );
+        const exportResult = await runShareImageGeneration(payload);
         resultSection.innerHTML = "<div class=\"share-page-stack share-image-view\">"
           + renderShareImageTopHtml(payload, exportResult.dataUrl, exportResult, false) + "</div>";
         bindSharePageActions(payload, exportResult.dataUrl);
@@ -3883,6 +3947,7 @@
 
     startBtn.addEventListener("click", () => {
       if (!config) return;
+      preloadSharePipeline();
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
       document.body.classList.add("quiz-view");
