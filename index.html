@@ -566,8 +566,19 @@
       color: #4a5872;
       font-weight: 600;
     }
-    .full-analysis-prompt-panel .btn {
+    .full-analysis-prompt-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .full-analysis-prompt-actions .btn {
       width: 100%;
+    }
+    .full-analysis-prompt-divider {
+      margin: 10px 0 4px;
+      font-size: 0.78rem;
+      color: #8b97ad;
+      font-weight: 600;
     }
     .share-page-stack > .card {
       margin-bottom: 0;
@@ -1644,6 +1655,9 @@
     };
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
+    const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/fZu14n4YhaimciUcTm6c01k";
+    const STRIPE_PAY_PENDING_KEY = "majorTestStripePayPending";
+    const STRIPE_PAY_CANCEL_FLAG_KEY = "majorTestStripePayCancel";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
     const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q8:";
     let shareImageGenerationPromise = null;
@@ -3514,8 +3528,11 @@
       html += "<div class=\"full-analysis-fade\" aria-hidden=\"true\"></div>";
       html += "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\">";
       html += "<div class=\"full-analysis-prompt-panel\">";
-      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">您作为前500名测试用户可以免费阅览完全版分析，请将结果卡片分享到朋友圈，让有需要的同学入对行业！</p>";
-      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">解锁完全版分析</button>";
+      html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">前500名可分享解锁完全版分析；也可 ￥5.99 付费直接解锁。</p>";
+      html += "<div class=\"full-analysis-prompt-actions\">";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">分享解锁（分享图片到朋友圈）</button>";
+      html += "<p class=\"full-analysis-prompt-divider\">或</p>";
+      html += "<button type=\"button\" class=\"btn btn-outline\" id=\"stripeUnlockBtn\">￥5.99 付费解锁</button>";
       html += "</div></div></div>";
       html += "</div>";
       return html;
@@ -3800,6 +3817,79 @@
       }
     }
 
+    function buildStripePaymentUrl() {
+      const url = new URL(STRIPE_PAYMENT_LINK);
+      try {
+        const ref = serializeAnswersToParam();
+        if (ref) url.searchParams.set("client_reference_id", ref.slice(0, 200));
+      } catch (e) { /* ignore */ }
+      return url.toString();
+    }
+
+    function beginStripeUnlock(payload) {
+      if (payload) saveFullResultSession(payload);
+      try {
+        sessionStorage.setItem(STRIPE_PAY_PENDING_KEY, String(Date.now()));
+        sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
+      } catch (e) { /* ignore */ }
+      location.assign(buildStripePaymentUrl());
+    }
+
+    function stripStripePayParamsFromUrl() {
+      const params = new URLSearchParams(location.search);
+      if (!params.has("pay") && !params.get("session_id")) return;
+      params.delete("pay");
+      params.delete("session_id");
+      const qs = params.toString();
+      history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+    }
+
+    function handleStripePaymentReturn() {
+      const params = new URLSearchParams(location.search);
+      const pay = params.get("pay");
+      const sessionId = params.get("session_id") || "";
+      let pending = null;
+      try {
+        pending = sessionStorage.getItem(STRIPE_PAY_PENDING_KEY);
+      } catch (e) { /* ignore */ }
+
+      if (!pending) return { restored: false };
+
+      const paid = pay === "success" || (sessionId.indexOf("cs_") === 0);
+      const canceled = pay === "cancel";
+
+      if (paid) {
+        try {
+          sessionStorage.removeItem(STRIPE_PAY_PENDING_KEY);
+          sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
+          sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
+        } catch (e) { /* ignore */ }
+        stripStripePayParamsFromUrl();
+        return { restored: true, unlocked: true, canceled: false };
+      }
+
+      if (canceled) {
+        try {
+          sessionStorage.removeItem(STRIPE_PAY_PENDING_KEY);
+          sessionStorage.setItem(STRIPE_PAY_CANCEL_FLAG_KEY, "1");
+        } catch (e) { /* ignore */ }
+        stripStripePayParamsFromUrl();
+        return { restored: true, unlocked: false, canceled: true };
+      }
+
+      return { restored: false };
+    }
+
+    function consumeStripePayCancelNotice() {
+      try {
+        if (sessionStorage.getItem(STRIPE_PAY_CANCEL_FLAG_KEY) !== "1") return false;
+        sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     function hideFullAnalysisPrompt(animate) {
       const prompt = document.getElementById("fullAnalysisPrompt");
       if (!prompt) return;
@@ -3856,14 +3946,14 @@
       const confirmLabel = confirmBtn ? confirmBtn.textContent : "";
       if (confirmBtn) {
         confirmBtn.disabled = true;
-        confirmBtn.textContent = hasShareImageSaved() ? "正在打开…" : "正在保存图片…";
+        confirmBtn.textContent = hasShareImageSaved() ? "正在打开…" : "正在准备分享图…";
       }
       try {
         if (!hasShareImageSaved()) {
           const mode = await downloadShareResultImage(payload, getShareImageSrc(null));
           markShareImageSaved();
           if (mode === "preview") {
-            showShareActionTip(isWeChatBrowser() ? "请长按图片保存，完全版分析已解锁" : "请保存图片，完全版分析已解锁");
+            showShareActionTip(isWeChatBrowser() ? "请保存图片并分享到朋友圈，完全版分析已解锁" : "请保存图片并分享到朋友圈，完全版分析已解锁");
           } else {
             showShareActionTip("图片已保存，完全版分析已解锁");
           }
@@ -3871,7 +3961,7 @@
         unlockFullAnalysis();
       } catch (e) {
         console.error(e);
-        showShareActionTip(e && e.message ? e.message : "保存图片失败，请重试");
+        showShareActionTip(e && e.message ? e.message : "分享图准备失败，请重试");
       } finally {
         if (confirmBtn) {
           confirmBtn.disabled = false;
@@ -3903,6 +3993,7 @@
       const main = document.getElementById("fullResultMain");
       const guard = document.getElementById("fullAnalysisGuard");
       let confirmBtn = document.getElementById("confirmFullAnalysisBtn");
+      let stripeBtn = document.getElementById("stripeUnlockBtn");
       if (!main || !guard) return;
 
       if (fullAnalysisGateObserver) {
@@ -3921,11 +4012,20 @@
       main.classList.remove("is-unlocked");
       hideFullAnalysisPrompt(false);
 
+      if (consumeStripePayCancelNotice()) {
+        showShareActionTip("支付未完成，完全版分析仍未解锁");
+      }
+
       if (confirmBtn) {
         confirmBtn = replaceNodeForBind(confirmBtn);
         confirmBtn.addEventListener("click", () => {
           confirmFullAnalysisUnlock(payload).catch((err) => console.error(err));
         });
+      }
+
+      if (stripeBtn) {
+        stripeBtn = replaceNodeForBind(stripeBtn);
+        stripeBtn.addEventListener("click", () => beginStripeUnlock(payload));
       }
 
       fullAnalysisGateObserver = new IntersectionObserver((entries) => {
@@ -3957,7 +4057,9 @@
         saveFullResultSession(payload);
         try {
           sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
-          sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
+          if (!isFullAnalysisUnlocked()) {
+            sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
+          }
         } catch (e) { /* ignore */ }
       }
       document.title = payload.rule.display_name + " · ZYBT AI专业测试";
@@ -4371,6 +4473,8 @@
         sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
         sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
         sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
+        sessionStorage.removeItem(STRIPE_PAY_PENDING_KEY);
+        sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
       } catch (e) { /* ignore */ }
       document.getElementById("shareBackBtn").classList.add("hidden");
       resultSection.classList.add("hidden");
@@ -4434,15 +4538,27 @@
         return;
       }
 
+      const stripeReturn = handleStripePaymentReturn();
       const params = new URLSearchParams(location.search);
       const vParam = params.get("v");
       if (vParam) {
-        if (await tryRenderFullResultFromParam(vParam)) return;
+        if (await tryRenderFullResultFromParam(vParam)) {
+          if (stripeReturn.unlocked) showShareActionTip("支付成功，完全版分析已解锁");
+          else if (stripeReturn.canceled) showShareActionTip("支付未完成，完全版分析仍未解锁");
+          return;
+        }
         document.body.classList.add("result-view");
         quizSection.classList.add("hidden");
         resultSection.classList.remove("hidden");
         resultSection.innerHTML = "<div class=\"card result\"><p>完整结果链接无效或题库已更新，请重新测试。</p><a class=\"btn btn-primary\" href=\"" + location.pathname + "\">重新测试</a></div>";
         return;
+      }
+
+      if (stripeReturn.restored) {
+        if (await restoreFullResultView()) {
+          if (stripeReturn.unlocked) showShareActionTip("支付成功，完全版分析已解锁");
+          return;
+        }
       }
 
       const shareData = parseShareData(params);
