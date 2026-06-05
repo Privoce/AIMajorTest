@@ -1510,7 +1510,7 @@
 <body>
   <header class="site-header">
     <div class="brand-lockup">
-      <img src="./assets/logo.png" alt="ZYBT AI专业测试" class="brand-logo" width="52" height="52">
+      <img src="./assets/logo.jpg" alt="ZYBT AI专业测试" class="brand-logo" width="52" height="52">
       <div class="brand-text">
         <div class="brand-title">ZYBT AI专业测试</div>
         <div class="brand-powered">Zhuan Ye Before Tianzhiyuan</div>
@@ -1638,10 +1638,33 @@
       return isSlowShareDevice() ? 60000 : 40000;
     }
 
+    const shareHeroDataUrlCache = {};
+
+    function cacheShareHeroDataUrl(rule, dataUrl) {
+      const key = rule && rule.codename_en;
+      if (key && dataUrl) shareHeroDataUrlCache[key] = dataUrl;
+    }
+
+    function getCachedShareHeroDataUrl(rule) {
+      const key = rule && rule.codename_en;
+      return key ? shareHeroDataUrlCache[key] : null;
+    }
+
+    function prefetchAllShareHeroes() {
+      if (!config || !config.profile_rules) return;
+      config.profile_rules.forEach((rule) => {
+        if (!rule.codename_en || getCachedShareHeroDataUrl(rule)) return;
+        preloadImageAsDataUrl(shareProfileImageSrc(rule))
+          .then((dataUrl) => cacheShareHeroDataUrl(rule, dataUrl))
+          .catch(() => {});
+      });
+    }
+
     function preloadSharePipeline() {
       loadHtml2Canvas().catch(() => {});
       const img = new Image();
       img.src = new URL(SHARE_QR_FALLBACK_SRC, location.href).href;
+      prefetchAllShareHeroes();
     }
 
     function withTimeout(promise, ms, message) {
@@ -1738,10 +1761,44 @@
       });
     }
 
-    async function preloadShareHeroDataUrl(rule) {
+    async function resolveShareHeroSrc(rule) {
+      const cached = getCachedShareHeroDataUrl(rule);
+      if (cached) return cached;
       const src = shareProfileImageSrc(rule);
       if (src.startsWith("data:")) return src;
-      return withTimeout(preloadImageAsDataUrl(src), 6000, "hero timeout");
+      const slow = isSlowShareDevice();
+      const tries = slow ? 3 : 2;
+      const perTryMs = slow ? 22000 : 14000;
+      let lastErr = null;
+      for (let i = 0; i < tries; i++) {
+        try {
+          const dataUrl = await withTimeout(preloadImageAsDataUrl(src), perTryMs, "hero timeout");
+          cacheShareHeroDataUrl(rule, dataUrl);
+          return dataUrl;
+        } catch (e) {
+          lastErr = e;
+          await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
+        }
+      }
+      throw lastErr || new Error("画像加载失败");
+    }
+
+    function waitForShareHeroReady(card, timeoutMs) {
+      const img = card && card.querySelector(".share-report-illust");
+      if (!img) return Promise.reject(new Error("no hero img"));
+      if (img.naturalWidth > 0) return Promise.resolve();
+      const limit = timeoutMs || (isSlowShareDevice() ? 8000 : 5000);
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("画像加载未完成")), limit);
+        const done = (ok) => {
+          clearTimeout(timer);
+          if (ok || img.naturalWidth > 0) resolve();
+          else reject(new Error("画像加载失败"));
+        };
+        img.addEventListener("load", () => done(true), { once: true });
+        img.addEventListener("error", () => done(false), { once: true });
+        if (img.complete) done(img.naturalWidth > 0);
+      });
     }
 
     const SHARE_QR_FALLBACK_SRC = "./assets/qr-major-voce.png";
@@ -1984,7 +2041,7 @@
 
     function shareProfileImageSrc(rule) {
       if (rule && rule.codename_en) {
-        return "./imgs/" + rule.codename_en + ".png";
+        return "./imgs/" + rule.codename_en + ".jpg";
       }
       return "./assets/share-hero-placeholder.svg";
     }
@@ -3565,19 +3622,13 @@
       const shareTheme = shareThemeForRule(payload.rule);
       const slow = isSlowShareDevice();
       const assetMs = slow ? 12000 : 8000;
-      const heroFallback = shareProfileImageSrc(payload.rule);
       const qrFallback = shareQrImageSrc(shareTheme);
-      const [heroSettled, qrSettled] = await Promise.allSettled([
-        withTimeout(preloadShareHeroDataUrl(payload.rule), assetMs, "hero timeout"),
-        withTimeout(preloadQrDataUrl(shareTheme), assetMs, "qr timeout")
-      ]);
-      const heroSrc = heroSettled.status === "fulfilled" ? heroSettled.value : heroFallback;
-      const qrSrc = qrSettled.status === "fulfilled" ? qrSettled.value : qrFallback;
-      if (heroSettled.status === "rejected") {
-        console.warn("hero preload failed, use direct src", heroSettled.reason);
-      }
-      if (qrSettled.status === "rejected") {
-        console.warn("qr preload failed, use fallback src", qrSettled.reason);
+      const heroSrc = await resolveShareHeroSrc(payload.rule);
+      let qrSrc = qrFallback;
+      try {
+        qrSrc = await withTimeout(preloadQrDataUrl(shareTheme), assetMs, "qr timeout");
+      } catch (e) {
+        console.warn("qr preload failed, use fallback src", e);
       }
       const host = getShareCaptureHost();
       host.style.width = SHARE_CARD_EXPORT_WIDTH + "px";
@@ -3589,6 +3640,7 @@
       applyShareCardTextCompensation(card);
       try {
         await flushCardLayout(card);
+        await waitForShareHeroReady(card);
         const canvas = await captureShareCardCanvas(card);
         return {
           dataUrl: canvas.toDataURL("image/png"),
@@ -3665,7 +3717,7 @@
         const codename = payload && payload.rule && payload.rule.codename_en
           ? payload.rule.codename_en
           : "result";
-        const filename = "AI专业测试-" + codename + ".png";
+        const filename = "AI专业测试-" + codename + ".jpg";
         const link = document.createElement("a");
         link.href = url;
         link.download = filename;
@@ -3688,7 +3740,7 @@
       const codename = payload && payload.rule && payload.rule.codename_en
         ? payload.rule.codename_en
         : "result";
-      const filename = "AI专业测试-" + codename + ".png";
+      const filename = "AI专业测试-" + codename + ".jpg";
       const blob = await new Promise((resolve) => {
         if (canvas.toBlob) {
           canvas.toBlob(resolve, "image/png");
@@ -3938,6 +3990,7 @@
         config = await res.json();
         if (!config.questions || !config.questions.length) throw new Error("empty");
         loadHtml2Canvas().catch(() => {});
+        prefetchAllShareHeroes();
         return true;
       } catch (e) {
         console.error(e);
