@@ -1112,6 +1112,22 @@
       pointer-events: none;
       opacity: 0;
       z-index: -1;
+      overflow: hidden;
+    }
+    .share-capture-host.is-capturing {
+      left: 0;
+      top: 0;
+      opacity: 0.01;
+      z-index: 0;
+    }
+    .share-report-footer-qr-placeholder {
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      border-radius: 4px;
+      border: 1px solid #e8ecf1;
+      background: #fff;
+      box-sizing: border-box;
     }
     .share-image-view {
       gap: 12px;
@@ -1284,14 +1300,13 @@
           function loadScript(src, fallbackSrc) {
             const script = document.createElement("script");
             script.async = true;
-            script.onload = () => {
-              if (window.html2canvas) resolve(window.html2canvas);
-              else reject(new Error("html2canvas unavailable"));
-            };
-            script.onerror = () => {
-              if (fallbackSrc) loadScript(fallbackSrc, null);
+            const finish = (ok) => {
+              if (ok && window.html2canvas) resolve(window.html2canvas);
+              else if (fallbackSrc) loadScript(fallbackSrc, null);
               else reject(new Error("html2canvas load failed"));
             };
+            script.onload = () => finish(true);
+            script.onerror = () => finish(false);
             script.src = src;
             document.head.appendChild(script);
           }
@@ -1300,50 +1315,60 @@
             "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
           );
         });
+        html2canvasLoadPromise.catch(() => {
+          html2canvasLoadPromise = null;
+        });
       }
       return html2canvasLoadPromise;
     }
 
-    function waitForImages(root) {
+    function waitForImages(root, timeoutMs) {
+      const limit = timeoutMs || 4000;
       const imgs = root ? root.querySelectorAll("img") : [];
-      return Promise.all(Array.from(imgs).map((img) => {
+      const waits = Array.from(imgs).map((img) => {
         if (img.complete && img.naturalWidth) return Promise.resolve();
         return new Promise((resolve) => {
-          img.addEventListener("load", resolve, { once: true });
-          img.addEventListener("error", resolve, { once: true });
+          const timer = setTimeout(resolve, limit);
+          const done = () => {
+            clearTimeout(timer);
+            resolve();
+          };
+          img.addEventListener("load", done, { once: true });
+          img.addEventListener("error", done, { once: true });
         });
-      }));
+      });
+      return withTimeout(Promise.all(waits), limit + 500, "images wait timeout").catch(() => {});
     }
 
-    function blobToDataUrl(blob) {
+    function preloadImageAsDataUrl(src) {
+      const url = src.startsWith("http") ? src : new URL(src, location.href).href;
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
+        const img = new Image();
+        const timer = setTimeout(() => reject(new Error("hero timeout")), 5000);
+        img.onload = () => {
+          clearTimeout(timer);
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth || 200;
+            canvas.height = img.naturalHeight || 200;
+            canvas.getContext("2d").drawImage(img, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          } catch (e) {
+            reject(e);
+          }
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          reject(new Error("hero load failed"));
+        };
+        img.src = url;
       });
     }
 
-    async function inlineCardImagesForCapture(card) {
-      await waitForImages(card);
-      const imgs = Array.from(card.querySelectorAll("img"));
-      await Promise.all(imgs.map(async (img) => {
-        const src = img.currentSrc || img.src;
-        if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
-        try {
-          const res = await withTimeout(fetch(src, { mode: "cors", credentials: "omit" }), 8000, "img fetch timeout");
-          if (!res.ok) throw new Error("img fetch failed");
-          const blob = await res.blob();
-          const dataUrl = await blobToDataUrl(blob);
-          img.src = dataUrl;
-          img.removeAttribute("crossorigin");
-        } catch (e) {
-          console.warn("inline image failed", src, e);
-          if (img.closest(".share-report-footer-qr")) {
-            img.style.visibility = "hidden";
-          }
-        }
-      }));
+    async function preloadShareHeroDataUrl(rule) {
+      const src = shareProfileImageSrc(rule);
+      if (src.startsWith("data:")) return src;
+      return withTimeout(preloadImageAsDataUrl(src), 6000, "hero timeout");
     }
 
     function showShareImagePreview(dataUrl) {
@@ -1373,17 +1398,20 @@
     }
 
     async function captureShareCardCanvas(card) {
-      const html2canvas = await withTimeout(loadHtml2Canvas(), 12000, "加载绘图组件超时，请换浏览器重试");
-      await inlineCardImagesForCapture(card);
-      const scale = Math.min(2, Math.max(1.5, window.devicePixelRatio || 1.5));
+      const html2canvas = await withTimeout(loadHtml2Canvas(), 8000, "加载绘图组件超时");
+      await waitForImages(card, 3000);
+      const wx = isWeChatBrowser();
+      const scale = wx ? 1 : Math.min(2, Math.max(1.5, window.devicePixelRatio || 1.5));
+      const captureMs = wx ? 12000 : 18000;
       return withTimeout(html2canvas(card, {
         scale,
-        useCORS: true,
-        allowTaint: false,
+        useCORS: false,
+        allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
-        imageTimeout: 8000
-      }), 22000, "生成图片超时，请重试");
+        imageTimeout: wx ? 2000 : 5000,
+        removeContainer: true
+      }), captureMs, "生成图片超时，请重试");
     }
 
     /**
@@ -1439,12 +1467,14 @@
       return 0;
     }
 
-    function renderShareReportFooter(theme) {
-      const qrSrc = shareQrImageSrc(theme);
+    function renderShareReportFooter(theme, forCapture) {
+      const qrBlock = forCapture
+        ? "<div class=\"share-report-footer-qr-placeholder\" aria-hidden=\"true\"></div>"
+        : "<a class=\"share-report-footer-qr\" href=\"" + SHARE_SITE_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"扫码测一测\">"
+          + "<img src=\"" + shareQrImageSrc(theme) + "\" width=\"60\" height=\"60\" alt=\"\" loading=\"lazy\" decoding=\"async\">"
+          + "</a>";
       return "<footer class=\"share-report-footer\">"
-        + "<a class=\"share-report-footer-qr\" href=\"" + SHARE_SITE_URL + "\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"扫码测一测\">"
-        + "<img src=\"" + qrSrc + "\" width=\"60\" height=\"60\" alt=\"\" loading=\"lazy\" decoding=\"async\">"
-        + "</a>"
+        + qrBlock
         + "<div class=\"share-report-footer-copy\">"
         + "<strong>扫码测一测</strong>"
         + "<p>属于你的职业倾向报告</p>"
@@ -2618,16 +2648,18 @@
       return shareCaptureHostEl;
     }
 
-    function renderShareReportCardHtml(payload) {
+    function renderShareReportCardHtml(payload, opts) {
+      const options = opts || {};
       const rule = payload.rule;
       const conf = payload.conf;
       const secondary = payload.secondary;
       const combined = payload.combinedMajors || [];
-      const mCode = payload.mbti && payload.mbti.code ? payload.mbti.code : "";
       const checkLabels = (rule.keywords || []).slice(0, 3);
       const matchPct = resolveMatchPercent(payload, new URLSearchParams(location.search).get("mp"));
       const factorName = profileCodename(rule);
       const shareTheme = shareThemeForRule(rule);
+      const heroSrc = options.heroSrc || shareProfileImageSrc(rule);
+      const forCapture = !!options.forCapture;
 
       let html = "<div class=\"card result share-report-card share-theme-" + shareTheme + "\">";
       html += "<header class=\"share-report-header\">";
@@ -2639,8 +2671,8 @@
       html += "</header>";
       html += "<div class=\"share-report-hero\">";
       html += "<div class=\"share-report-hero-media\">";
-      html += "<img class=\"share-report-illust\" src=\"" + shareProfileImageSrc(rule) + "\" alt=\""
-        + profileCodename(rule) + "\" width=\"200\" height=\"200\" decoding=\"async\">";
+      html += "<img class=\"share-report-illust\" src=\"" + heroSrc + "\" alt=\""
+        + profileCodename(rule) + "\" width=\"200\" height=\"200\" decoding=\"sync\">";
       html += renderShareDanmaku(checkLabels);
       html += "</div></div>";
       if (rule.hero_tagline || rule.subtitle) {
@@ -2655,7 +2687,7 @@
       }
       html += "<hr class=\"share-report-divider\">";
       html += renderShareReportMajors(combined);
-      html += renderShareReportFooter(shareTheme);
+      html += renderShareReportFooter(shareTheme, forCapture);
       html += "</div>";
       return html;
     }
@@ -2680,14 +2712,22 @@
     }
 
     async function generateShareCardImageUrl(payload) {
+      let heroSrc = shareProfileImageSrc(payload.rule);
+      try {
+        heroSrc = await preloadShareHeroDataUrl(payload.rule);
+      } catch (e) {
+        console.warn("hero preload failed, use direct src", e);
+      }
       const host = getShareCaptureHost();
-      host.innerHTML = renderShareReportCardHtml(payload);
+      host.classList.add("is-capturing");
+      host.innerHTML = renderShareReportCardHtml(payload, { heroSrc, forCapture: true });
       const card = host.querySelector(".share-report-card");
       if (!card) throw new Error("no card");
       try {
         const canvas = await captureShareCardCanvas(card);
         return canvas.toDataURL("image/png");
       } finally {
+        host.classList.remove("is-capturing");
         host.innerHTML = "";
       }
     }
@@ -2702,7 +2742,11 @@
       document.title = profileCodename(payload.rule) + " · 分享结果";
 
       try {
-        const dataUrl = await generateShareCardImageUrl(payload);
+        const dataUrl = await withTimeout(
+          generateShareCardImageUrl(payload),
+          20000,
+          "生成图片超时，请点重新生成"
+        );
         resultSection.innerHTML = renderShareImageResultView(payload, dataUrl);
         bindSharePageActions(payload, dataUrl);
         if (opts.updateUrl !== false) {
@@ -2719,8 +2763,17 @@
         resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (e) {
         console.error(e);
-        resultSection.innerHTML = "<div class=\"card result\"><p>生成分享图失败，请重试。</p>"
-          + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareImageBtn\">重新生成</button></div>";
+        const errMsg = e && e.message ? e.message : "生成分享图失败";
+        resultSection.innerHTML = "<div class=\"card result\"><p>" + errMsg + "。</p>"
+          + "<p style=\"font-size:0.88rem;color:#8b97ad;margin:8px 0 12px;\">微信内若反复失败，可点「查看全版分析」后截屏，或换 Safari/Chrome 打开。</p>"
+          + "<button type=\"button\" class=\"btn btn-primary\" id=\"retryShareImageBtn\">重新生成</button>"
+          + "<button type=\"button\" class=\"btn btn-outline\" id=\"fallbackFullBtn\" style=\"margin-top:8px;width:100%;\">查看全版分析</button></div>";
+        const fallbackFull = document.getElementById("fallbackFullBtn");
+        if (fallbackFull) {
+          fallbackFull.addEventListener("click", () => {
+            renderFullResultPage({ skipUrlUpdate: false, skipScroll: false });
+          });
+        }
         const retry = document.getElementById("retryShareImageBtn");
         if (retry) {
           retry.addEventListener("click", () => mountShareImageResultPage(payload, opts));
@@ -2970,6 +3023,7 @@
         if (!res.ok) throw new Error("fetch failed");
         config = await res.json();
         if (!config.questions || !config.questions.length) throw new Error("empty");
+        loadHtml2Canvas().catch(() => {});
         return true;
       } catch (e) {
         console.error(e);
