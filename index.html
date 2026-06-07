@@ -637,6 +637,12 @@
     .full-analysis-prompt-actions .btn {
       width: 100%;
     }
+    .full-analysis-prompt-step {
+      margin: 0 0 12px;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #6b7890;
+    }
     .full-analysis-prompt-divider {
       margin: 10px 0 4px;
       font-size: 0.78rem;
@@ -2167,8 +2173,8 @@
       }
       overlay.querySelector("img").src = dataUrl;
       overlay.querySelector(".share-image-preview-hint").textContent = isWeChatBrowser()
-        ? "长按下方图片保存到相册"
-        : "可长按或右键图片保存";
+        ? "长按下方图片保存到相册，保存后关闭并回到弹窗确认已分享"
+        : "保存图片后关闭，回到弹窗点击「我已分享到朋友圈」";
       overlay.classList.add("show");
     }
 
@@ -3688,8 +3694,10 @@
       let html = "<div class=\"full-analysis-prompt\" id=\"fullAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"fullAnalysisPromptTitle\" aria-hidden=\"true\">";
       html += "<div class=\"full-analysis-prompt-panel\">";
       html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">前500名可分享解锁完全版分析；也可 ￥5.99 付费直接解锁。</p>";
+      html += "<p class=\"full-analysis-prompt-step\" id=\"fullAnalysisStepHint\">请先保存分享图，再分享到朋友圈并确认。</p>";
       html += "<div class=\"full-analysis-prompt-actions\">";
-      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">分享解锁（分享图片到朋友圈）</button>";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">第一步：保存分享图</button>";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmSharedMomentsBtn\" hidden>我已分享到朋友圈，解锁完全版</button>";
       html += "<p class=\"full-analysis-prompt-divider\">或</p>";
       html += "<button type=\"button\" class=\"btn btn-outline\" id=\"stripeUnlockBtn\">￥5.99 付费解锁</button>";
       html += "</div></div></div>";
@@ -4178,9 +4186,35 @@
       const main = document.getElementById("fullResultMain");
       const prompt = document.getElementById("fullAnalysisPrompt");
       if (!main || !prompt || !main.classList.contains("is-locked")) return;
+      updateFullAnalysisPromptStep();
       prompt.setAttribute("aria-hidden", "false");
       document.body.classList.add("full-analysis-modal-open");
       requestAnimationFrame(() => prompt.classList.add("is-visible"));
+    }
+
+    function updateFullAnalysisPromptStep() {
+      const saveBtn = document.getElementById("confirmFullAnalysisBtn");
+      const sharedBtn = document.getElementById("confirmSharedMomentsBtn");
+      const stepHint = document.getElementById("fullAnalysisStepHint");
+      if (!saveBtn || !sharedBtn) return;
+      const saved = hasShareImageSaved();
+      if (saved) {
+        saveBtn.textContent = "重新保存分享图";
+        saveBtn.classList.remove("btn-primary");
+        saveBtn.classList.add("btn-outline");
+        sharedBtn.hidden = false;
+        if (stepHint) {
+          stepHint.textContent = "分享图已准备好。请发到朋友圈后，点击下方按钮解锁。";
+        }
+      } else {
+        saveBtn.textContent = "第一步：保存分享图";
+        saveBtn.classList.add("btn-primary");
+        saveBtn.classList.remove("btn-outline");
+        sharedBtn.hidden = true;
+        if (stepHint) {
+          stepHint.textContent = "请先保存分享图，再分享到朋友圈并确认。";
+        }
+      }
     }
 
     function markShareImageSaved() {
@@ -4217,33 +4251,50 @@
       }
     }
 
-    async function confirmFullAnalysisUnlock(payload) {
-      const confirmBtn = document.getElementById("confirmFullAnalysisBtn");
-      const confirmLabel = confirmBtn ? confirmBtn.textContent : "";
-      if (confirmBtn) {
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = hasShareImageSaved() ? "正在打开…" : "正在准备分享图…";
+    async function saveShareImageForUnlock(payload) {
+      const saveBtn = document.getElementById("confirmFullAnalysisBtn");
+      const saveLabel = saveBtn ? saveBtn.textContent : "";
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = hasShareImageSaved() ? "正在打开…" : "正在准备分享图…";
       }
       try {
-        if (!hasShareImageSaved()) {
-          const mode = await downloadShareResultImage(payload, getShareImageSrc(null));
-          markShareImageSaved();
-          if (mode === "preview") {
-            showShareActionTip(isWeChatBrowser() ? "请保存图片并分享到朋友圈，完全版分析已解锁" : "请保存图片并分享到朋友圈，完全版分析已解锁");
-          } else {
-            showShareActionTip("图片已保存，完全版分析已解锁");
-          }
+        const mode = await downloadShareResultImage(payload, getShareImageSrc(null));
+        markShareImageSaved();
+        updateFullAnalysisPromptStep();
+        if (mode === "preview") {
+          showShareActionTip(isWeChatBrowser()
+            ? "请长按图片保存到相册，保存后回来确认已分享"
+            : "请保存图片后，回来点击「我已分享到朋友圈」");
+        } else {
+          showShareActionTip("图片已保存，分享到朋友圈后点击下方确认解锁");
         }
-        unlockFullAnalysis();
       } catch (e) {
         console.error(e);
         showShareActionTip(e && e.message ? e.message : "分享图准备失败，请重试");
       } finally {
-        if (confirmBtn) {
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = confirmLabel;
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          if (hasShareImageSaved()) {
+            updateFullAnalysisPromptStep();
+          } else {
+            saveBtn.textContent = saveLabel;
+          }
         }
       }
+    }
+
+    function confirmSharedAndUnlock() {
+      if (!hasShareImageSaved()) {
+        showShareActionTip("请先保存分享图");
+        updateFullAnalysisPromptStep();
+        return;
+      }
+      const sharedBtn = document.getElementById("confirmSharedMomentsBtn");
+      if (sharedBtn) sharedBtn.disabled = true;
+      unlockFullAnalysis();
+      showShareActionTip("完全版分析已解锁");
+      if (sharedBtn) sharedBtn.disabled = false;
     }
 
     function scrollToFullAnalysisGate() {
@@ -4269,6 +4320,7 @@
       const main = document.getElementById("fullResultMain");
       const guard = document.getElementById("fullAnalysisGuard");
       let confirmBtn = document.getElementById("confirmFullAnalysisBtn");
+      let sharedBtn = document.getElementById("confirmSharedMomentsBtn");
       let stripeBtn = document.getElementById("stripeUnlockBtn");
       if (!main || !guard) return;
 
@@ -4295,9 +4347,18 @@
       if (confirmBtn) {
         confirmBtn = replaceNodeForBind(confirmBtn);
         confirmBtn.addEventListener("click", () => {
-          confirmFullAnalysisUnlock(payload).catch((err) => console.error(err));
+          saveShareImageForUnlock(payload).catch((err) => console.error(err));
         });
       }
+
+      if (sharedBtn) {
+        sharedBtn = replaceNodeForBind(sharedBtn);
+        sharedBtn.addEventListener("click", () => {
+          confirmSharedAndUnlock();
+        });
+      }
+
+      updateFullAnalysisPromptStep();
 
       if (stripeBtn) {
         stripeBtn = replaceNodeForBind(stripeBtn);
