@@ -1725,8 +1725,9 @@
     const BETA_UNLOCK_SECRET = "zybt-inner2026";
     const BETA_UNLOCK_SESSION_KEY = "majorTestBetaUnlock";
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
-    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q11:";
+    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q13:";
     let shareImageGenerationPromise = null;
+    let shareImageGenerationToken = 0;
     const ANSWER_CODEC_VERSION = "1";
     const SHARE_SITE_URL = "https://major.voce.chat";
 
@@ -1833,32 +1834,65 @@
       }
     }
 
-    function getShareImageCacheKey(payload) {
+    function getPayloadPrimaryId(payload) {
+      if (!payload) return "";
+      if (payload.primary && payload.primary.rule) return payload.primary.rule.id || "";
+      if (payload.rule) return payload.rule.id || "";
+      return "";
+    }
+
+    function getShareAnswerCacheBase(payload) {
       try {
         return serializeAnswersToParam();
       } catch (e) {
-        return payload && payload.rule && payload.rule.codename_en;
+        return payload && payload.rule ? payload.rule.codename_en : "";
       }
     }
 
-    function readShareImageCache(key) {
+    function getShareImageCacheKey(payload) {
+      const base = getShareAnswerCacheBase(payload);
+      const primaryId = getPayloadPrimaryId(payload);
+      return primaryId ? base + ":" + primaryId : base;
+    }
+
+    function clearShareImageCacheForAnswers(answerBase) {
+      if (!answerBase) return;
+      try {
+        const remove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (!key || key.indexOf("majorTestShareImg:") !== 0) continue;
+          if (key.indexOf(answerBase) >= 0) remove.push(key);
+        }
+        remove.forEach((key) => sessionStorage.removeItem(key));
+      } catch (e) { /* ignore */ }
+    }
+
+    function readShareImageCache(key, payload) {
       if (!key) return null;
       try {
         const raw = sessionStorage.getItem(SHARE_IMG_CACHE_PREFIX + key);
         if (!raw) return null;
         const data = JSON.parse(raw);
-        if (data && data.dataUrl) return data;
+        if (!data || !data.dataUrl) return null;
+        const expectedPrimary = getPayloadPrimaryId(payload);
+        if (expectedPrimary && data.primaryId && data.primaryId !== expectedPrimary) {
+          sessionStorage.removeItem(SHARE_IMG_CACHE_PREFIX + key);
+          return null;
+        }
+        return data;
       } catch (e) { /* ignore */ }
       return null;
     }
 
-    function writeShareImageCache(key, exportResult) {
+    function writeShareImageCache(key, exportResult, payload) {
       if (!key || !exportResult || !exportResult.dataUrl) return;
       try {
         sessionStorage.setItem(SHARE_IMG_CACHE_PREFIX + key, JSON.stringify({
           dataUrl: exportResult.dataUrl,
           width: exportResult.width,
-          height: exportResult.height
+          height: exportResult.height,
+          primaryId: getPayloadPrimaryId(payload)
         }));
       } catch (e) {
         console.warn("share image cache skipped", e);
@@ -3517,6 +3551,22 @@
       } catch (e) {
         return false;
       }
+      if (data.v) {
+        const parsed = parseAnswersParam(data.v);
+        if (parsed) {
+          applyAnswersObject(parsed);
+          const payload = buildResultPayload();
+          clearShareImageCacheForAnswers(getShareAnswerCacheBase(payload));
+          const backUrl = location.pathname + "?v=" + encodeURIComponent(data.v);
+          await mountFullResultPage(payload, {
+            skipSave: false,
+            skipUrlUpdate: false,
+            url: backUrl,
+            skipScroll: false
+          });
+          return true;
+        }
+      }
       const payload = restoreFullResultPayload(data);
       if (!payload) return false;
       const backUrl = data.v
@@ -3827,7 +3877,7 @@
     }
 
     function startShareImageGeneration(payload) {
-      if (shareImageGenerationPromise) return shareImageGenerationPromise;
+      const token = ++shareImageGenerationToken;
       const top = document.getElementById("shareResultTop");
       if (top) {
         top.classList.add("is-generating");
@@ -3845,18 +3895,22 @@
       }
       shareImageGenerationPromise = runShareImageGeneration(payload)
         .then((exportResult) => {
+          if (token !== shareImageGenerationToken) return exportResult;
           if (!applyShareImageToTop(payload, exportResult)) {
             throw new Error("分享图容器未就绪");
           }
           return exportResult;
         })
         .catch((e) => {
+          if (token !== shareImageGenerationToken) throw e;
           console.error(e);
           showShareImageTopError(payload, e && e.message ? e.message : "生成分享图失败");
           throw e;
         })
         .finally(() => {
-          shareImageGenerationPromise = null;
+          if (token === shareImageGenerationToken) {
+            shareImageGenerationPromise = null;
+          }
         });
       return shareImageGenerationPromise;
     }
@@ -4302,7 +4356,7 @@
 
     async function generateShareCardImageUrl(payload) {
       const cacheKey = getShareImageCacheKey(payload);
-      const cachedExport = readShareImageCache(cacheKey);
+      const cachedExport = readShareImageCache(cacheKey, payload);
       if (cachedExport) return cachedExport;
 
       const shareTheme = shareThemeForRule(payload.rule);
@@ -4343,7 +4397,7 @@
           const canvas = await composeShareCardCanvas2d(payload, heroSrc, qrSrc);
           exportResult = canvasToShareExport(canvas);
         }
-        writeShareImageCache(cacheKey, exportResult);
+        writeShareImageCache(cacheKey, exportResult, payload);
         return exportResult;
       } finally {
         host.classList.remove("is-capturing");
@@ -4595,7 +4649,9 @@
       const parsed = parseAnswersParam(vRaw);
       if (!parsed) return false;
       applyAnswersObject(parsed);
-      await mountFullResultPage(buildResultPayload(), { skipUrlUpdate: true, skipScroll: false });
+      const payload = buildResultPayload();
+      clearShareImageCacheForAnswers(getShareAnswerCacheBase(payload));
+      await mountFullResultPage(payload, { skipUrlUpdate: true, skipScroll: false });
       return true;
     }
 
@@ -4631,6 +4687,7 @@
         if (parsed) {
           applyAnswersObject(parsed);
           const full = buildResultPayload();
+          clearShareImageCacheForAnswers(getShareAnswerCacheBase(full));
           saveFullResultSession(full);
           await mountFullResultPage(full, {
             skipUrlUpdate: false,
