@@ -21,6 +21,9 @@ const VOCECHAT_BOT_API_KEY_PAY =
 /** 内测 beta 链接测完通知 */
 const VOCECHAT_BOT_API_KEY_BETA =
   "a76eadb1f6d5359e2faf973cefe46c70f7185bedb6d0d52b1d61eab142b36de37b22756964223a3433363738352c226e6f6e6365223a22712f574f47555461496d6f414141414146634677464378464b70424563376168227d";
+/** 解锁留资、学校分析留资 */
+const VOCECHAT_BOT_API_KEY_LEAD =
+  "50191cf5faacbdb12f6da2ebeebcd28c391b99d4057c8894a33952d166a2f9327b22756964223a3433373038312c226e6f6e6365223a22454c4d614a5777704a6d6f41414141416647704f4b33524c592f587a77753658227d";
 /** Admin inbox: new completions are pushed here (no prompt to the test taker). */
 const VOCECHAT_NOTIFY_UID = "394719";
 const DEFAULT_TEST_UID = VOCECHAT_NOTIFY_UID;
@@ -42,6 +45,10 @@ function getApiKey(profile) {
   if (kind === "beta") {
     const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY_BETA;
     return fromEnv || VOCECHAT_BOT_API_KEY_BETA;
+  }
+  if (kind === "lead") {
+    const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY_LEAD;
+    return fromEnv || VOCECHAT_BOT_API_KEY_LEAD;
   }
   const fromEnv = typeof process !== "undefined" && process.env && process.env.VOCECHAT_BOT_API_KEY;
   return fromEnv || VOCECHAT_BOT_API_KEY;
@@ -188,6 +195,25 @@ function appendMetaNotifyLines(lines, meta) {
   pushNotifyLine(lines, "UA", meta.userAgent);
 }
 
+/** 留资通知：联系方式与地理位置优先展示 */
+function appendLeadContactLines(lines, lead, meta, opts) {
+  const options = opts || {};
+  pushNotifyLine(lines, "联系方式", lead.contact);
+  pushNotifyLine(lines, "填写省份", lead.province);
+  pushNotifyLine(lines, "目标学校层级", lead.schoolLevel);
+  pushNotifyLine(lines, "地理位置", meta && meta.location);
+  pushNotifyLine(lines, "IP", meta && meta.ip);
+  pushNotifyLine(lines, "时区", meta && meta.timezone);
+  pushNotifyLine(lines, "本地时间", meta && meta.completedAtLocal);
+  if (options.unlockMethod) {
+    pushNotifyLine(
+      lines,
+      "解锁方式",
+      options.unlockMethod === "stripe" ? "付费解锁" : "分享解锁"
+    );
+  }
+}
+
 /**
  * Browser-only metadata (no permission prompts).
  * @param {object} [opts]
@@ -309,17 +335,12 @@ function formatStripePayClickNotifyMarkdown(payload, meta, opts) {
 function formatUnlockLeadSubmitNotifyMarkdown(payload, meta, opts) {
   const options = opts || {};
   const lead = options.lead || {};
-  const lines = ["- 通知：用户提交解锁信息"];
-  pushNotifyLine(
-    lines,
-    "解锁方式",
-    options.unlockMethod === "stripe" ? "付费解锁" : "分享解锁"
-  );
-  pushNotifyLine(lines, "省份", lead.province);
-  pushNotifyLine(lines, "目标学校层级", lead.schoolLevel);
-  pushNotifyLine(lines, "联系方式", lead.contact);
+  const lines = ["- 通知：用户提交解锁留资"];
+  appendLeadContactLines(lines, lead, meta, options);
+  lines.push("- ---");
   appendResultNotifyLines(lines, payload, options);
-  appendMetaNotifyLines(lines, meta);
+  pushNotifyLine(lines, "页面", meta && meta.pageUrl);
+  pushNotifyLine(lines, "来源", meta && meta.referrer);
   return lines.join("\n");
 }
 
@@ -327,11 +348,11 @@ function formatSchoolAnalysisLeadNotifyMarkdown(payload, meta, opts) {
   const options = opts || {};
   const lead = options.lead || {};
   const lines = ["- 通知：用户申请专业高报免费分析"];
-  pushNotifyLine(lines, "省份", lead.province);
-  pushNotifyLine(lines, "目标学校层级", lead.schoolLevel);
-  pushNotifyLine(lines, "联系方式", lead.contact);
+  appendLeadContactLines(lines, lead, meta, options);
+  lines.push("- ---");
   appendResultNotifyLines(lines, payload, options);
-  appendMetaNotifyLines(lines, meta);
+  pushNotifyLine(lines, "页面", meta && meta.pageUrl);
+  pushNotifyLine(lines, "来源", meta && meta.referrer);
   return lines.join("\n");
 }
 
@@ -442,7 +463,8 @@ async function notifyUnlockLeadSubmit(payload, opts) {
   const markdown = formatUnlockLeadSubmitNotifyMarkdown(payload, meta, options);
   const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
   await sendMarkdownToUser(uid, markdown, {
-    keepalive: !!options.keepalive
+    keepalive: !!options.keepalive,
+    apiKeyProfile: "lead"
   });
   return { sent: true, uid };
 }
@@ -458,7 +480,8 @@ async function notifySchoolAnalysisLeadSubmit(payload, opts) {
   const markdown = formatSchoolAnalysisLeadNotifyMarkdown(payload, meta, options);
   const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
   await sendMarkdownToUser(uid, markdown, {
-    keepalive: !!options.keepalive
+    keepalive: !!options.keepalive,
+    apiKeyProfile: "lead"
   });
   return { sent: true, uid };
 }
@@ -493,6 +516,7 @@ const exportApi = {
   VOCECHAT_BOT_API_KEY,
   VOCECHAT_BOT_API_KEY_PAY,
   VOCECHAT_BOT_API_KEY_BETA,
+  VOCECHAT_BOT_API_KEY_LEAD,
   VOCECHAT_NOTIFY_UID,
   sendToUser,
   sendTextToUser,

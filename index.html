@@ -645,6 +645,13 @@
       color: #8b97ad;
       font-weight: 600;
     }
+    .full-analysis-prompt-step {
+      margin: 0 0 14px;
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: #6b7890;
+      text-align: left;
+    }
     .full-analysis-lead-form {
       text-align: left;
       margin: 0 0 14px;
@@ -1677,7 +1684,7 @@
       .result-actions-share .result-actions-row .btn { font-size: 0.82rem; padding: 12px 10px; }
     }
   </style>
-  <link rel="preload" href="./assets/stamp-gaokao-2026.png" as="image">
+  <link rel="preload" href="./assets/stamp-new.jpg" as="image">
   <link rel="preload" href="./assets/html2canvas.min.js" as="script">
   <script src="./assets/html2canvas.min.js" defer></script>
 </head>
@@ -1833,7 +1840,7 @@
       "Yunnan": "云南",
       "Zhejiang": "浙江"
     };
-    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q13:";
+    const SHARE_IMG_CACHE_PREFIX = "majorTestShareImg:q14:";
     let shareImageGenerationPromise = null;
     let shareImageGenerationToken = 0;
     const ANSWER_CODEC_VERSION = "1";
@@ -2177,7 +2184,7 @@
     }
 
     const SHARE_QR_FALLBACK_SRC = "./assets/qr-major-voce.png";
-    const SHARE_STAMP_SRC = "./assets/stamp-gaokao-2026.png";
+    const SHARE_STAMP_SRC = "./assets/stamp-new.jpg";
     const SHARE_STAMP_DISPLAY_SIZE = 92;
     let shareStampReadyPromise = null;
 
@@ -3643,6 +3650,138 @@
       } catch (e) {
         console.warn(e);
       }
+    }
+
+    function readSavedFullResultSession() {
+      try {
+        const raw = sessionStorage.getItem(FULL_RESULT_SESSION_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== "object") return null;
+        if (!data.p && !data.v) return null;
+        return data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function hasRestorableFullResultSession() {
+      const data = readSavedFullResultSession();
+      if (!data) return false;
+      if (data.v) return true;
+      return !!(data.p && (config.profile_rules || []).some((r) => r.id === data.p));
+    }
+
+    function discardSavedResultForNewTest() {
+      try {
+        sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
+        sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
+        sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
+        sessionStorage.removeItem(UNLOCK_LEAD_NOTIFIED_KEY);
+        sessionStorage.removeItem(UNLOCK_LEAD_SESSION_KEY);
+      } catch (e) { /* ignore */ }
+    }
+
+    function ensureResumeResultPromptOnBody() {
+      let prompt = document.getElementById("resumeResultPrompt");
+      if (prompt) return prompt;
+      prompt = document.createElement("div");
+      prompt.id = "resumeResultPrompt";
+      prompt.className = "full-analysis-prompt";
+      prompt.setAttribute("role", "dialog");
+      prompt.setAttribute("aria-modal", "true");
+      prompt.setAttribute("aria-labelledby", "resumeResultPromptTitle");
+      prompt.setAttribute("aria-hidden", "true");
+      prompt.innerHTML = "<div class=\"full-analysis-prompt-panel\">"
+        + "<p class=\"full-analysis-prompt-text\" id=\"resumeResultPromptTitle\">检测到你有上次完成的测试结果</p>"
+        + "<p class=\"full-analysis-prompt-step\" id=\"resumeResultPromptDesc\">要查看上次的结果页，还是重新开始一次新测试？若上次已解锁完全版，会继续保留解锁状态。</p>"
+        + "<p class=\"full-analysis-lead-error\" id=\"resumeResultPromptError\" role=\"alert\"></p>"
+        + "<div class=\"full-analysis-prompt-actions\">"
+        + "<button type=\"button\" class=\"btn btn-primary\" id=\"resumeResultViewBtn\">查看上次结果</button>"
+        + "<button type=\"button\" class=\"btn btn-outline\" id=\"resumeNewTestBtn\">开始新测试</button>"
+        + "</div></div>";
+      document.body.appendChild(prompt);
+      return prompt;
+    }
+
+    function hideResumeResultPrompt() {
+      const prompt = document.getElementById("resumeResultPrompt");
+      if (!prompt) return;
+      prompt.classList.remove("is-visible");
+      prompt.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("full-analysis-modal-open");
+    }
+
+    function showResumeResultPrompt(options) {
+      const opts = options || {};
+      const prompt = ensureResumeResultPromptOnBody();
+      const errorEl = document.getElementById("resumeResultPromptError");
+      if (errorEl) errorEl.textContent = opts.error || "";
+      prompt.setAttribute("aria-hidden", "false");
+      document.body.classList.add("full-analysis-modal-open");
+      requestAnimationFrame(() => prompt.classList.add("is-visible"));
+    }
+
+    function initResumeResultPrompt() {
+      ensureResumeResultPromptOnBody();
+      let viewBtn = document.getElementById("resumeResultViewBtn");
+      let newBtn = document.getElementById("resumeNewTestBtn");
+      if (viewBtn) {
+        viewBtn = replaceNodeForBind(viewBtn);
+        viewBtn.addEventListener("click", () => {
+          resumeSavedResultView().catch((err) => console.error(err));
+        });
+      }
+      if (newBtn) {
+        newBtn = replaceNodeForBind(newBtn);
+        newBtn.addEventListener("click", () => {
+          beginFreshTestFromResume();
+        });
+      }
+    }
+
+    async function resumeSavedResultView() {
+      const viewBtn = document.getElementById("resumeResultViewBtn");
+      const viewLabel = viewBtn ? viewBtn.textContent : "";
+      if (viewBtn) {
+        viewBtn.disabled = true;
+        viewBtn.textContent = "正在打开…";
+      }
+      try {
+        const ok = await restoreFullResultView();
+        if (!ok) {
+          discardSavedResultForNewTest();
+          if (viewBtn) {
+            viewBtn.disabled = false;
+            viewBtn.textContent = viewLabel;
+          }
+          showResumeResultPrompt({ error: "上次结果已失效，请重新开始测试" });
+          return;
+        }
+        hideResumeResultPrompt();
+      } finally {
+        if (viewBtn) {
+          viewBtn.disabled = false;
+          viewBtn.textContent = viewLabel;
+        }
+      }
+    }
+
+    function beginFreshTestFromResume() {
+      hideResumeResultPrompt();
+      discardSavedResultForNewTest();
+      if (!config) return;
+      preloadSharePipeline();
+      currentIndex = 0;
+      config.questions.forEach((q) => initAnswerForQuestion(q));
+      document.body.classList.remove("result-view", "share-view", "full-analysis-modal-open");
+      document.body.classList.add("quiz-view");
+      removeLeadPromptsFromDom();
+      resultSection.classList.add("hidden");
+      resultSection.innerHTML = "";
+      quizSection.classList.remove("hidden");
+      renderQuestion();
+      quizSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     async function restoreFullResultView() {
@@ -5274,6 +5413,7 @@
       document.body.classList.remove("result-view", "full-analysis-modal-open");
       document.body.classList.add("quiz-view");
       removeLeadPromptsFromDom();
+      hideResumeResultPrompt();
       try {
         sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
         sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
@@ -5309,6 +5449,7 @@
 
     startBtn.addEventListener("click", () => {
       if (!config) return;
+      discardSavedResultForNewTest();
       preloadSharePipeline();
       currentIndex = 0;
       config.questions.forEach((q) => initAnswerForQuestion(q));
@@ -5399,6 +5540,10 @@
       renderHero();
       startBtn.disabled = false;
       startBtn.textContent = "开始测试";
+      initResumeResultPrompt();
+      if (hasRestorableFullResultSession()) {
+        showResumeResultPrompt();
+      }
     })();
   </script>
 </body>
