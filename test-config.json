@@ -60,7 +60,7 @@
       "options": [
         {
           "id": "student",
-          "text": "学生",
+          "text": "高考生",
           "scores": {}
         },
         {
@@ -72,7 +72,7 @@
         },
         {
           "id": "other",
-          "text": "其他",
+          "text": "社会人",
           "scores": {}
         }
       ]

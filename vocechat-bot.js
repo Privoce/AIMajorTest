@@ -306,6 +306,23 @@ function formatStripePayClickNotifyMarkdown(payload, meta, opts) {
   return lines.join("\n");
 }
 
+function formatUnlockLeadSubmitNotifyMarkdown(payload, meta, opts) {
+  const options = opts || {};
+  const lead = options.lead || {};
+  const lines = ["- 通知：用户提交解锁信息"];
+  pushNotifyLine(
+    lines,
+    "解锁方式",
+    options.unlockMethod === "stripe" ? "付费解锁" : "分享解锁"
+  );
+  pushNotifyLine(lines, "省份", lead.province);
+  pushNotifyLine(lines, "目标学校层级", lead.schoolLevel);
+  pushNotifyLine(lines, "联系方式", lead.contact);
+  appendResultNotifyLines(lines, payload, options);
+  appendMetaNotifyLines(lines, meta);
+  return lines.join("\n");
+}
+
 function markNotifyFlag(prefix, dedupeKey) {
   if (typeof sessionStorage === "undefined" || !dedupeKey) return;
   try {
@@ -402,6 +419,22 @@ async function notifyStripePayClick(payload, opts) {
   return { sent: true, uid };
 }
 
+/**
+ * Notify admin when the user submits unlock lead info before unlocking.
+ */
+async function notifyUnlockLeadSubmit(payload, opts) {
+  const options = opts || {};
+  const meta = options.keepalive
+    ? collectClientMetaSync()
+    : await collectClientMeta();
+  const markdown = formatUnlockLeadSubmitNotifyMarkdown(payload, meta, options);
+  const uid = options.notifyUid != null ? options.notifyUid : VOCECHAT_NOTIFY_UID;
+  await sendMarkdownToUser(uid, markdown, {
+    keepalive: !!options.keepalive
+  });
+  return { sent: true, uid };
+}
+
 async function main(argv) {
   const args = argv.slice(2);
   const command = args[0] || "test";
@@ -444,10 +477,12 @@ const exportApi = {
   formatBetaTestCompletionNotifyMarkdown,
   formatImageSavedNotifyMarkdown,
   formatStripePayClickNotifyMarkdown,
+  formatUnlockLeadSubmitNotifyMarkdown,
   notifyTestCompletion,
   notifyBetaTestCompletion,
   notifyTestImageSaved,
   notifyStripePayClick,
+  notifyUnlockLeadSubmit,
   collectClientMetaSync,
   getApiKey,
   getBaseUrl
