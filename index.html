@@ -1433,6 +1433,9 @@
       border: 1px solid #cfe0f8;
       background: linear-gradient(135deg, #f0f7ff 0%, #eefaf8 100%);
     }
+    .cta-guide + .cta-guide {
+      margin-top: 12px;
+    }
     .cta-guide h4 {
       font-size: 0.95rem;
       color: #36435f;
@@ -1445,7 +1448,8 @@
       margin-bottom: 12px;
       line-height: 1.5;
     }
-    .cta-guide .btn-cta {
+    .cta-guide .btn-cta,
+    .cta-guide button.btn-cta {
       display: inline-block;
       text-decoration: none;
       background: linear-gradient(120deg, #2f8fef 0%, #1ab8c4 100%);
@@ -1457,8 +1461,12 @@
       font-size: 0.92rem;
       box-shadow: 0 4px 14px rgba(47, 143, 239, 0.28);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
     }
-    .cta-guide .btn-cta:hover {
+    .cta-guide .btn-cta:hover,
+    .cta-guide button.btn-cta:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(47, 143, 239, 0.35);
     }
@@ -1779,6 +1787,7 @@
     const SHARE_IMAGE_SAVED_KEY = "majorTestShareImageSaved";
     const UNLOCK_LEAD_SESSION_KEY = "majorTestUnlockLead";
     const UNLOCK_LEAD_NOTIFIED_KEY = "majorTestUnlockLeadNotified";
+    const SCHOOL_ANALYSIS_NOTIFIED_KEY = "majorTestSchoolAnalysisNotified";
     const UNLOCK_LEAD_PROVINCE_PREFILL_KEY = "majorTestUnlockProvincePrefill";
     const UNLOCK_SCHOOL_LEVEL_OPTIONS = ["985", "211", "普通一本", "二本", "二本以下", "暂不确定"];
     const SCORE_LEVEL_TO_SCHOOL_LEVEL = {
@@ -3755,6 +3764,11 @@
       html += "<p class=\"cta-price\">价格 <s>199元</s>，现在 30 分钟咨询仅需 <strong>99元</strong></p>";
       html += "<a class=\"btn-cta\" href=\"https://ai.voce.chat\" target=\"_blank\" rel=\"noopener noreferrer\">AI联系学长学姐进行一对一匹配</a>";
       html += "</div>";
+      html += "<div class=\"cta-guide\">";
+      html += "<h4>如何选择学校？</h4>";
+      html += "<p>专业高报老师帮你分析测试结果（免费分析）</p>";
+      html += "<button type=\"button\" class=\"btn-cta\" id=\"schoolAnalysisBtn\">免费获取学校选择分析</button>";
+      html += "</div>";
       if (consultants.length) {
         consultants.forEach((c) => {
           html += "<div class=\"consultant-card\"><strong>" + c.name + " · " + c.school + " · " + c.major + "</strong>";
@@ -3779,7 +3793,7 @@
       html += "</div>";
       html += "<div class=\"full-analysis-guard\" id=\"fullAnalysisGuard\">";
       html += "<div class=\"full-analysis-fade\" aria-hidden=\"true\"></div>";
-      html += "</div>";
+      html += "</div></div>";
       return html;
     }
 
@@ -3790,7 +3804,8 @@
 
     function requiresUnlockLeadForm() {
       const id = getIdentityChoiceId();
-      return id === "student" || id === "parent";
+      if (id === "other") return false;
+      return true;
     }
 
     function resolveUnlockSchoolLevelDefault() {
@@ -3799,6 +3814,25 @@
         return SCORE_LEVEL_TO_SCHOOL_LEVEL[scoreId];
       }
       return "二本";
+    }
+
+    function renderLeadCaptureFormHtml(prefix) {
+      const defaultSchoolLevel = resolveUnlockSchoolLevelDefault();
+      let html = "<form class=\"full-analysis-lead-form\" id=\"" + prefix + "LeadForm\" novalidate>";
+      html += "<div class=\"full-analysis-lead-field\"><label for=\"" + prefix + "Province\">省份</label>";
+      html += "<input type=\"text\" id=\"" + prefix + "Province\" name=\"province\" autocomplete=\"address-level1\" placeholder=\"如：广东\"></div>";
+      html += "<div class=\"full-analysis-lead-field\"><label for=\"" + prefix + "SchoolLevel\">目标学校层级</label>";
+      html += "<select id=\"" + prefix + "SchoolLevel\" name=\"schoolLevel\">";
+      html += "<option value=\"\" disabled>请选择目标学校层级</option>";
+      UNLOCK_SCHOOL_LEVEL_OPTIONS.forEach((opt) => {
+        html += "<option value=\"" + opt + "\"" + (opt === defaultSchoolLevel ? " selected" : "") + ">" + opt + "</option>";
+      });
+      html += "</select></div>";
+      html += "<div class=\"full-analysis-lead-field\"><label for=\"" + prefix + "Contact\">微信号 / 手机号</label>";
+      html += "<input type=\"text\" id=\"" + prefix + "Contact\" name=\"contact\" inputmode=\"text\" autocomplete=\"tel\" placeholder=\"会发送给你学校+专业的免费解析\"></div>";
+      html += "<p class=\"full-analysis-lead-error\" id=\"" + prefix + "LeadError\" role=\"alert\"></p>";
+      html += "</form>";
+      return html;
     }
 
     function renderFullAnalysisPromptHtml() {
@@ -3811,26 +3845,23 @@
           : "前500名可分享解锁完全版分析；也可 ￥5.99 付费直接解锁。")
         + "</p>";
       if (withLeadForm) {
-        html += "<form class=\"full-analysis-lead-form\" id=\"fullAnalysisLeadForm\" novalidate>";
-        html += "<div class=\"full-analysis-lead-field\"><label for=\"fullAnalysisProvince\">省份</label>";
-        html += "<input type=\"text\" id=\"fullAnalysisProvince\" name=\"province\" autocomplete=\"address-level1\" placeholder=\"如：广东\"></div>";
-        html += "<div class=\"full-analysis-lead-field\"><label for=\"fullAnalysisSchoolLevel\">目标学校层级</label>";
-        html += "<select id=\"fullAnalysisSchoolLevel\" name=\"schoolLevel\">";
-        html += "<option value=\"\" disabled>请选择目标学校层级</option>";
-        const defaultSchoolLevel = resolveUnlockSchoolLevelDefault();
-        UNLOCK_SCHOOL_LEVEL_OPTIONS.forEach((opt) => {
-          html += "<option value=\"" + opt + "\"" + (opt === defaultSchoolLevel ? " selected" : "") + ">" + opt + "</option>";
-        });
-        html += "</select></div>";
-        html += "<div class=\"full-analysis-lead-field\"><label for=\"fullAnalysisContact\">微信号 / 手机号</label>";
-        html += "<input type=\"text\" id=\"fullAnalysisContact\" name=\"contact\" inputmode=\"text\" autocomplete=\"tel\" placeholder=\"会发送给你学校+专业的免费解析\"></div>";
-        html += "<p class=\"full-analysis-lead-error\" id=\"fullAnalysisLeadError\" role=\"alert\"></p>";
-        html += "</form>";
+        html += renderLeadCaptureFormHtml("fullAnalysis");
       }
       html += "<div class=\"full-analysis-prompt-actions\">";
       html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">分享解锁（分享图片到朋友圈）</button>";
       html += "<p class=\"full-analysis-prompt-divider\">或</p>";
       html += "<button type=\"button\" class=\"btn btn-outline\" id=\"stripeUnlockBtn\">￥5.99 付费解锁</button>";
+      html += "</div></div></div>";
+      return html;
+    }
+
+    function renderSchoolAnalysisPromptHtml() {
+      let html = "<div class=\"full-analysis-prompt\" id=\"schoolAnalysisPrompt\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"schoolAnalysisPromptTitle\" aria-hidden=\"true\">";
+      html += "<div class=\"full-analysis-prompt-panel\">";
+      html += "<p class=\"full-analysis-prompt-text\" id=\"schoolAnalysisPromptTitle\">填写信息，专业高报老师将为你免费分析测试结果</p>";
+      html += renderLeadCaptureFormHtml("schoolAnalysis");
+      html += "<div class=\"full-analysis-prompt-actions\">";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"schoolAnalysisSubmitBtn\">提交</button>";
       html += "</div></div></div>";
       return html;
     }
@@ -4112,7 +4143,7 @@
     function renderFullResultPageHtml(payload, topHtml) {
       const top = topHtml || renderShareTopGeneratingHtml(payload);
       return "<div class=\"full-result-stack\">" + top + renderFullResultSections(payload)
-        + renderFullAnalysisPromptHtml() + "</div>";
+        + renderFullAnalysisPromptHtml() + renderSchoolAnalysisPromptHtml() + "</div>";
     }
 
     function renderResultBootScreen(message) {
@@ -4122,10 +4153,20 @@
 
     let fullAnalysisGateObserver = null;
 
+    function getFullAnalysisUnlockToken() {
+      try {
+        return serializeAnswersToParam();
+      } catch (e) {
+        return "";
+      }
+    }
+
     function isFullAnalysisUnlocked() {
       try {
-        return sessionStorage.getItem(FULL_ANALYSIS_UNLOCK_KEY) === "1"
-          || sessionStorage.getItem(BETA_UNLOCK_SESSION_KEY) === "1";
+        if (sessionStorage.getItem(BETA_UNLOCK_SESSION_KEY) === "1") return true;
+        const token = getFullAnalysisUnlockToken();
+        if (!token) return false;
+        return sessionStorage.getItem(FULL_ANALYSIS_UNLOCK_KEY) === token;
       } catch (e) {
         return false;
       }
@@ -4143,7 +4184,8 @@
       if (params.get(BETA_UNLOCK_PARAM) !== BETA_UNLOCK_SECRET) return false;
       try {
         sessionStorage.setItem(BETA_UNLOCK_SESSION_KEY, "1");
-        sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
+        const token = getFullAnalysisUnlockToken();
+        if (token) sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, token);
       } catch (e) { /* ignore */ }
       params.delete(BETA_UNLOCK_PARAM);
       const qs = params.toString();
@@ -4267,7 +4309,8 @@
         try {
           sessionStorage.removeItem(STRIPE_PAY_PENDING_KEY);
           sessionStorage.removeItem(STRIPE_PAY_CANCEL_FLAG_KEY);
-          sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
+          const token = getFullAnalysisUnlockToken();
+          if (token) sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, token);
         } catch (e) { /* ignore */ }
         stripStripePayParamsFromUrl();
         return { restored: true, unlocked: true, canceled: false };
@@ -4295,21 +4338,25 @@
       }
     }
 
-    function ensureFullAnalysisPromptOnBody() {
-      const prompt = document.getElementById("fullAnalysisPrompt");
-      if (prompt && prompt.parentElement !== document.body) {
-        document.body.appendChild(prompt);
-      }
+    function ensureLeadPromptsOnBody() {
+      ["fullAnalysisPrompt", "schoolAnalysisPrompt"].forEach((id) => {
+        const prompt = document.getElementById(id);
+        if (prompt && prompt.parentElement !== document.body) {
+          document.body.appendChild(prompt);
+        }
+      });
     }
 
-    function removeFullAnalysisPromptFromDom() {
-      const prompt = document.getElementById("fullAnalysisPrompt");
-      if (prompt) prompt.remove();
+    function removeLeadPromptsFromDom() {
+      ["fullAnalysisPrompt", "schoolAnalysisPrompt"].forEach((id) => {
+        const prompt = document.getElementById(id);
+        if (prompt) prompt.remove();
+      });
       document.body.classList.remove("full-analysis-modal-open");
     }
 
-    function hideFullAnalysisPrompt(animate) {
-      const prompt = document.getElementById("fullAnalysisPrompt");
+    function hideLeadPrompt(promptId, animate) {
+      const prompt = document.getElementById(promptId);
       if (!prompt) return;
       prompt.classList.remove("is-visible");
       document.body.classList.remove("full-analysis-modal-open");
@@ -4318,38 +4365,67 @@
       }
     }
 
-    function showFullAnalysisPrompt() {
-      const main = document.getElementById("fullResultMain");
-      const prompt = document.getElementById("fullAnalysisPrompt");
-      if (!main || !prompt || !main.classList.contains("is-locked")) return;
-      if (requiresUnlockLeadForm()) {
-        restoreUnlockLeadFromSession();
-        prefillUnlockLeadProvince();
-        prefillUnlockLeadSchoolLevel();
+    function hideFullAnalysisPrompt(animate) {
+      hideLeadPrompt("fullAnalysisPrompt", animate);
+    }
+
+    function hideSchoolAnalysisPrompt(animate) {
+      hideLeadPrompt("schoolAnalysisPrompt", animate);
+    }
+
+    function showLeadPrompt(promptId, prefillPrefix) {
+      const prompt = document.getElementById(promptId);
+      if (!prompt) return;
+      if (prefillPrefix) {
+        restoreLeadFormFromSession(prefillPrefix);
+        prefillLeadFormProvince(prefillPrefix);
+        prefillLeadFormSchoolLevel(prefillPrefix);
       }
       prompt.setAttribute("aria-hidden", "false");
       document.body.classList.add("full-analysis-modal-open");
       requestAnimationFrame(() => prompt.classList.add("is-visible"));
     }
 
-    function getUnlockLeadFormElements() {
+    function showFullAnalysisPrompt() {
+      const main = document.getElementById("fullResultMain");
+      const prompt = document.getElementById("fullAnalysisPrompt");
+      if (!main || !prompt || !main.classList.contains("is-locked")) return;
+      if (requiresUnlockLeadForm()) {
+        restoreLeadFormFromSession("fullAnalysis");
+        prefillLeadFormProvince("fullAnalysis");
+        prefillLeadFormSchoolLevel("fullAnalysis");
+      }
+      prompt.setAttribute("aria-hidden", "false");
+      document.body.classList.add("full-analysis-modal-open");
+      requestAnimationFrame(() => prompt.classList.add("is-visible"));
+    }
+
+    function getLeadFormElements(prefix) {
       return {
-        form: document.getElementById("fullAnalysisLeadForm"),
-        province: document.getElementById("fullAnalysisProvince"),
-        schoolLevel: document.getElementById("fullAnalysisSchoolLevel"),
-        contact: document.getElementById("fullAnalysisContact"),
-        error: document.getElementById("fullAnalysisLeadError")
+        form: document.getElementById(prefix + "LeadForm"),
+        province: document.getElementById(prefix + "Province"),
+        schoolLevel: document.getElementById(prefix + "SchoolLevel"),
+        contact: document.getElementById(prefix + "Contact"),
+        error: document.getElementById(prefix + "LeadError")
       };
     }
 
-    function showUnlockLeadError(message) {
-      const els = getUnlockLeadFormElements();
+    function getUnlockLeadFormElements() {
+      return getLeadFormElements("fullAnalysis");
+    }
+
+    function showLeadFormError(prefix, message) {
+      const els = getLeadFormElements(prefix);
       if (!els.error) return;
       els.error.textContent = message || "";
     }
 
-    function readUnlockLeadForm() {
-      const els = getUnlockLeadFormElements();
+    function showUnlockLeadError(message) {
+      showLeadFormError("fullAnalysis", message);
+    }
+
+    function readLeadForm(prefix) {
+      const els = getLeadFormElements(prefix);
       if (!els.province || !els.schoolLevel || !els.contact) return null;
       return {
         province: (els.province.value || "").trim(),
@@ -4358,8 +4434,12 @@
       };
     }
 
-    function validateUnlockLeadForm() {
-      const lead = readUnlockLeadForm();
+    function readUnlockLeadForm() {
+      return readLeadForm("fullAnalysis");
+    }
+
+    function validateLeadForm(prefix) {
+      const lead = readLeadForm(prefix);
       if (!lead) return { ok: false, error: "表单加载失败，请刷新后重试" };
       if (!lead.province) return { ok: false, error: "请填写省份" };
       if (!lead.schoolLevel) return { ok: false, error: "请选择目标学校层级" };
@@ -4374,14 +4454,22 @@
       return { ok: true, data: lead };
     }
 
-    function saveUnlockLeadToSession(lead) {
+    function validateUnlockLeadForm() {
+      return validateLeadForm("fullAnalysis");
+    }
+
+    function saveLeadFormToSession(lead) {
       try {
         sessionStorage.setItem(UNLOCK_LEAD_SESSION_KEY, JSON.stringify(lead));
       } catch (e) { /* ignore */ }
     }
 
-    function restoreUnlockLeadFromSession() {
-      const els = getUnlockLeadFormElements();
+    function saveUnlockLeadToSession(lead) {
+      saveLeadFormToSession(lead);
+    }
+
+    function restoreLeadFormFromSession(prefix) {
+      const els = getLeadFormElements(prefix);
       if (!els.province || !els.schoolLevel || !els.contact) return;
       let saved = null;
       try {
@@ -4393,6 +4481,10 @@
       if (saved.province) els.province.value = saved.province;
       if (saved.schoolLevel) els.schoolLevel.value = saved.schoolLevel;
       if (saved.contact) els.contact.value = saved.contact;
+    }
+
+    function restoreUnlockLeadFromSession() {
+      restoreLeadFormFromSession("fullAnalysis");
     }
 
     function normalizeProvinceLabel(value) {
@@ -4441,8 +4533,8 @@
       return "";
     }
 
-    async function prefillUnlockLeadProvince() {
-      const els = getUnlockLeadFormElements();
+    async function prefillLeadFormProvince(prefix) {
+      const els = getLeadFormElements(prefix);
       if (!els.province || (els.province.value || "").trim()) return;
 
       let cached = "";
@@ -4462,8 +4554,12 @@
       } catch (e) { /* ignore */ }
     }
 
-    function prefillUnlockLeadSchoolLevel() {
-      const els = getUnlockLeadFormElements();
+    async function prefillUnlockLeadProvince() {
+      return prefillLeadFormProvince("fullAnalysis");
+    }
+
+    function prefillLeadFormSchoolLevel(prefix) {
+      const els = getLeadFormElements(prefix);
       if (!els.schoolLevel) return;
       let saved = null;
       try {
@@ -4475,16 +4571,24 @@
       els.schoolLevel.value = resolveUnlockSchoolLevelDefault();
     }
 
-    function bindUnlockLeadFormInputs() {
-      const els = getUnlockLeadFormElements();
+    function prefillUnlockLeadSchoolLevel() {
+      prefillLeadFormSchoolLevel("fullAnalysis");
+    }
+
+    function bindLeadFormInputs(prefix) {
+      const els = getLeadFormElements(prefix);
       if (!els.form) return;
       ["input", "change"].forEach((eventName) => {
         els.form.addEventListener(eventName, () => {
           if (els.error && els.error.textContent) {
-            showUnlockLeadError("");
+            showLeadFormError(prefix, "");
           }
         });
       });
+    }
+
+    function bindUnlockLeadFormInputs() {
+      bindLeadFormInputs("fullAnalysis");
     }
 
     function requireUnlockLeadBeforeUnlock(payload, unlockMethod) {
@@ -4497,9 +4601,64 @@
         return null;
       }
       showUnlockLeadError("");
-      saveUnlockLeadToSession(result.data);
+      saveLeadFormToSession(result.data);
       queueVoceChatUnlockLeadNotify(payload, result.data, unlockMethod);
       return result.data;
+    }
+
+    function showSchoolAnalysisPrompt() {
+      showLeadPrompt("schoolAnalysisPrompt", "schoolAnalysis");
+    }
+
+    async function submitSchoolAnalysisLead(payload) {
+      const submitBtn = document.getElementById("schoolAnalysisSubmitBtn");
+      const submitLabel = submitBtn ? submitBtn.textContent : "";
+      const result = validateLeadForm("schoolAnalysis");
+      if (!result.ok) {
+        showLeadFormError("schoolAnalysis", result.error);
+        return;
+      }
+      showLeadFormError("schoolAnalysis", "");
+      saveLeadFormToSession(result.data);
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "提交中…";
+      }
+      try {
+        await queueVoceChatSchoolAnalysisNotify(payload, result.data);
+        hideSchoolAnalysisPrompt(true);
+        showFullLinkCopiedTipMessage("提交成功，专业高报老师将尽快联系你");
+      } catch (e) {
+        console.error(e);
+        showLeadFormError("schoolAnalysis", "提交失败，请稍后重试");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = submitLabel;
+        }
+      }
+    }
+
+    function initSchoolAnalysisPrompt(payload) {
+      const btn = document.getElementById("schoolAnalysisBtn");
+      let submitBtn = document.getElementById("schoolAnalysisSubmitBtn");
+      if (btn) {
+        const freshBtn = replaceNodeForBind(btn);
+        freshBtn.addEventListener("click", () => showSchoolAnalysisPrompt());
+      }
+      bindLeadFormInputs("schoolAnalysis");
+      if (submitBtn) {
+        submitBtn = replaceNodeForBind(submitBtn);
+        submitBtn.addEventListener("click", () => {
+          submitSchoolAnalysisLead(payload).catch((err) => console.error(err));
+        });
+      }
+      const prompt = document.getElementById("schoolAnalysisPrompt");
+      if (prompt) {
+        prompt.addEventListener("click", (e) => {
+          if (e.target === prompt) hideSchoolAnalysisPrompt(true);
+        });
+      }
     }
 
     function markShareImageSaved() {
@@ -4523,7 +4682,8 @@
 
     function unlockFullAnalysis() {
       try {
-        sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, "1");
+        const token = getFullAnalysisUnlockToken();
+        if (token) sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, token);
       } catch (e) { /* ignore */ }
       const main = document.getElementById("fullResultMain");
       if (!main) return;
@@ -4638,11 +4798,12 @@
     }
 
     function mountFullResultDom(payload, topHtml) {
-      removeFullAnalysisPromptFromDom();
+      removeLeadPromptsFromDom();
       resultSection.innerHTML = renderFullResultPageHtml(payload, topHtml);
-      ensureFullAnalysisPromptOnBody();
+      ensureLeadPromptsOnBody();
       bindResultActions(payload);
       initFullAnalysisGate(payload);
+      initSchoolAnalysisPrompt(payload);
       const img = resultSection.querySelector(".share-result-photo");
       bindSharePageActions(payload, img && img.src ? img.src : null);
     }
@@ -4658,9 +4819,6 @@
         saveFullResultSession(payload);
         try {
           sessionStorage.removeItem(SHARE_IMAGE_SAVED_KEY);
-          if (!isFullAnalysisUnlocked()) {
-            sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
-          }
         } catch (e) { /* ignore */ }
       }
       document.title = payload.rule.display_name + " · ZYBT AI专业测试";
@@ -4930,13 +5088,17 @@
       }
     }
 
-    function showFullLinkCopiedTip() {
+    function showFullLinkCopiedTipMessage(message) {
       const tip = document.getElementById("fullLinkCopiedTip");
       if (!tip) return;
-      tip.textContent = "完整报告链接已复制";
+      tip.textContent = message || "完整报告链接已复制";
       tip.classList.add("show");
       clearTimeout(showFullLinkCopiedTip._timer);
       showFullLinkCopiedTip._timer = setTimeout(() => tip.classList.remove("show"), 2500);
+    }
+
+    function showFullLinkCopiedTip() {
+      showFullLinkCopiedTipMessage("完整报告链接已复制");
     }
 
     function bindResultActions(payload) {
@@ -5068,6 +5230,14 @@
         .catch((e) => console.warn("VoceChat stripe pay notify failed", e));
     }
 
+    function queueVoceChatSchoolAnalysisNotify(payload, lead) {
+      if (!window.VoceChatBot || typeof VoceChatBot.notifySchoolAnalysisLeadSubmit !== "function") {
+        return Promise.resolve({ skipped: true });
+      }
+      const ctx = Object.assign({}, getVoceChatNotifyContext(), { lead: lead });
+      return VoceChatBot.notifySchoolAnalysisLeadSubmit(payload, ctx);
+    }
+
     function queueVoceChatUnlockLeadNotify(payload, lead, unlockMethod) {
       if (!window.VoceChatBot || typeof VoceChatBot.notifyUnlockLeadSubmit !== "function") return;
       try {
@@ -5103,7 +5273,7 @@
       config.questions.forEach((q) => initAnswerForQuestion(q));
       document.body.classList.remove("result-view", "full-analysis-modal-open");
       document.body.classList.add("quiz-view");
-      removeFullAnalysisPromptFromDom();
+      removeLeadPromptsFromDom();
       try {
         sessionStorage.removeItem(FULL_RESULT_SESSION_KEY);
         sessionStorage.removeItem(FULL_ANALYSIS_UNLOCK_KEY);
