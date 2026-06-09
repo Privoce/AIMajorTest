@@ -540,7 +540,7 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: 25%;
+      top: 75%;
       bottom: 0;
       z-index: 4;
       pointer-events: auto;
@@ -1391,6 +1391,78 @@
       font-size: 0.9rem;
       margin-top: 4px;
     }
+    .admin-answer-review {
+      margin: 22px 0 8px;
+      padding: 16px 14px;
+      border-radius: 12px;
+      border: 1px dashed #9ec5f5;
+      background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+    }
+    .admin-answer-review > h3 {
+      font-size: 0.98rem;
+      color: #2f5f9e;
+      margin-bottom: 4px;
+    }
+    .admin-answer-review > p {
+      font-size: 0.82rem;
+      color: #8b97ad;
+      margin-bottom: 14px;
+    }
+    .admin-answer-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .admin-answer-item {
+      padding: 12px 12px 10px;
+      border-radius: 10px;
+      border: 1px solid #e3e9f3;
+      background: #fff;
+    }
+    .admin-answer-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.74rem;
+      color: #9aa6bc;
+    }
+    .admin-answer-index {
+      font-weight: 700;
+      color: #5a7ab5;
+    }
+    .admin-answer-module {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef5ff;
+      color: #3d6a9e;
+      font-weight: 600;
+    }
+    .admin-answer-q {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #384058;
+      margin-bottom: 6px;
+      line-height: 1.45;
+    }
+    .admin-answer-a {
+      font-size: 0.88rem;
+      color: #4a5872;
+      line-height: 1.5;
+    }
+    .admin-answer-a strong {
+      color: #2f8fef;
+      font-weight: 700;
+    }
+    .admin-answer-hint {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: #8b97ad;
+    }
     .section ul.combined-list {
       margin-left: 0;
     }
@@ -1786,6 +1858,7 @@
     const FULL_RESULT_SESSION_KEY = "majorTestFullResult";
     const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
     const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/fZu14n4YhaimciUcTm6c01k";
+    const STRIPE_PAY_UNLOCK_ENABLED = false;
     const STRIPE_PAY_PENDING_KEY = "majorTestStripePayPending";
     const STRIPE_PAY_CANCEL_FLAG_KEY = "majorTestStripePayCancel";
     const BETA_UNLOCK_PARAM = "betaUnlock";
@@ -3347,6 +3420,70 @@
       return items;
     }
 
+    function formatQuestionAnswerReview(q) {
+      if (!q) return { main: "（未作答）", hint: "" };
+      const ans = answers[q.id];
+      if (q.type === "single_choice" || q.type === "multi_choice") {
+        const texts = getSelectedOptions(q).map((o) => o.text);
+        if (!texts.length) return { main: "（未作答）", hint: "" };
+        return { main: texts.join("；"), hint: "" };
+      }
+      if (q.type === "scale_0_7" || q.type === "slider") {
+        if (typeof ans !== "number" || Number.isNaN(ans)) {
+          return { main: "（未作答）", hint: "" };
+        }
+        const min = typeof q.min === "number" ? q.min : 1;
+        const max = typeof q.max === "number" ? q.max : 7;
+        let hint = "";
+        if (q.min_label && q.max_label) {
+          if (ans <= 3) hint = "倾向：" + q.min_label;
+          else if (ans >= 5) hint = "倾向：" + q.max_label;
+          else hint = "倾向：中性";
+        }
+        return { main: String(ans) + " / " + min + "–" + max, hint: hint };
+      }
+      if (ans === undefined || ans === null || ans === "") {
+        return { main: "（未作答）", hint: "" };
+      }
+      return { main: String(ans), hint: "" };
+    }
+
+    function collectAllAnswerReviewItems() {
+      return (config.questions || []).map((q, index) => {
+        const formatted = formatQuestionAnswerReview(q);
+        return {
+          index: index + 1,
+          module: q.module || "",
+          question: q.question || q.id,
+          answer: formatted.main,
+          hint: formatted.hint
+        };
+      });
+    }
+
+    function renderAdminAnswerReview() {
+      if (!isBetaUnlockSession()) return "";
+      const items = collectAllAnswerReviewItems();
+      if (!items.length) return "";
+      let html = "<div class=\"section admin-answer-review\" id=\"adminAnswerReview\">";
+      html += "<h3>内部查看 · 全部答题记录</h3>";
+      html += "<p>仅管理员解锁后可见，普通用户不会看到此区块。</p>";
+      html += "<ol class=\"admin-answer-list\">";
+      items.forEach((item) => {
+        html += "<li class=\"admin-answer-item\">";
+        html += "<div class=\"admin-answer-meta\">";
+        html += "<span class=\"admin-answer-index\">Q" + item.index + "</span>";
+        if (item.module) html += "<span class=\"admin-answer-module\">" + item.module + "</span>";
+        html += "</div>";
+        html += "<div class=\"admin-answer-q\">" + item.question + "</div>";
+        html += "<div class=\"admin-answer-a\"><strong>答：</strong>" + item.answer + "</div>";
+        if (item.hint) html += "<span class=\"admin-answer-hint\">" + item.hint + "</span>";
+        html += "</li>";
+      });
+      html += "</ol></div>";
+      return html;
+    }
+
     function renderChoiceSummary() {
       return renderChoiceSummaryItems(collectChoiceSummaryItems());
     }
@@ -3920,6 +4057,7 @@
       html += "</div>";
 
       html += "<p class=\"disclaimer\">" + (config.test_meta.disclaimer || "") + "</p>";
+      html += renderAdminAnswerReview();
 
       html += "<div class=\"result-actions result-actions-full\">";
       html += "<div class=\"result-actions-row\">";
@@ -3980,16 +4118,18 @@
       html += "<div class=\"full-analysis-prompt-panel\">";
       html += "<p class=\"full-analysis-prompt-text\" id=\"fullAnalysisPromptTitle\">"
         + (withLeadForm
-          ? "填写信息后分享解锁完全版分析；也可 ￥5.99 付费直接解锁。"
-          : "前500名可分享解锁完全版分析；也可 ￥5.99 付费直接解锁。")
+          ? "分享截图，并填写估分对应目标层级信息后，我们会发给你 AI 完全版分析。"
+          : "分享截图后，我们会发给你 AI 完全版分析。")
         + "</p>";
       if (withLeadForm) {
         html += renderLeadCaptureFormHtml("fullAnalysis");
       }
       html += "<div class=\"full-analysis-prompt-actions\">";
-      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">分享解锁（分享图片到朋友圈）</button>";
-      html += "<p class=\"full-analysis-prompt-divider\">或</p>";
-      html += "<button type=\"button\" class=\"btn btn-outline\" id=\"stripeUnlockBtn\">￥5.99 付费解锁</button>";
+      html += "<button type=\"button\" class=\"btn btn-primary\" id=\"confirmFullAnalysisBtn\">分享截图到朋友圈</button>";
+      if (STRIPE_PAY_UNLOCK_ENABLED) {
+        html += "<p class=\"full-analysis-prompt-divider\">或</p>";
+        html += "<button type=\"button\" class=\"btn btn-outline\" id=\"stripeUnlockBtn\">￥5.99 付费解锁</button>";
+      }
       html += "</div></div></div>";
       return html;
     }
@@ -4388,6 +4528,7 @@
     }
 
     function beginStripeUnlock(payload, options) {
+      if (!STRIPE_PAY_UNLOCK_ENABLED) return;
       const opts = options || {};
       const lead = requireUnlockLeadBeforeUnlock(payload, "stripe");
       if (!lead) {
@@ -4849,9 +4990,9 @@
           const mode = await downloadShareResultImage(payload, getShareImageSrc(null));
           markShareImageSaved();
           if (mode === "preview") {
-            showShareActionTip(isWeChatBrowser() ? "请保存图片并分享到朋友圈，完全版分析已解锁" : "请保存图片并分享到朋友圈，完全版分析已解锁");
+            showShareActionTip(isWeChatBrowser() ? "请保存截图并分享到朋友圈，我们会发给你 AI 完全版分析" : "请保存截图并分享到朋友圈，我们会发给你 AI 完全版分析");
           } else {
-            showShareActionTip("图片已保存，完全版分析已解锁");
+            showShareActionTip("截图已保存，我们会发给你 AI 完全版分析");
           }
         }
         unlockFullAnalysis();
@@ -5493,7 +5634,7 @@
       const openStripe = params.get("openStripe") === "1";
       const vParam = params.get("v");
 
-      if (openStripe && vParam && !isWeChatBrowser()) {
+      if (openStripe && vParam && STRIPE_PAY_UNLOCK_ENABLED && !isWeChatBrowser()) {
         params.delete("openStripe");
         const qs = params.toString();
         history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
@@ -5505,7 +5646,7 @@
 
       if (vParam) {
         if (await tryRenderFullResultFromParam(vParam)) {
-          if (openStripe && isWeChatBrowser()) {
+          if (openStripe && STRIPE_PAY_UNLOCK_ENABLED && isWeChatBrowser()) {
             showWeChatStripeBrowserGuide(buildStripeBrowserOpenUrl());
           }
           if (stripeReturn.unlocked) showShareActionTip("支付成功，完全版分析已解锁");
