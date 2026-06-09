@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>内部查看 · 完全版分析解锁</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #fff;
+      --ink: #2f3a52;
+      --muted: #72809a;
+      --line: #e3e9f3;
+      --primary: #2f8fef;
+      --primary-soft: #eef5ff;
+      --danger: #d64545;
+      --shadow: 0 8px 24px rgba(32, 46, 79, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .panel {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px 22px 24px;
+      box-shadow: var(--shadow);
+    }
+    .panel h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #384058;
+    }
+    .panel .sub {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+    label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #4a5670;
+      margin-bottom: 6px;
+    }
+    .field { margin-bottom: 16px; }
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: #fff;
+    }
+    input:focus {
+      outline: none;
+      border-color: #9ec5f5;
+      box-shadow: 0 0 0 3px rgba(47, 143, 239, 0.15);
+    }
+    .btn {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary) 0%, #1a7fd4 100%);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:active { transform: scale(0.99); }
+    .error {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fff0f0;
+      border: 1px solid #f5c2c2;
+      color: var(--danger);
+      font-size: 0.86rem;
+    }
+    .error.show { display: block; }
+    .hint {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 0.8rem;
+      color: #9aa6bc;
+      line-height: 1.55;
+    }
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--primary-soft);
+      color: #3a6fa8;
+      font-size: 0.86rem;
+    }
+    .status.show { display: block; }
+    .back {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 0.82rem;
+      color: #5a7ab5;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>内部查看 · 完全版分析解锁</h1>
+    <p class="sub">输入密码后，可在当前浏览器直接查看任意结果链接的完整版分析（无需分享或付费）。</p>
+
+    <form id="adminForm">
+      <div class="field">
+        <label for="password">密码</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <div class="field">
+        <label for="resultUrl">结果链接（含 ?v=）</label>
+        <input type="url" id="resultUrl" name="resultUrl" placeholder="https://major.voce.chat/?v=..." required>
+      </div>
+      <button type="submit" class="btn">解锁并查看</button>
+      <p class="error" id="errorMsg"></p>
+      <p class="status" id="statusMsg"></p>
+    </form>
+
+    <p class="hint">
+      解锁状态保存在当前浏览器标签页，关闭页面后失效。若已解锁，也可直接打开结果链接查看。
+    </p>
+    <a class="back" href="./">返回测试首页</a>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "zybt-inner2026";
+    const BETA_UNLOCK_SESSION_KEY = "majorTestBetaUnlock";
+    const FULL_ANALYSIS_UNLOCK_KEY = "majorTestFullAnalysisUnlocked";
+
+    const form = document.getElementById("adminForm");
+    const passwordInput = document.getElementById("password");
+    const resultUrlInput = document.getElementById("resultUrl");
+    const errorMsg = document.getElementById("errorMsg");
+    const statusMsg = document.getElementById("statusMsg");
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.classList.add("show");
+      statusMsg.classList.remove("show");
+    }
+
+    function extractVParam(input) {
+      const raw = (input || "").trim();
+      if (!raw) return "";
+      try {
+        const url = new URL(raw, location.origin);
+        return url.searchParams.get("v") || "";
+      } catch (e) {
+        if (/^v=/.test(raw)) return raw.slice(2);
+        if (/^\d+$/.test(raw)) return raw;
+        return "";
+      }
+    }
+
+    function buildResultHref(v) {
+      const url = new URL("./", location.href);
+      url.searchParams.set("v", v);
+      return url.toString();
+    }
+
+    function applyAdminUnlock(v) {
+      sessionStorage.setItem(BETA_UNLOCK_SESSION_KEY, "1");
+      if (v) sessionStorage.setItem(FULL_ANALYSIS_UNLOCK_KEY, v);
+    }
+
+    function isAdminUnlocked() {
+      return sessionStorage.getItem(BETA_UNLOCK_SESSION_KEY) === "1";
+    }
+
+    (function prefillFromQuery() {
+      const params = new URLSearchParams(location.search);
+      const v = params.get("v");
+      const url = params.get("url");
+      if (url) {
+        resultUrlInput.value = url;
+      } else if (v) {
+        resultUrlInput.value = buildResultHref(v);
+      }
+      if (isAdminUnlocked() && v) {
+        statusMsg.textContent = "当前浏览器已解锁，正在跳转…";
+        statusMsg.classList.add("show");
+        window.location.replace(buildResultHref(v));
+      }
+    })();
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      errorMsg.classList.remove("show");
+
+      const password = passwordInput.value.trim();
+      if (password !== ADMIN_PASSWORD) {
+        showError("密码错误");
+        return;
+      }
+
+      const v = extractVParam(resultUrlInput.value);
+      if (!v) {
+        showError("请填写有效的结果链接（需包含 ?v= 参数）");
+        return;
+      }
+
+      applyAdminUnlock(v);
+      window.location.href = buildResultHref(v);
+    });
+  </script>
+</body>
+</html>
