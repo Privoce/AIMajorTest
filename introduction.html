@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高考志愿咨询服务 · 高报师合作伙伴计划</title>
+  <meta name="description" content="高考志愿咨询服务：我们用专业画像测试为当地学校圈子引流，把高考生线索交给合作高报师，30% 服务分成。">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #fff;
+      --ink: #2f3a52;
+      --muted: #72809a;
+      --line: #e3e9f3;
+      --primary: #2f8fef;
+      --primary-soft: #eef5ff;
+      --accent: #1ab8c4;
+      --shadow: 0 8px 24px rgba(32, 46, 79, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    .shell { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
+
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 2px 12px rgba(32, 46, 79, 0.04);
+      padding: 14px 16px;
+    }
+    .brand-lockup {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .brand-side {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 14px rgba(47, 143, 239, 0.25);
+    }
+    .brand-qr {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      object-fit: contain;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(32, 46, 79, 0.06);
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      background: linear-gradient(120deg, #2f8fef 0%, #1ab8c4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .brand-powered {
+      margin-top: 4px;
+      font-size: 0.76rem;
+      color: #8b97ad;
+      font-weight: 500;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #fff 0%, #f0f7ff 100%);
+      border-bottom: 1px solid var(--line);
+      padding: 36px 16px 32px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: clamp(1.4rem, 4vw, 1.9rem);
+      font-weight: 800;
+      color: #384058;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .hero .lead {
+      color: var(--muted);
+      font-size: 0.98rem;
+      max-width: 580px;
+      margin: 0 auto 20px;
+    }
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, #1a7fd4 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(47, 143, 239, 0.35);
+    }
+    .btn-outline {
+      background: var(--surface);
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+
+    .section { margin-bottom: 28px; }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #384058;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+      flex-shrink: 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card p { color: var(--muted); font-size: 0.94rem; }
+    .card p + p { margin-top: 10px; }
+
+    .role-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px) {
+      .role-split { grid-template-columns: 1fr; }
+    }
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .role-card.us {
+      border-color: #b8d9f7;
+      background: linear-gradient(180deg, #fff 0%, #f5faff 100%);
+    }
+    .role-card.partner {
+      border-color: #a8e8ec;
+      background: linear-gradient(180deg, #fff 0%, #f2fcfd 100%);
+    }
+    .role-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .role-card.us .role-label { color: var(--primary); }
+    .role-card.partner .role-label { color: var(--accent); }
+    .role-card h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .role-card ul {
+      list-style: none;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+    .role-card li {
+      padding-left: 14px;
+      position: relative;
+      margin-bottom: 6px;
+    }
+    .role-card li::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .viral-loop {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .viral-step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .viral-step:last-child { border-bottom: none; }
+    .viral-step .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .viral-step strong {
+      display: block;
+      font-size: 0.94rem;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+    .viral-step span {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+    .viral-highlight {
+      background: linear-gradient(90deg, #fff8e8 0%, #fff 100%);
+      border-left: 3px solid #f5a623;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .feature-item {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .feature-item h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .feature-item p {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .profile-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pill {
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #3a6fa8;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .commission-card {
+      background: linear-gradient(135deg, #2f8fef 0%, #1ab8c4 100%);
+      border-radius: 16px;
+      padding: 28px 24px;
+      color: #fff;
+      text-align: center;
+      box-shadow: 0 12px 32px rgba(47, 143, 239, 0.3);
+    }
+    .commission-card .rate {
+      font-size: clamp(2.8rem, 10vw, 4rem);
+      font-weight: 900;
+      line-height: 1;
+      margin: 8px 0 4px;
+    }
+    .commission-card .rate-label {
+      font-size: 1rem;
+      opacity: 0.92;
+      margin-bottom: 16px;
+    }
+    .commission-card p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.55;
+    }
+
+    .steps {
+      list-style: none;
+      counter-reset: step;
+    }
+    .steps li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 44px;
+      margin-bottom: 18px;
+    }
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .steps li strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .steps li span {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .partner-types {
+      display: grid;
+      gap: 10px;
+    }
+    .partner-type {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .partner-type .icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .partner-type h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .partner-type p {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .cta-block {
+      text-align: center;
+      padding: 32px 20px 28px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .cta-block h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    .cta-block .wechat-id {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 12px 0 18px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: #f0faf4;
+      border: 1px solid #c8ebd4;
+      color: #1a7a3a;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .cta-block .wechat-id::before {
+      content: "微信";
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #07c160;
+      color: #fff;
+    }
+    .cta-block p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 0;
+      line-height: 1.55;
+    }
+    .cta-qr {
+      width: 220px;
+      height: auto;
+      max-width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      margin: 0 auto 14px;
+      display: block;
+      box-shadow: 0 4px 16px rgba(32, 46, 79, 0.08);
+    }
+    .cta-note {
+      font-size: 0.82rem;
+      color: #9aa6bc;
+      margin-top: 12px;
+    }
+
+    .site-footer {
+      text-align: center;
+      padding: 24px 16px 8px;
+      font-size: 0.8rem;
+      color: #9aa6bc;
+    }
+    .site-footer a {
+      color: #5a7ab5;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .site-footer a:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-lockup">
+      <div class="brand-side">
+        <img src="./assets/logo.jpg" alt="高考志愿咨询服务" class="brand-logo" width="52" height="52">
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">高考志愿咨询服务</div>
+        <div class="brand-powered">专业画像测试引流 · 高报师本地交付</div>
+      </div>
+      <div class="brand-side">
+        <img src="./assets/qr-major-voce.png" alt="扫码打开测试" class="brand-qr" width="52" height="52">
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="shell">
+      <span class="hero-badge">高报师合作伙伴计划</span>
+      <h1>我们负责引流<br>你负责咨询，<strong style="color:var(--primary)">30% 分成</strong></h1>
+      <p class="lead">
+        学生和家长完成 3 分钟专业画像测试，一键分享朋友圈——
+        在当地学校的家长圈里迅速传播。我们收集线索并<strong style="color:var(--ink)">把考生信息转给合作高报师</strong>，
+        由你完成志愿填报咨询与成交。
+      </p>
+      <div class="hero-cta">
+        <a href="./" class="btn btn-primary">趣味专业画像测试</a>
+        <a href="#partner" class="btn btn-outline">申请成为高报师合作方</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell">
+    <section class="section">
+      <h2 class="section-title">我们做什么</h2>
+      <div class="role-split">
+        <div class="role-card us">
+          <div class="role-label">我们（平台）</div>
+          <h3>引流 + 线索交付</h3>
+          <ul>
+            <li>运营专业画像测试产品</li>
+            <li>驱动学生/家长自发分享朋友圈</li>
+            <li>在当地学校圈子形成裂变传播</li>
+            <li>收集省份、分数层级、联系方式</li>
+            <li>把有效线索转给对应地区高报师</li>
+          </ul>
+        </div>
+        <div class="role-card partner">
+          <div class="role-label">合作方（高报师）</div>
+          <h3>咨询 + 成交交付</h3>
+          <ul>
+            <li>承接我们转来的考生与家长</li>
+            <li>提供学校与专业志愿分析</li>
+            <li>完成一对一高报咨询服务</li>
+            <li>跟进转化与签约成交</li>
+            <li>按约定比例获得服务分成</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">为什么会在当地学校圈子爆火</h2>
+      <div class="viral-loop">
+        <div class="viral-step">
+          <span class="num">1</span>
+          <div>
+            <strong>学生或家长做测试</strong>
+            <span>3 分钟答完题，立刻得到「苟命老头」「搞钱狗狗」等人格化专业画像，有趣、有共鸣。</span>
+          </div>
+        </div>
+        <div class="viral-step viral-highlight">
+          <span class="num">2</span>
+          <div>
+            <strong>分享到朋友圈</strong>
+            <span>结果卡精美、自带话题，高考生和家长愿意晒——同校、同城的家长群和朋友圈会快速接力转发。</span>
+          </div>
+        </div>
+        <div class="viral-step">
+          <span class="num">3</span>
+          <div>
+            <strong>同城同学圈裂变</strong>
+            <span>一个班、一个年级、一所高中传开，当地升学焦虑人群自然涌入，几乎零广告成本获客。</span>
+          </div>
+        </div>
+        <div class="viral-step">
+          <span class="num">4</span>
+          <div>
+            <strong>留资解锁完整分析</strong>
+            <span>填写省份、目标学校层级、微信号/手机号，获取学校+专业免费解析，形成高质量咨询线索。</span>
+          </div>
+        </div>
+        <div class="viral-step">
+          <span class="num">5</span>
+          <div>
+            <strong>线索转给当地高报师</strong>
+            <span>我们按地区匹配，把考生画像、分数层级与联系方式一并交付，你直接跟进咨询与成交。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">测试产品能力</h2>
+      <div class="card" style="margin-bottom:14px;">
+        <p>
+          引流载体是 <strong style="color:var(--ink)">ZYBT AI专业测试</strong>（major.voce.chat）——
+          面向志愿填报季的专业选择自测工具。结合兴趣、学习方式、就业价值观与现实约束，
+          输出 8 大专业画像与推荐专业清单，为高报咨询前的筛选与破冰而生。
+        </p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h3>3 分钟出结果</h3>
+          <p>门槛低，适合家长群、班级群、直播间随手转发。</p>
+        </div>
+        <div class="feature-item">
+          <h3>8 大人格画像</h3>
+          <p>传播性强，用户主动晒朋友圈，带动同城裂变。</p>
+        </div>
+        <div class="feature-item">
+          <h3>一键分享长图</h3>
+          <p>自带二维码，看过的人扫码即测，循环拉新。</p>
+        </div>
+        <div class="feature-item">
+          <h3>完整版志愿分析</h3>
+          <p>推荐专业、慎选提醒、职业适配，为咨询铺垫话题。</p>
+        </div>
+        <div class="feature-item">
+          <h3>考生信息留资</h3>
+          <p>省份、学校层级、联系方式——直接变成你可跟进的线索。</p>
+        </div>
+        <div class="feature-item">
+          <h3>线索实时通知</h3>
+          <p>留资后系统即时汇总，按地区分配给合作高报师。</p>
+        </div>
+      </div>
+      <div class="profile-pills" aria-label="八大画像">
+        <span class="pill">苟命老头</span>
+        <span class="pill">搞钱狗狗</span>
+        <span class="pill">编制牛马</span>
+        <span class="pill">工匠怨种</span>
+        <span class="pill">学术黑工</span>
+        <span class="pill">甲方动物</span>
+        <span class="pill">社交悍匪</span>
+        <span class="pill">穷忙大师</span>
+      </div>
+    </section>
+
+    <section class="section" id="partner">
+      <h2 class="section-title">合作方式 · 30% 分成</h2>
+      <div class="commission-card">
+        <div class="rate">30%</div>
+        <div class="rate-label">咨询服务收入分成</div>
+        <p>
+          合作高报师负责本地咨询与成交，我们负责测试引流与线索交付。
+          考生签约你的付费咨询服务后，将服务收入的 <strong>30%</strong> 作为线索与合作分成结算给平台，
+          <strong>70% 归你</strong>。你专注服务好家长，我们专注让当地学校圈子的流量持续涌进来。
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">合作流程</h2>
+      <ol class="steps">
+        <li>
+          <strong>申请成为高报师合作方</strong>
+          <span>联系我们，说明你的服务地区、擅长分数段与团队规模。</span>
+        </li>
+        <li>
+          <strong>开通本地区域</strong>
+          <span>绑定你负责的城市/省份，测试分享裂变带来的线索优先分配给你。</span>
+        </li>
+        <li>
+          <strong>我们持续引流</strong>
+          <span>学生和家长做测试、晒朋友圈，在当地学校圈子自然传播，线索自动汇总。</span>
+        </li>
+        <li>
+          <strong>接收考生信息并跟进</strong>
+          <span>收到含画像结果、省份、分数层级、联系方式的完整线索，直接致电或微信跟进。</span>
+        </li>
+        <li>
+          <strong>成交后按约结算</strong>
+          <span>咨询服务签约后，按 30% 比例结算，账目清晰、长期合作。</span>
+        </li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">我们在找这样的高报师</h2>
+      <div class="partner-types">
+        <div class="partner-type">
+          <span class="icon" aria-hidden="true">🎯</span>
+          <div>
+            <h3>本地高考志愿填报顾问</h3>
+            <p>熟悉本省招生政策、院校数据，能承接测试画像后的深度咨询与方案制定。</p>
+          </div>
+        </div>
+        <div class="partner-type">
+          <span class="icon" aria-hidden="true">🏫</span>
+          <div>
+            <h3>升学规划机构 / 高报工作室</h3>
+            <p>有成熟咨询流程与转化团队，希望获得低成本、高意向的本地考生线索。</p>
+          </div>
+        </div>
+        <div class="partner-type">
+          <span class="icon" aria-hidden="true">📍</span>
+          <div>
+            <h3>深耕某一地区的服务商</h3>
+            <p>覆盖具体城市或县区，能把「朋友圈裂变来的同城家长」快速转化成签约客户。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">为什么高报师值得合作</h2>
+      <div class="card">
+        <p><strong style="color:var(--ink)">获客成本低</strong> — 不用自己投流，测试分享在朋友圈自发裂变，当地学校圈帮你扩散。</p>
+        <p><strong style="color:var(--ink)">线索质量高</strong> — 用户已做完测试、看过画像，留资时带着省份与分数层级，咨询意图明确。</p>
+        <p><strong style="color:var(--ink)">分工清晰</strong> — 你只做擅长的志愿咨询与成交，引流与产品运营交给我们。</p>
+        <p><strong style="color:var(--ink)">旺季窗口短</strong> — 志愿填报季流量集中，越早绑定区域，越早吃到本地裂变红利。</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="cta-block">
+        <h2>申请成为高报师合作方</h2>
+        <p>扫码添加微信，备注「高报师合作 + 服务地区」</p>
+        <div class="wechat-id">privoce</div>
+        <img src="./assets/qr-wechat-privoce.png" alt="微信二维码 privoce" class="cta-qr" width="220" height="220">
+        <p class="cta-note">长按识别二维码，添加微信好友</p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <p>© Privoce, Inc · 高考志愿咨询服务 · <a href="https://major.voce.chat">major.voce.chat</a> · <a href="./">返回测试首页</a></p>
+  </footer>
+</body>
+</html>
